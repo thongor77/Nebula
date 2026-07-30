@@ -10,13 +10,16 @@ for building high-quality, consistent SDDM login screens.
 
 **Core MVP in progress.** The architecture, contracts and a real technical
 prototype are done (see [`docs/Roadmap.md`](docs/Roadmap.md), Phases 0 to
-1.0). Phases 1.1-1.3 landed the first real Core components —
+1.0). Phases 1.1-1.4 landed the first real Core components —
 `NebulaThemeConfig`, `NebulaThemeProvider`, `NebulaButton`, `NebulaAvatar`,
-`NebulaClock`, `NebulaDate` — plus `NebulaLoginLayout`, the shared
-four-zone skeleton every theme's login screen will build on. Each piece
-is tested and visually verified. A static login screen (avatar + clock +
-date + button, no theme) already works on top of Core alone, built
-through the layout — see
+`NebulaClock`, `NebulaDate`, `NebulaLoginLayout` (the shared four-zone
+skeleton every theme's login screen will build on) — plus a
+Service/Platform abstraction (`NebulaAuthService`, `NebulaUserService`,
+`NebulaSessionService`, `NebulaPowerService` in `core/services/`,
+SDDM-specific skeleton adapters in `platform/sddm/`) so Core components
+will never call SDDM directly. Each piece is tested and visually
+verified. A static login screen (avatar + clock + date + button, no
+theme, no SDDM) already works on top of Core alone — see
 [`docs/Core-Implementation-Status.md`](docs/Core-Implementation-Status.md).
 No theme exists yet.
 
@@ -32,11 +35,12 @@ No theme exists yet.
 ## Structure
 
 ```text
-core/          reusable components, effects, animations, utils, assets
+core/          reusable components, layouts, services, effects, animations, utils, assets
+platform/      concrete backend adapters (sddm/) — the only code allowed to call SDDM directly
 themes/        theme identities (cyberpunk, hacker, amoled, nord, glass, hypr)
 docs/          architecture, technical decisions, roadmap, specifications
 scripts/       packaging and tooling scripts
-tests/         test suite for Core components
+tests/         test suite for Core components, plus mocks/ for service adapters
 prototype/     throwaway Phase 1.0 SDDM environment probe (not a theme)
 .github/       CI workflows and issue/PR templates
 ```
@@ -64,6 +68,8 @@ Themes never redefine what already exists in Core — see
 | [`docs/Prototype-Results.md`](docs/Prototype-Results.md)       | Phase 1.0 real-world test results: SDDM API, multi-screen, HiDPI |
 | [`docs/Core-Implementation-Status.md`](docs/Core-Implementation-Status.md) | What's actually implemented in `core/`, and why |
 | [`docs/Development-Journal.md`](docs/Development-Journal.md)  | Technical discoveries from actually building Nebula (bugs found, causes, fixes) |
+| [`docs/Services-Architecture.md`](docs/Services-Architecture.md) | How Core components reach SDDM only through Services and Platform Adapters |
+| [`docs/Nebula-Principles.md`](docs/Nebula-Principles.md)       | The project's small set of stable, fundamental rules |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md)                            | Coding conventions, commit style, PR process        |
 | [`CLAUDE.md`](CLAUDE.md)                                        | Project context for AI-assisted development (FR)   |
 

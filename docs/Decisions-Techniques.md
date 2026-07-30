@@ -368,3 +368,108 @@ dans la même PR (voir `CONTRIBUTING.md`). Le Core MVP (Phase 1) ne démarre
 qu'après la revue de `Core-API.md`, `SDDM-Compatibility.md`,
 `Development-Environment.md` et `Theme-Development.md` (voir `Roadmap.md`,
 Phase 0.5).
+
+---
+
+## DT-0010 — `platform/` hors de `core/`, adapters non préfixés `Nebula`
+
+Date : 2026-07-30
+État : accepté
+
+### Contexte
+
+La Phase 1.4 introduit des Platform Adapters (`SDDMAuthAdapter`,
+`SDDMUserAdapter`, `SDDMSessionAdapter`, `SDDMPowerAdapter`) qui
+dialoguent réellement (à terme) avec SDDM. Deux questions : où les
+placer, et comment les nommer — le brief d'origine ne suit pas la
+convention `Nebula*` (DT-0004) pour eux.
+
+### Décision
+
+Les adapters vivent dans un nouveau dossier de premier niveau,
+`platform/sddm/`, pas sous `core/`. Ils ne portent pas le préfixe
+`Nebula` — DT-0004 s'applique aux "composants exportés par le Core" ;
+les adapters ne sont ni exportés, ni du Core (ils vivent hors de
+`core/`), ni réutilisables entre thèmes. Leur nom porte celui de la
+plateforme concrète (`SDDM*Adapter`), à l'image de `themes/nord/` qui ne
+s'appelle pas `NebulaNord`.
+
+Les Services eux-mêmes (`NebulaAuthService`, etc.), qui vivent dans
+`core/services/`, restent préfixés `Nebula` — DT-0004 s'applique
+pleinement à eux.
+
+### Alternatives étudiées
+
+- `core/platform/sddm/` : rejeté — brouillerait la garantie "le Core ne
+  connaît jamais SDDM" (`Core-API.md` §1, `Nebula-Principles.md` §2) en
+  laissant du code spécifique à SDDM techniquement *sous* `core/`.
+- Préfixer aussi les adapters `NebulaSDDMAuthAdapter` : rejeté, redondant
+  — tout le projet s'appelle déjà Nebula, préfixer un dossier
+  intrinsèquement spécifique à une plateforme n'ajoute pas d'information.
+
+### Raisons
+
+`core/` = réutilisable et théoriquement indépendant de tout backend ;
+`platform/` = liaison concrète à un backend précis. Les confondre dans un
+même espace de noms romprait la distinction que ce dossier existe
+justement pour rendre visible.
+
+### Conséquences
+
+Si un jour un second backend est nécessaire (hypothétique, pas un
+objectif actuel), il prendrait place en `platform/<nom>/`, suivant la
+même convention de nommage.
+
+---
+
+## DT-0011 — Services : `adapter` injecté en duck-typing, jamais de `Connections{}` sur un `QtObject`
+
+Date : 2026-07-30
+État : accepté
+
+### Contexte
+
+QML n'offre pas d'interfaces formelles sans passer par du C++. Il fallait
+un mécanisme pour que `NebulaAuthService`/`NebulaUserService`/
+`NebulaSessionService`/`NebulaPowerService` déclarent un contrat vis-à-vis
+d'un `adapter` sans connaître son type concret (mock en test, réel plus
+tard).
+
+### Décision
+
+Chaque Service expose une propriété `adapter` (type `var`, duck-typée —
+le contrat exact des propriétés/méthodes attendues est documenté dans
+`Services-Architecture.md`, pas imposé par le système de types). Pour
+réagir à un signal de l'adapter (ex. `loginResult`), la connexion se fait
+en JavaScript impératif (`adapter.loginResult.connect(...)` dans
+`onAdapterChanged`), **jamais** via un bloc déclaratif `Connections {}`
+en enfant direct d'un `QtObject`.
+
+### Alternatives étudiées
+
+- `Connections { target: root.adapter }` déclaré comme enfant du
+  `QtObject` racine : **testé, a réellement échoué** —
+  `QtObject` n'a pas de "default property" pour accueillir un enfant
+  anonyme (contrairement à `Item`, qui déclare `default property list
+  data`). Erreur trouvée uniquement à l'exécution
+  (`qmllint` ne l'a pas détectée) : "Cannot assign to non-existent
+  default property" — voir `Development-Journal.md`, Phase 1.4.
+- Faire hériter les Services d'`Item` plutôt que `QtObject` pour
+  bénéficier du default property : rejeté pour les Services eux-mêmes
+  (pas de `Connections{}` requis une fois la connexion faite en JS
+  impératif) — mais accepté ponctuellement pour `MockAuthAdapter`, qui a
+  réellement besoin d'un `Timer` enfant (voir `Development-Journal.md`).
+
+### Raisons
+
+Garder les Services en `QtObject` pur (cohérent avec
+`NebulaThemeConfig`/`NebulaThemeProvider`, DT existantes) tout en évitant
+une erreur d'exécution non détectée par le lint.
+
+### Conséquences
+
+Règle générale pour tout futur composant non-visuel du Core : s'il n'a
+besoin d'aucun enfant QML déclaratif (`Timer`, `Connections`, ...), rester
+`QtObject`. S'il en a réellement besoin, utiliser `Item` plutôt que de
+chercher un contournement — et le documenter, comme pour
+`MockAuthAdapter`.

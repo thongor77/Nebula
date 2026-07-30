@@ -97,12 +97,26 @@
 - Dépendance : `NebulaThemeProvider` (spacing uniquement).
 - `qmllint` : aucun avertissement.
 
+### NebulaAuthService / NebulaUserService / NebulaSessionService / NebulaPowerService (`core/services/`) — Phase 1.4
+
+- Testés réellement (voir §4) : instanciation, délégation à un `adapter`
+  injecté, cycle complet `authenticating` → `succeeded`/`failed` pour
+  l'auth (round-trip asynchrone simulé par `tests/mocks/MockAuthAdapter.qml`).
+- Contrat public uniquement — aucune connexion SDDM réelle (voir
+  [`Services-Architecture.md`](Services-Architecture.md)).
+- `platform/sddm/SDDM*Adapter.qml` créés en parallèle : squelettes,
+  capacités par défaut à `false`/vides, aucune méthode n'agit réellement
+  (`console.warn` à la place).
+- `qmllint` : aucun avertissement (après correction, voir D12 ci-dessous).
+
 ## 2. Composants en cours / pas commencés
 
 Reste du périmètre du Core MVP (voir `Core-MVP.md`) : `NebulaThemeLoader`,
 `NebulaBackground`, `NebulaUserList`, `NebulaPasswordField`,
 `NebulaSessionSelector`, `NebulaKeyboardSelector`, `NebulaPowerButtons`,
-`NebulaNotification`, `NebulaAnimationManager` — non commencés.
+`NebulaNotification`, `NebulaAnimationManager` — non commencés. Leur
+contrat `Core-API.md` a cependant déjà été mis à jour pour dépendre des
+Services (Phase 1.4) plutôt que de SDDM directement.
 
 **Critère de fin de la Phase 1.2 atteint** : un écran de login statique
 (avatar + heure + date + bouton) est démontré dans
@@ -115,6 +129,15 @@ n'assemble plus les composants directement — il instancie
 `NebulaLoginLayout` et y place son contenu (Avatar, Clock, Date, Button)
 via la zone par défaut. Résultat visuel identique à la Phase 1.2, vérifié
 par capture d'écran.
+
+**Critère de fin de la Phase 1.4 atteint** : aucun composant Core
+n'appelle `sddm.*` directement (aucun n'existe encore qui le pourrait —
+mais le contrat `Core-API.md` l'interdit désormais explicitement pour
+`NebulaUserList`/`NebulaPasswordField`/`NebulaSessionSelector`/
+`NebulaPowerButtons`). `tests/LoginScreenHarness.qml` continue de
+fonctionner sans SDDM, désormais via `NebulaUserService`/
+`NebulaAuthService` réels (avec adapters fictifs) plutôt que des valeurs
+codées en dur.
 
 ## 3. Décisions prises pendant cette phase
 
@@ -284,6 +307,36 @@ maintenant — aucun écran réel visé par Nebula n'a un ratio aussi extrême
 (voir `SDDM-Compatibility.md`). À revisiter seulement si un besoin réel
 apparaît (voir principe de travail du workspace).
 
+### D12 — Services préfixés `Nebula`, Adapters non préfixés (Phase 1.4)
+
+Réconciliation avec le brief : les noms de fichiers proposés
+(`AuthService.qml`, `SDDMAuthAdapter.qml`) ne suivaient pas DT-0004 pour
+les premiers. Décision complète et raisons : voir DT-0010 dans
+`Decisions-Techniques.md`. En bref : `core/services/Nebula*Service.qml`
+(DT-0004 s'applique, c'est du Core) ; `platform/sddm/SDDM*Adapter.qml`
+sans préfixe (hors `core/`, spécifique à SDDM par nature).
+
+### D13 — `Connections{}` invalide comme enfant direct d'un `QtObject`
+
+**Trouvé pendant le test** : `NebulaAuthService.qml` déclarait
+`Connections { target: root.adapter; ... }` comme enfant direct de son
+`QtObject` racine. `qmllint` ne l'a pas signalé, mais `qml6` a refusé de
+charger le fichier : `Cannot assign to non-existent default property` —
+`QtObject` n'a pas de default property pour recevoir un enfant anonyme
+(contrairement à `Item`, qui déclare `default property list data`).
+
+**Solution** : connexion en JavaScript impératif
+(`adapter.loginResult.connect(...)` dans `onAdapterChanged`) plutôt qu'un
+bloc `Connections{}` déclaratif. Même piège retrouvé dans
+`tests/mocks/MockAuthAdapter.qml` (qui a, lui, un vrai besoin d'un
+`Timer` enfant) — corrigé en changeant son type racine de `QtObject` à
+`Item`, puisqu'un `Timer` enfant est indispensable là et qu'`Item`
+fournit le default property nécessaire.
+
+Décision complète et règle générale pour la suite : voir DT-0011 dans
+`Decisions-Techniques.md`. Détail du diagnostic : voir
+`Development-Journal.md`, Phase 1.4.
+
 ## 4. Vérifications réelles effectuées
 
 - `qmllint` sur les 3 nouveaux fichiers + le harnais de test : aucun
@@ -333,6 +386,26 @@ apparaît (voir principe de travail du workspace).
   référence — tous rendus capturés à l'écran, aucun avertissement QML
   restant après correction du bug de boucle.
 
+### Phase 1.4
+
+- `qmllint` sur les 4 Services, les 4 Adapters SDDM, les 4 Mock Adapters,
+  `tests/ServicesHarness.qml` et `tests/LoginScreenHarness.qml` mis à
+  jour : aucun avertissement — y compris sur les deux fichiers qui
+  contenaient pourtant le bug `Connections{}`/`QtObject` (D13), un bug
+  invisible à `qmllint`, trouvé uniquement à l'exécution réelle.
+- `tests/ServicesHarness.qml` exécuté réellement (`qml6`) : les 4
+  services s'instancient, `NebulaSessionService.selectSession(1)` change
+  bien `currentIndex` (0→1), `NebulaPowerService` reflète les capacités
+  du mock, et `NebulaAuthService.authenticate()` déclenche bien
+  `authenticating: true` puis, ~300 ms plus tard (round-trip simulé),
+  le signal `succeeded()` — confirmé par les logs (`journalctl`,
+  `qml6` loggue aussi via le journal systemd quand détaché d'un terminal,
+  cohérent avec la découverte de Phase 1.0).
+- `tests/LoginScreenHarness.qml` retesté visuellement : le nom affiché
+  vient maintenant de `NebulaUserService`/`MockUserAdapter`
+  ("Nebula User" au lieu de la chaîne "nebula" codée en dur) — capture
+  d'écran comparée, aucune régression visuelle par ailleurs.
+
 ## 5. Documentation à synchroniser (fait dans ce lot)
 
 - [`Design-System.md`](Design-System.md) — `fontWeight` → 
@@ -351,3 +424,19 @@ apparaît (voir principe de travail du workspace).
 - [`Roadmap.md`](Roadmap.md) — Phase 1.3 marquée terminée.
 - [`Development-Journal.md`](Development-Journal.md) — nouveau document
   (Phase 1.3), rétro-rempli avec les découvertes des Phases 1.0 à 1.3.
+- [`Core-API.md`](Core-API.md) — entrées `NebulaAuthService`,
+  `NebulaUserService`, `NebulaSessionService`, `NebulaPowerService`
+  ajoutées ; `Inputs`/`Dependencies` de `NebulaUserList`,
+  `NebulaPasswordField`, `NebulaSessionSelector`, `NebulaPowerButtons`
+  révisés pour dépendre des Services plutôt que de SDDM directement.
+- [`Architecture.md`](Architecture.md) — `platform/` ajouté à
+  l'arborescence cible ; Services ajoutés à la liste des composants.
+- [`Decisions-Techniques.md`](Decisions-Techniques.md) — DT-0010
+  (nommage Services/Adapters), DT-0011 (`QtObject` vs `Item` pour
+  `Connections`/`Timer`).
+- [`Core-MVP.md`](Core-MVP.md) — Services ajoutés à l'infrastructure,
+  composants d'intégration SDDM annotés avec leur Service.
+- [`Roadmap.md`](Roadmap.md) — Phase 1.4 marquée terminée.
+- [`Services-Architecture.md`](Services-Architecture.md),
+  [`Nebula-Principles.md`](Nebula-Principles.md) — nouveaux documents
+  (Phase 1.4).

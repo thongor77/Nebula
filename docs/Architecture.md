@@ -99,6 +99,8 @@ nebula/
 │   ├── services/
 │   ├── utils/
 │   └── assets/
+├── platform/
+│   └── sddm/
 ├── themes/
 │   ├── cyberpunk/
 │   ├── hacker/
@@ -109,6 +111,7 @@ nebula/
 ├── docs/
 ├── scripts/
 ├── tests/
+│   └── mocks/
 └── .github/
 ```
 
@@ -116,11 +119,25 @@ nebula/
 *Nebula Architecture Enhancement Proposal* — son absence était un vrai
 manque, à structurer dès la Phase 1 (voir `Roadmap.md`).
 
+`platform/` a été ajouté en Phase 1.4 : les Platform Adapters (contact
+concret avec SDDM) n'appartiennent ni à `core/` (pas réutilisables entre
+backends, spécifiques à SDDM) ni à `themes/` — un troisième concept
+distinct. Voir DT-0010 dans
+[`Decisions-Techniques.md`](Decisions-Techniques.md) et
+[`Services-Architecture.md`](Services-Architecture.md). Contrairement à
+DT-0008 ci-dessous, ce n'est pas une préparation pour un besoin
+hypothétique : `platform/` sépare `core/` de SDDM *aujourd'hui*, pour un
+composant (`NebulaPasswordField` et consorts) déjà planifié dans la
+Roadmap active — le support d'un second backend reste, lui, hors
+périmètre.
+
 Une restructuration plus large en `src/{core,themes,tools,shared}/` a été
 étudiée mais différée — voir DT-0008 dans
 [`Decisions-Techniques.md`](Decisions-Techniques.md).
 
 - `core/` contient tout ce qui est réutilisable.
+- `platform/` contient les adaptateurs concrets vers un backend (SDDM
+  aujourd'hui) — voir [`Services-Architecture.md`](Services-Architecture.md).
 - `themes/` ne contient que l'identité de chaque thème.
 - Chaque thème **importe** le Core ; le Core n'a jamais connaissance des
   thèmes.
@@ -140,7 +157,14 @@ Une restructuration plus large en `src/{core,themes,tools,shared}/` a été
 `SessionSelector`, `PowerButtons`, `KeyboardSelector`, `Notification`,
 `Background`, `WallpaperEngine`, `ThemeConfig`, `ThemeProvider`,
 `AnimationManager`, `SoundManager`, `ThemeLoader`, `BlurEffect`,
-`GlowEffect`, `Particles`, `LoginLayout`, polices et icônes partagées.
+`GlowEffect`, `Particles`, `LoginLayout`, `AuthService`, `UserService`,
+`SessionService`, `PowerService`, polices et icônes partagées.
+
+`AuthService`/`UserService`/`SessionService`/`PowerService` (Phase 1.4,
+`core/services/`) sont le seul point de contact autorisé entre les
+composants et une future intégration SDDM — voir
+[`Services-Architecture.md`](Services-Architecture.md) et
+[`Nebula-Principles.md`](Nebula-Principles.md).
 
 `LoginLayout` (Phase 1.3, `core/layouts/`) fournit le squelette commun
 (zones : fond, contenu principal, statut, pied de page) que tous les

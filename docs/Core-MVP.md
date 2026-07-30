@@ -27,6 +27,11 @@ faire fonctionner un écran de connexion réel (voir `Architecture.md` §8,
 - `NebulaThemeProvider` — point d'accès unique au theming (DT-0006)
 - Design Tokens (`docs/Design-System.md`) — vocabulaire des valeurs
   visuelles, dans leur première implémentation concrète
+- `NebulaAuthService`, `NebulaUserService`, `NebulaSessionService`,
+  `NebulaPowerService` (Phase 1.4) — unique point d'accès à toute
+  intégration SDDM pour les composants (voir
+  [`Services-Architecture.md`](Services-Architecture.md)). Adossés à
+  `platform/sddm/` (squelettes en Phase 1.4, câblage réel plus tard).
 
 ## 3. Composants
 
@@ -45,11 +50,17 @@ faire fonctionner un écran de connexion réel (voir `Architecture.md` §8,
 
 ### Composants d'intégration SDDM
 
-- `NebulaUserList` (composé sur `NebulaAvatar`)
-- `NebulaPasswordField`
-- `NebulaSessionSelector`
-- `NebulaKeyboardSelector`
-- `NebulaPowerButtons` (composé sur `NebulaButton`)
+Depuis la Phase 1.4, chacun dépend d'un Service (`core/services/`), pas
+de SDDM directement — voir [`Services-Architecture.md`](Services-Architecture.md)
+et [`Core-API.md`](Core-API.md).
+
+- `NebulaUserList` (composé sur `NebulaAvatar`, dépend de
+  `NebulaUserService`)
+- `NebulaPasswordField` (dépend de `NebulaAuthService`)
+- `NebulaSessionSelector` (dépend de `NebulaSessionService`)
+- `NebulaKeyboardSelector` (pas de Service dédié — voir `Core-API.md`)
+- `NebulaPowerButtons` (composé sur `NebulaButton`, dépend de
+  `NebulaPowerService`)
 - `NebulaNotification`
 - `NebulaAnimationManager` (version minimale : tokens de durée uniquement,
   pas de courbes d'easing avancées)

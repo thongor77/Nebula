@@ -1,0 +1,129 @@
+# Services Architecture — Nebula
+
+> Comment Nebula prépare l'intégration SDDM sans jamais l'exposer
+> directement aux composants Core. Complète
+> [`Core-API.md`](Core-API.md) (contrat des composants) et
+> [`Theme-System.md`](Theme-System.md) (le même principe appliqué au
+> theming plutôt qu'à SDDM).
+
+---
+
+## 1. Pourquoi
+
+Depuis la Phase 1.0, on sait que l'API réelle de SDDM existe sous forme
+de propriétés de contexte (`sddm`, `userModel`, `sessionModel`,
+`keyboard` — voir [`Prototype-Results.md`](Prototype-Results.md) §3.2).
+Sans règle explicite, les futurs composants `NebulaUserList`,
+`NebulaPasswordField`, `NebulaSessionSelector`, `NebulaPowerButtons`
+auraient fini par lire ces propriétés directement — exactement le genre
+de couplage que `NebulaThemeProvider` existe déjà pour éviter côté
+theming (voir DT-0006). La Phase 1.4 applique le même principe à
+l'intégration SDDM : un composant ne connaît qu'un **Service** ; jamais
+SDDM, jamais un objet de contexte SDDM.
+
+## 2. Flux
+
+```text
+Core Components
+ │  (NebulaUserList, NebulaPasswordField, NebulaSessionSelector,
+ │   NebulaPowerButtons — pas encore implémentés)
+ ▼
+Core Services                    core/services/
+ │  NebulaAuthService, NebulaUserService,
+ │  NebulaSessionService, NebulaPowerService
+ ▼
+Platform Adapter                 platform/sddm/ (ou tests/mocks/ en test)
+ │  SDDMAuthAdapter, SDDMUserAdapter,
+ │  SDDMSessionAdapter, SDDMPowerAdapter
+ ▼
+SDDM API                         propriétés de contexte réelles
+    (sddm, userModel, sessionModel, keyboard — Prototype-Results.md §3.2)
+```
+
+Interdit dans un composant Core : appeler `sddm.login()`, `sddm.powerOff()`,
+`sddm.reboot()`, ou lire `userModel`/`sessionModel`/`keyboard` directement
+— voir [`Nebula-Principles.md`](Nebula-Principles.md), principes 2 et 6.
+
+## 3. Responsabilités
+
+### NebulaAuthService (`core/services/NebulaAuthService.qml`)
+
+- État : `authenticating` (bool, lecture seule), `errorMessage` (string,
+  lecture seule).
+- Actions : `authenticate(username, password)`, `cancel()`.
+- Signaux : `succeeded()`, `failed(reason)`.
+- Délègue à `adapter` (duck-typé : `login(username, password)`,
+  `cancel()`, signal `loginResult(success, reason)`).
+- Pas de connexion réelle implémentée (voir `Roadmap.md`, Phase 1.4) —
+  uniquement le contrat public et le câblage vers l'adapter.
+
+### NebulaUserService (`core/services/NebulaUserService.qml`)
+
+- État : `users` (liste), `currentUser` (objet).
+- Actions : `refresh()`.
+- Délègue à `adapter` (duck-typé : `users`, `currentUser`, `refresh()`).
+- Prévoit plusieurs utilisateurs (`users` est une liste) même si seul
+  l'utilisateur courant importe pour l'écran de login du Core MVP.
+
+### NebulaSessionService (`core/services/NebulaSessionService.qml`)
+
+- État : `sessions` (liste), `currentIndex` (int).
+- Actions : `selectSession(index)`.
+- Signal : `sessionChanged(index)`.
+- Délègue à `adapter` (duck-typé : `sessions`, `currentIndex`,
+  `selectSession(index)`).
+
+### NebulaPowerService (`core/services/NebulaPowerService.qml`)
+
+- État : `canShutdown`, `canReboot`, `canSuspend` (bool, lecture seule).
+- Actions : `shutdown()`, `reboot()`, `suspend()` — no-op si la capacité
+  correspondante est `false`, y compris si un adapter mal configuré
+  laisse passer l'appel.
+- Délègue à `adapter` (duck-typé : `canShutdown`/`canReboot`/`canSuspend`,
+  `shutdown()`/`reboot()`/`suspend()`).
+
+### Platform Adapters (`platform/sddm/`)
+
+Squelettes pour l'instant (voir `Core-Implementation-Status.md`) : aucune
+capacité activée par défaut (`can* = false` pour `SDDMPowerAdapter`),
+aucune donnée réelle (`users`/`sessions` vides), toute méthode d'action
+logue un avertissement `console.warn` plutôt que d'agir. Câblage réel vers
+`sddm`/`userModel`/`sessionModel`/`keyboard` prévu pour une phase
+ultérieure.
+
+### Mock Adapters (`tests/mocks/`)
+
+Utilisés uniquement par les harnais de test (`ServicesHarness.qml`,
+`LoginScreenHarness.qml`). Fournissent des données fictives et, pour
+`MockAuthAdapter`, simulent un aller-retour asynchrone court (`Timer`
+300 ms) pour exercer réellement les états `authenticating` →
+`succeeded`/`failed`, pas seulement l'instanciation. `MockPowerAdapter`
+ne fait jamais d'action système réelle — seulement `console.log`.
+
+## 4. Ordre des appels (exemple : authentification)
+
+1. Un composant (futur `NebulaPasswordField`) appelle
+   `authService.authenticate(username, password)`.
+2. `NebulaAuthService` passe `authenticating` à `true`, appelle
+   `adapter.login(username, password)`.
+3. L'adapter (mock ou, plus tard, `SDDMAuthAdapter`) traite la demande de
+   façon asynchrone et émet `loginResult(success, reason)`.
+4. `NebulaAuthService` écoute ce signal (connexion JS impérative dans
+   `onAdapterChanged`, pas de `Connections{}` déclaratif — voir
+   `Development-Journal.md`, Phase 1.4), met à jour `authenticating`/
+   `errorMessage`, puis émet `succeeded()` ou `failed(reason)`.
+5. Le composant réagit à ces signaux (ex. afficher l'erreur, débloquer le
+   champ).
+
+## 5. Ce qui reste hors périmètre de la Phase 1.4
+
+- Câblage réel des `platform/sddm/*Adapter.qml` vers `sddm`/`userModel`/
+  `sessionModel`/`keyboard` — squelettes seulement.
+- `NebulaUserList`, `NebulaPasswordField`, `NebulaSessionSelector`,
+  `NebulaPowerButtons` eux-mêmes — pas encore implémentés, mais leur
+  contrat `Core-API.md` a été mis à jour pour dépendre des Services
+  plutôt que des propriétés SDDM directement (voir
+  `Core-Implementation-Status.md`).
+- Support d'un second display manager — `platform/` existe pour séparer
+  `core/` de SDDM, pas pour préparer un usage multi-plateforme
+  hypothétique (voir DT-0010 dans `Decisions-Techniques.md`).

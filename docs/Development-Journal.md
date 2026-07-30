@@ -10,6 +10,38 @@
 
 ---
 
+## 2026-07-30 — Phase 1.4
+
+**Contexte** : `NebulaAuthService.qml` (racine `QtObject`) devait réagir
+au signal `loginResult` émis par son `adapter`, injecté dynamiquement via
+une propriété. Écrit avec un bloc `Connections { target: root.adapter;
+... }` déclaré comme enfant direct du `QtObject`.
+
+**Découverte** : `qmllint` ne signale rien, mais `qml6` refuse de charger
+le fichier — `Cannot assign to non-existent default property` (visible
+via `journalctl`, comme systématiquement pour les outils Qt détachés d'un
+terminal — voir entrées Phase 1.0/1.2 ci-dessous).
+
+**Cause** : `QtObject` ne déclare pas de "default property" pour
+recevoir un enfant anonyme comme `Connections { ... }`. `Item`, lui, en
+déclare une (`default property list<QtObject> data`) — mais `QtObject`
+seul n'a rien de tel.
+
+**Solution** : connecter le signal en JavaScript impératif
+(`adapter.loginResult.connect(...)` dans un handler `onAdapterChanged`)
+plutôt que via un bloc déclaratif. Le même piège existait dans
+`tests/mocks/MockAuthAdapter.qml`, qui avait lui un vrai besoin d'un
+`Timer` enfant (pas contournable en JS) — corrigé en changeant son type
+racine de `QtObject` à `Item`.
+
+**Impact** : règle générale pour tout futur composant non-visuel du
+Core — voir DT-0011 dans `Decisions-Techniques.md`. `QtObject` reste le
+type par défaut pour la logique pure ; passer à `Item` uniquement quand
+un enfant déclaratif (`Timer`, `Connections`, ...) est réellement
+nécessaire.
+
+---
+
 ## 2026-07-30 — Phase 1.3
 
 **Contexte** : intégration de `NebulaLoginLayout` dans

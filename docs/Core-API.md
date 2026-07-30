@@ -28,6 +28,11 @@
   la faire évoluer de façon incompatible (renommage, changement de type,
   suppression) est une rupture d'API et doit être tracée dans
   [`Decisions-Techniques.md`](Decisions-Techniques.md).
+- Aucun composant Core ne dialogue directement avec SDDM (`sddm.login()`,
+  `sddm.powerOff()`, `userModel`, `sessionModel`, ...) — uniquement via
+  les Services (`core/services/`, Phase 1.4). Voir
+  [`Services-Architecture.md`](Services-Architecture.md) et
+  [`Nebula-Principles.md`](Nebula-Principles.md).
 
 ## 2. Convention d'un composant
 
@@ -90,6 +95,53 @@ pour rester cohérent avec le reste de la documentation.
   est validé.
 - **Dependencies** : `NebulaThemeConfig`, `NebulaThemeLoader`.
 
+### NebulaAuthService (Phase 1.4)
+
+- **Responsabilité** : unique point d'accès à l'authentification pour
+  tous les composants (voir [`Services-Architecture.md`](Services-Architecture.md)).
+- **Inputs** : `adapter` (duck-typé — voir `Services-Architecture.md`).
+- **Outputs** : succès/échec de l'authentification.
+- **Properties** : `authenticating` (bool, lecture seule), `errorMessage`
+  (string, lecture seule).
+- **Signals** : `succeeded()`, `failed(reason: string)`.
+- **Dependencies** : un `adapter` (mock en test, `SDDMAuthAdapter` en
+  production — jamais SDDM directement, voir
+  [`Nebula-Principles.md`](Nebula-Principles.md) §4).
+
+### NebulaUserService (Phase 1.4)
+
+- **Responsabilité** : unique point d'accès aux données utilisateur.
+- **Inputs** : `adapter` (duck-typé).
+- **Outputs** : utilisateur(s) courant(s).
+- **Properties** : `users` (liste, lecture seule), `currentUser` (objet,
+  lecture seule).
+- **Signals** : aucun en Phase 1.4 (pas de rechargement réactif —
+  `refresh()` existe mais rien n'observe encore son résultat).
+- **Dependencies** : un `adapter`.
+
+### NebulaSessionService (Phase 1.4)
+
+- **Responsabilité** : unique point d'accès aux sessions disponibles.
+- **Inputs** : `adapter` (duck-typé).
+- **Outputs** : session sélectionnée.
+- **Properties** : `sessions` (liste, lecture seule), `currentIndex`
+  (int, lecture seule).
+- **Signals** : `sessionChanged(index: int)`.
+- **Dependencies** : un `adapter`.
+
+### NebulaPowerService (Phase 1.4)
+
+- **Responsabilité** : unique point d'accès aux actions d'alimentation
+  système.
+- **Inputs** : `adapter` (duck-typé).
+- **Outputs** : déclenchement d'une action système (délégué à l'adapter).
+- **Properties** : `canShutdown`, `canReboot`, `canSuspend` (bool,
+  lecture seule).
+- **Signals** : aucun.
+- **Dependencies** : un `adapter`. Les actions sont no-op si la capacité
+  correspondante est `false`, même si l'adapter laisserait autrement
+  passer l'appel (sécurité côté service, pas seulement côté UI).
+
 ### NebulaClock
 
 - **Responsabilité** : afficher l'heure courante, mise à jour automatique.
@@ -144,48 +196,68 @@ pour rester cohérent avec le reste de la documentation.
 
 - **Responsabilité** : lister les utilisateurs disponibles et gérer la
   sélection.
-- **Inputs** : propriété de contexte réelle `userModel` exposée par SDDM
-  (confirmée par `Prototype-Results.md` §3.2 : `userModel.lastUser`,
-  `userModel.lastIndex`).
+- **Inputs** : `NebulaUserService` (voir
+  [`Services-Architecture.md`](Services-Architecture.md)) — **jamais**
+  `userModel` directement depuis la Phase 1.4 (voir
+  [`Nebula-Principles.md`](Nebula-Principles.md) §4). Le service
+  lui-même est adossé, en dernier ressort, à la propriété de contexte
+  réelle `userModel` exposée par SDDM (`userModel.lastUser`,
+  `userModel.lastIndex` — confirmée par `Prototype-Results.md` §3.2), via
+  `platform/sddm/SDDMUserAdapter.qml`.
 - **Outputs** : utilisateur sélectionné.
 - **Properties** : `model` (liste), `currentIndex` (int), `currentUser`
   (lecture seule).
 - **Signals** : `userSelected(user)`.
-- **Dependencies** : `NebulaAvatar`, `NebulaThemeProvider`.
+- **Dependencies** : `NebulaAvatar`, `NebulaThemeProvider`,
+  `NebulaUserService`.
 
 ### NebulaPasswordField
 
 - **Responsabilité** : saisir le mot de passe et déclencher
   l'authentification.
 - **Inputs** : saisie clavier.
-- **Outputs** : tentative d'authentification transmise à SDDM via
-  `sddm.login(username, password, sessionIndex)` (propriété de contexte
-  réelle `sddm`, confirmée par `Prototype-Results.md` §3.2 ; jamais
-  stockée par le composant).
+- **Outputs** : tentative d'authentification transmise via
+  `NebulaAuthService.authenticate(username, password)` (voir
+  [`Services-Architecture.md`](Services-Architecture.md)) — **jamais**
+  `sddm.login()` directement depuis la Phase 1.4 (voir
+  [`Nebula-Principles.md`](Nebula-Principles.md) §4). Le service
+  lui-même délègue, en dernier ressort, à `sddm.login(username, password,
+  sessionIndex)` (propriété de contexte réelle `sddm`, confirmée par
+  `Prototype-Results.md` §3.2) via `platform/sddm/SDDMAuthAdapter.qml`.
+  Jamais stockée par le composant.
 - **Properties** : `placeholderText` (string), `hasError` (bool),
-  `isBusy` (bool, pendant l'authentification).
+  `isBusy` (bool, pendant l'authentification — reflète
+  `NebulaAuthService.authenticating`).
 - **Signals** : `submitted(password: string)`, `cleared()`.
-- **Dependencies** : `NebulaThemeProvider`.
+- **Dependencies** : `NebulaThemeProvider`, `NebulaAuthService`.
 
 ### NebulaSessionSelector
 
 - **Responsabilité** : choisir la session à lancer.
-- **Inputs** : propriété de contexte réelle `sessionModel` exposée par
-  SDDM (confirmée par `Prototype-Results.md` §3.2 : `sessionModel.lastIndex`),
-  peuplée à partir des fichiers `.desktop` de
-  `/usr/share/wayland-sessions/` et `/usr/share/xsessions/`.
+- **Inputs** : `NebulaSessionService` (voir
+  [`Services-Architecture.md`](Services-Architecture.md)) — **jamais**
+  `sessionModel` directement depuis la Phase 1.4. Le service lui-même est
+  adossé, en dernier ressort, à la propriété de contexte réelle
+  `sessionModel` exposée par SDDM (`sessionModel.lastIndex`, peuplée à
+  partir des fichiers `.desktop` de `/usr/share/wayland-sessions/` et
+  `/usr/share/xsessions/` — confirmée par `Prototype-Results.md` §3.2),
+  via `platform/sddm/SDDMSessionAdapter.qml`.
 - **Outputs** : session sélectionnée.
 - **Properties** : `model` (liste), `currentIndex` (int), `currentSession`
   (lecture seule).
 - **Signals** : `sessionSelected(session)`.
-- **Dependencies** : `NebulaThemeProvider`.
+- **Dependencies** : `NebulaThemeProvider`, `NebulaSessionService`.
 
 ### NebulaKeyboardSelector
 
 - **Responsabilité** : choisir la disposition clavier avant connexion.
 - **Inputs** : propriété de contexte réelle `keyboard` exposée par SDDM
   (confirmée par `Prototype-Results.md` §3.2 : `keyboard.currentLayout`,
-  `keyboard.layouts` — array d'objets avec `.longName`).
+  `keyboard.layouts` — array d'objets avec `.longName`). Contrairement aux
+  autres composants d'intégration SDDM, aucun Service dédié n'a été
+  introduit en Phase 1.4 pour la disposition clavier — à réévaluer si ce
+  composant est implémenté avant qu'un besoin réel de Service apparaisse
+  (voir principe de travail du workspace, pas d'abstraction anticipée).
 - **Outputs** : disposition sélectionnée.
 - **Properties** : `model` (liste), `currentIndex` (int), `currentLayout`
   (lecture seule).
@@ -195,18 +267,23 @@ pour rester cohérent avec le reste de la documentation.
 ### NebulaPowerButtons
 
 - **Responsabilité** : exposer les actions arrêt / redémarrage / veille.
-- **Inputs** : propriété de contexte réelle `sddm` exposée par SDDM
-  (confirmée par `Prototype-Results.md` §3.2 : `sddm.canHibernate`,
-  `sddm.canSuspend`, `sddm.canReboot`, `sddm.canPowerOff`, et les méthodes
-  `sddm.hibernate()`/`suspend()`/`reboot()`/`powerOff()`). La veille n'est
-  pas toujours disponible (`can*` à `false` selon la plateforme).
+- **Inputs** : `NebulaPowerService` (voir
+  [`Services-Architecture.md`](Services-Architecture.md)) — **jamais**
+  `sddm.powerOff()`/`reboot()`/`hibernate()` directement depuis la
+  Phase 1.4 (voir [`Nebula-Principles.md`](Nebula-Principles.md) §4/§6).
+  Le service lui-même délègue, en dernier ressort, à
+  `sddm.canHibernate`/`canSuspend`/`canReboot`/`canPowerOff` et
+  `sddm.hibernate()`/`suspend()`/`reboot()`/`powerOff()` (confirmés par
+  `Prototype-Results.md` §3.2) via `platform/sddm/SDDMPowerAdapter.qml`.
+  La veille n'est pas toujours disponible (`can*` à `false` selon la
+  plateforme).
 - **Outputs** : déclenchement d'une action système.
 - **Properties** : `canShutdown` (bool), `canReboot` (bool),
   `canSuspend` (bool), `confirmBeforeAction` (bool).
 - **Signals** : `shutdownRequested()`, `rebootRequested()`,
   `suspendRequested()`.
 - **Dependencies** : `NebulaButton` (chaque action est un `NebulaButton`
-  configuré), `NebulaThemeProvider`.
+  configuré), `NebulaThemeProvider`, `NebulaPowerService`.
 
 ### NebulaLoginLayout
 

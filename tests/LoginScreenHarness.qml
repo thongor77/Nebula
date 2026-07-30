@@ -2,6 +2,8 @@ import QtQuick
 import "../core/theme"
 import "../core/components"
 import "../core/layouts"
+import "../core/services"
+import "mocks"
 
 // Manual visual harness demonstrating the Phase 1.3 completion criterion:
 // a full (pre-authentication) login screen built from a single
@@ -9,6 +11,14 @@ import "../core/layouts"
 // (Avatar, Clock, Date, Button) through NebulaThemeProvider — no theme,
 // no SDDM dependency. See docs/Theme-Development.md for what a real
 // theme looks like. Run with `qml6 tests/LoginScreenHarness.qml`.
+//
+// Phase 1.4: also wires NebulaUserService and NebulaAuthService (with
+// mock adapters, see tests/mocks/) to prove the Service layer works
+// without SDDM — the display name comes from the service, and the
+// button drives a real (fake) authenticate() round-trip. No
+// NebulaPasswordField/UserList exist yet to do this properly; this is a
+// deliberately minimal proof, not a preview of the real login flow — see
+// docs/Core-Implementation-Status.md.
 Rectangle {
     id: harness
     width: 480
@@ -16,6 +26,16 @@ Rectangle {
     color: theme.colors.backgroundColor
 
     property NebulaThemeProvider theme: NebulaThemeProvider {}
+
+    NebulaUserService {
+        id: userService
+        adapter: MockUserAdapter {}
+    }
+
+    NebulaAuthService {
+        id: authService
+        adapter: MockAuthAdapter {}
+    }
 
     NebulaLoginLayout {
         theme: harness.theme
@@ -49,7 +69,7 @@ Rectangle {
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: "nebula"
+                text: userService.currentUser ? userService.currentUser.displayName : "nebula"
                 color: harness.theme.colors.textPrimary
                 font.family: harness.theme.typography.fontFamilyPrimary
                 font.pixelSize: harness.theme.typography.fontSizeBody
@@ -58,8 +78,10 @@ Rectangle {
             NebulaButton {
                 theme: harness.theme
                 anchors.horizontalCenter: parent.horizontalCenter
-                label: "Unlock"
+                label: authService.authenticating ? "Authenticating…" : "Unlock"
+                enabled: !authService.authenticating
                 variant: "primary"
+                onClicked: authService.authenticate(userService.currentUser.name, "fake-password")
             }
         }
 

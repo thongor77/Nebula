@@ -136,6 +136,23 @@ débordement vertical sur ratio extrême ont été trouvés et documentés —
 voir [`docs/Development-Journal.md`](Development-Journal.md), nouveau
 document créé cette phase pour ce type de découverte.
 
+**Sous-étape Phase 1.4 — Services & Platform Abstraction (terminée) :**
+`NebulaAuthService`, `NebulaUserService`, `NebulaSessionService`,
+`NebulaPowerService` (`core/services/`) implémentés — contrat public
+uniquement, délèguent à un `adapter` injecté. Squelettes
+`platform/sddm/SDDM*Adapter.qml` créés (aucun appel SDDM réel). Testé
+réellement via `tests/ServicesHarness.qml` (instanciation + cycle complet
+authenticating→succeeded avec `tests/mocks/`) et via
+`LoginScreenHarness.qml` (nom d'utilisateur et authentification
+maintenant servis par les Services, plus de valeur codée en dur). Critère
+de fin atteint : aucun composant Core n'appelle `sddm.*` directement, le
+Harness fonctionne toujours sans SDDM. Nouveaux documents
+[`docs/Services-Architecture.md`](Services-Architecture.md) et
+[`docs/Nebula-Principles.md`](Nebula-Principles.md). Bug réel trouvé et
+corrigé (`Connections{}` invalide comme enfant direct d'un `QtObject` —
+pas de default property) : voir DT-0011 et
+[`docs/Development-Journal.md`](Development-Journal.md).
+
 Ordre de construction recommandé (plomberie avant composants visuels,
 composants simples avant composants interactifs — voir
 [`Theme-System.md`](Theme-System.md)) :
@@ -149,17 +166,22 @@ composants simples avant composants interactifs — voir
 5. [x] `Button` — Phase 1.1 ; [x] `Avatar` — Phase 1.2, tous deux dans
        `core/components/`
 6. [x] `LoginLayout` — Phase 1.3, `core/layouts/NebulaLoginLayout.qml`
-7. [ ] `Background`
-8. [ ] `UserList`, `PasswordField`
-9. [x] `Clock`, `Date` — Phase 1.2, `core/components/NebulaClock.qml`,
+7. [x] `AuthService`, `UserService`, `SessionService`, `PowerService` —
+       Phase 1.4, `core/services/` (contrat public + adapter injecté,
+       squelettes `platform/sddm/` — pas de câblage SDDM réel)
+8. [ ] `Background`
+9. [ ] `UserList`, `PasswordField` (dépendent désormais de
+       `UserService`/`AuthService`, voir `Core-API.md`)
+10. [x] `Clock`, `Date` — Phase 1.2, `core/components/NebulaClock.qml`,
        `core/components/NebulaDate.qml`
-10. [ ] `PowerButtons` (shutdown / reboot / sleep — composé sur `Button`)
-11. [ ] `SessionSelector`, `KeyboardSelector`
-12. [ ] `Notification`
-13. [ ] `AnimationManager` (version minimale)
-14. [ ] Mettre en place `tests/` avec une première suite de tests pour
+11. [ ] `PowerButtons` (shutdown / reboot / sleep — composé sur `Button`
+       et `PowerService`)
+12. [ ] `SessionSelector` (dépend de `SessionService`), `KeyboardSelector`
+13. [ ] `Notification`
+14. [ ] `AnimationManager` (version minimale)
+15. [ ] Mettre en place `tests/` avec une première suite de tests pour
        les composants livrés ci-dessus
-15. [ ] Zéro warning QML sur l'ensemble du Core
+16. [ ] Zéro warning QML sur l'ensemble du Core
 
 Périmètre exact et exclusions du MVP : voir
 [`Core-MVP.md`](Core-MVP.md).
