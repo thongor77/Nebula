@@ -62,8 +62,10 @@ technique réel (voir [`docs/Architecture-Review.md`](docs/Architecture-Review.m
 [`docs/Prototype-Results.md`](docs/Prototype-Results.md) — API SDDM
 réelle et comportement multi-écran vérifiés sur une installation SDDM
 0.21 réelle).
-Prochaine étape : Phase 1 — Core MVP, pas encore commencée (aucun
-composant Core écrit ; `prototype/` est jetable, pas du Core).
+Phase 1 (Core MVP) en cours : `NebulaThemeConfig`, `NebulaThemeProvider`
+et `NebulaButton` implémentés et testés (Phase 1.1, voir
+[`docs/Core-Implementation-Status.md`](docs/Core-Implementation-Status.md)).
+`prototype/` reste jetable, distinct de `core/`.
 
 ## Règle avant toute nouvelle fonctionnalité
 

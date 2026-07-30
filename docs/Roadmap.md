@@ -105,15 +105,27 @@ structure définitive d'un thème réel).
 Objectif : un Core minimal mais complet, sans aucun thème visuel dessus.
 Démarre après validation de la Phase 1.0.
 
+**Sous-étape Phase 1.1 — Core Foundation Skeleton (terminée) :** premiers
+pas d'implémentation réelle (`ThemeConfig`, `ThemeProvider`, tokens,
+`NebulaButton`), testés visuellement (`qmllint` + rendu réel). Décisions
+prises et bug de conception trouvé/corrigé (tokens `accentColor` ==
+`primaryColor`) : voir
+[`docs/Core-Implementation-Status.md`](Core-Implementation-Status.md).
+Pas de thème complet, pas d'effets avancés — conforme au périmètre de
+cette sous-étape.
+
 Ordre de construction recommandé (plomberie avant composants visuels,
 composants simples avant composants interactifs — voir
 [`Theme-System.md`](Theme-System.md)) :
 
-1. [ ] `ThemeConfig` (mécanisme de configuration validé en Phase 0)
-2. [ ] Design tokens (`docs/Design-System.md` → implémentation)
+1. [x] `ThemeConfig` — Phase 1.1, `core/config/NebulaThemeConfig.qml`
+       (voir `docs/Core-Implementation-Status.md`)
+2. [x] Design tokens — Phase 1.1, premiers tokens implémentés dans
+       `NebulaThemeConfig` (colors, spacing, radius, typography, animation)
 3. [ ] `ThemeLoader`
-4. [ ] `ThemeProvider`
-5. [ ] `Button`, `Avatar` (primitives simples et autonomes)
+4. [x] `ThemeProvider` — Phase 1.1, `core/theme/NebulaThemeProvider.qml`
+5. [x] `Button` — Phase 1.1, `core/components/NebulaButton.qml` ; [ ]
+       `Avatar` (primitives simples et autonomes)
 6. [ ] `Background`
 7. [ ] `UserList`, `PasswordField`
 8. [ ] `Clock`, `Date`

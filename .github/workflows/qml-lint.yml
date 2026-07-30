@@ -1,7 +1,10 @@
 name: QML Lint
 
-# Activates once Core components land (Phase 1 — see docs/Roadmap.md).
-# Kept in the repo now so CI is ready the moment the first .qml file is added.
+# Core components landed in Phase 1.1 (docs/Core-Implementation-Status.md).
+# `--warnings-as-errors` was removed: it does not exist on the qmllint
+# shipped with Qt 6.11 (verified locally — see
+# docs/Core-Implementation-Status.md). Plain `qmllint` already exits
+# non-zero on real errors without that flag.
 
 on:
   pull_request:
@@ -34,4 +37,4 @@ jobs:
             echo "No QML files yet — nothing to lint."
             exit 0
           fi
-          echo "$files" | xargs qmllint --warnings-as-errors
+          echo "$files" | xargs qmllint

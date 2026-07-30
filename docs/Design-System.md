@@ -51,8 +51,10 @@ Tokens exposés par `NebulaThemeProvider`, valeurs définies par thème :
 - `fontSizeTitle`
 - `fontSizeBody`
 - `fontSizeClock`
-- `fontWeight` (normal / medium / bold — nommage à confirmer lors du
-  prototype, voir Inconnues critiques dans `Architecture.md`)
+- `fontWeightNormal`, `fontWeightBold` — résolu en Phase 1.1 (voir
+  `Core-Implementation-Status.md`, décision D4) : valués directement avec
+  l'énumération Qt (`Font.Normal`, `Font.Bold`) plutôt qu'une échelle de
+  noms personnalisée.
 
 Les polices par défaut (fallback si un thème n'en fournit pas) vivent dans
 `core/assets/` — voir [`Specifications-Techniques.md`](Specifications-Techniques.md).

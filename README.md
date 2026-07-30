@@ -8,9 +8,13 @@ for building high-quality, consistent SDDM login screens.
 
 ## Status
 
-**Architecture phase.** No QML implementation exists yet. The current focus
-is defining the Core/Theme contract, the component list, and the technical
-decisions before any code is written. See [`docs/Roadmap.md`](docs/Roadmap.md).
+**Core MVP in progress.** The architecture, contracts and a real technical
+prototype are done (see [`docs/Roadmap.md`](docs/Roadmap.md), Phases 0 to
+1.0). Phase 1.1 landed the first real Core code:
+`NebulaThemeConfig`, `NebulaThemeProvider`, and `NebulaButton`, tested and
+visually verified — see
+[`docs/Core-Implementation-Status.md`](docs/Core-Implementation-Status.md).
+No theme exists yet.
 
 ## Goals
 
@@ -54,6 +58,7 @@ Themes never redefine what already exists in Core — see
 | [`docs/Core-MVP.md`](docs/Core-MVP.md)                          | Exact scope and exclusions of the Core MVP (Phase 1)     |
 | [`docs/Nord-Theme-Specification.md`](docs/Nord-Theme-Specification.md) | Palette, typography, layout for the pilot theme (Nord) |
 | [`docs/Prototype-Results.md`](docs/Prototype-Results.md)       | Phase 1.0 real-world test results: SDDM API, multi-screen, HiDPI |
+| [`docs/Core-Implementation-Status.md`](docs/Core-Implementation-Status.md) | What's actually implemented in `core/`, and why |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md)                            | Coding conventions, commit style, PR process        |
 | [`CLAUDE.md`](CLAUDE.md)                                        | Project context for AI-assisted development (FR)   |
 

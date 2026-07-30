@@ -103,8 +103,14 @@ avant besoin observé).
 Avant toute Pull Request touchant du QML :
 
 ```bash
-find . -name "*.qml" -not -path "./.git/*" | xargs qmllint --warnings-as-errors
+find . -name "*.qml" -not -path "./.git/*" | xargs qmllint
 ```
 
 C'est exactement ce que fait `.github/workflows/qml-lint.yml` en CI —
 le lancer localement évite un aller-retour CI inutile.
+
+Le flag `--warnings-as-errors` initialement documenté ici n'existe pas
+sur le `qmllint` réellement installé (Qt 6.11.1, vérifié pendant la
+Phase 1.1 — voir `docs/Core-Implementation-Status.md`). `qmllint` sans
+option échoue déjà (code de sortie non nul) sur une vraie erreur de
+syntaxe, ce flag n'était donc pas nécessaire.
