@@ -62,10 +62,13 @@ technique réel (voir [`docs/Architecture-Review.md`](docs/Architecture-Review.m
 [`docs/Prototype-Results.md`](docs/Prototype-Results.md) — API SDDM
 réelle et comportement multi-écran vérifiés sur une installation SDDM
 0.21 réelle).
-Phase 1 (Core MVP) en cours : `NebulaThemeConfig`, `NebulaThemeProvider`
-et `NebulaButton` implémentés et testés (Phase 1.1, voir
-[`docs/Core-Implementation-Status.md`](docs/Core-Implementation-Status.md)).
-`prototype/` reste jetable, distinct de `core/`.
+Phase 1 (Core MVP) en cours : `NebulaThemeConfig`, `NebulaThemeProvider`,
+`NebulaButton` (Phase 1.1), `NebulaAvatar`, `NebulaClock`, `NebulaDate`
+(Phase 1.2) implémentés et testés — voir
+[`docs/Core-Implementation-Status.md`](docs/Core-Implementation-Status.md).
+Écran de login statique (sans thème) déjà démontrable avec ces seuls
+composants (`tests/LoginScreenHarness.qml`). `prototype/` reste jetable,
+distinct de `core/`.
 
 ## Règle avant toute nouvelle fonctionnalité
 

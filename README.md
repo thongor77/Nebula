@@ -10,9 +10,11 @@ for building high-quality, consistent SDDM login screens.
 
 **Core MVP in progress.** The architecture, contracts and a real technical
 prototype are done (see [`docs/Roadmap.md`](docs/Roadmap.md), Phases 0 to
-1.0). Phase 1.1 landed the first real Core code:
-`NebulaThemeConfig`, `NebulaThemeProvider`, and `NebulaButton`, tested and
-visually verified — see
+1.0). Phase 1.1 and 1.2 landed the first real Core components —
+`NebulaThemeConfig`, `NebulaThemeProvider`, `NebulaButton`, `NebulaAvatar`,
+`NebulaClock`, `NebulaDate` — each tested and visually verified. A static
+login screen (avatar + clock + date + button, no theme) already works on
+top of Core alone — see
 [`docs/Core-Implementation-Status.md`](docs/Core-Implementation-Status.md).
 No theme exists yet.
 

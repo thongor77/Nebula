@@ -46,13 +46,50 @@
   décision D2).
 - `qmllint` : aucun avertissement.
 
+### NebulaAvatar (`core/components/NebulaAvatar.qml`) — Phase 1.2
+
+- Testé réellement (voir §4) : image personnalisée (`source`, découpage
+  `PreserveAspectCrop`), plusieurs tailles (`size`), radius personnalisable
+  (`radius`, circulaire par défaut via `theme.radius.radiusPill`), et
+  repli à deux niveaux — `fallbackIcon` fourni par le thème, sinon
+  silhouette générique dessinée sans aucun asset externe (deux
+  `Rectangle`).
+- Propriétés : `source` (url), `fallbackIcon` (url), `size` (real),
+  `radius` (real).
+- Dépendance : `NebulaThemeProvider`.
+- `qmllint` : aucun avertissement.
+
+### NebulaClock (`core/components/NebulaClock.qml`) — Phase 1.2
+
+- Testé réellement (voir §4) : mise à jour automatique (`Timer` 1 s),
+  format 24h avec secondes (`hh:mm:ss`), token `typography.fontSizeClock`.
+- Propriétés : `use24HourFormat` (bool), `showSeconds` (bool), `format`
+  (string — voir §3, décision D7 pour la réconciliation avec le contrat
+  déjà documenté).
+- Dépendance : `NebulaThemeProvider`.
+- `qmllint` : aucun avertissement.
+
+### NebulaDate (`core/components/NebulaDate.qml`) — Phase 1.2
+
+- Testé réellement (voir §4) : respect de la locale système par défaut
+  (`Qt.formatDate` sans `Locale` explicite), format `"dddd d MMMM yyyy"`
+  affiché correctement en anglais (locale système de la machine de test).
+- Propriétés : `dateFormat` (string), `locale` (string, vide = système).
+- Dépendance : `NebulaThemeProvider`.
+- `qmllint` : aucun avertissement.
+
 ## 2. Composants en cours / pas commencés
 
-Tout le reste du périmètre du Core MVP (voir `Core-MVP.md`) :
-`NebulaThemeLoader`, `NebulaAvatar`, `NebulaBackground`, `NebulaClock`,
-`NebulaDate`, `NebulaUserList`, `NebulaPasswordField`,
+Reste du périmètre du Core MVP (voir `Core-MVP.md`) : `NebulaThemeLoader`,
+`NebulaBackground`, `NebulaUserList`, `NebulaPasswordField`,
 `NebulaSessionSelector`, `NebulaKeyboardSelector`, `NebulaPowerButtons`,
 `NebulaNotification`, `NebulaAnimationManager` — non commencés.
+
+**Critère de fin de la Phase 1.2 atteint** : un écran de login statique
+(avatar + heure + date + bouton) est démontré dans
+`tests/LoginScreenHarness.qml`, assemblé uniquement via
+`NebulaThemeProvider`, sans dépendre d'un thème ni de l'API SDDM — voir
+§4.
 
 ## 3. Décisions prises pendant cette phase
 
@@ -147,6 +184,51 @@ n'apportait donc rien de toute façon.
 **Décision** : flag retiré de `.github/workflows/qml-lint.yml` et de
 `Development-Environment.md`.
 
+### D7 — `NebulaClock.format` ajouté en plus de `use24HourFormat`/`showSeconds`
+
+**Contexte** : le brief de la Phase 1.2 demandait une propriété `format`
+libre pour `NebulaClock`, alors que `Core-API.md` documentait déjà
+`use24HourFormat`/`showSeconds` depuis la Phase 0.6.
+
+**Décision** : garder les deux. `format` (string, vide par défaut) permet
+de remplacer entièrement le format calculé à partir de
+`use24HourFormat`/`showSeconds` quand un thème a besoin de quelque chose
+de plus spécifique, sans casser l'API simple déjà documentée et déjà
+utilisée comme référence ailleurs.
+
+**Raisons** : évite de choisir entre "l'ancien contrat était incomplet"
+et "le brief se trompe" — les deux approches sont légitimes et n'entrent
+pas en conflit une fois combinées.
+
+### D8 — `fallbackIcon` conservé (pas `fallback`), `radius` ajouté à `NebulaAvatar`
+
+**Contexte** : le brief de la Phase 1.2 nommait la propriété de repli
+`fallback`, alors que `Core-API.md` documentait déjà `fallbackIcon`
+depuis la Phase 0.6. Le brief demandait aussi une propriété `radius`,
+absente du contrat déjà documenté (qui ne mentionnait qu'un usage interne
+du token `radius` du thème, pas une propriété dédiée).
+
+**Décision** : garder le nom déjà établi `fallbackIcon` (éviter une
+rupture d'API sans raison réelle — DT-0009) ; ajouter `radius` comme
+nouvelle propriété (réel besoin : un thème doit pouvoir choisir un avatar
+carré aux coins arrondis plutôt que circulaire, testé avec succès — voir
+§4). `Core-API.md` mis à jour pour documenter `radius`.
+
+### D9 — Leçon : les imports QML par chemin absolu doivent utiliser `file:`
+
+**Trouvé pendant le test** : un harnais de vérification ad hoc utilisant
+`import "/home/luust/.../core/theme"` (chemin absolu sans schéma) a fait
+échouer `qml6` avec "Did not load any objects, exiting" — message générique
+qui n'explique rien par lui-même. La vraie cause n'apparaissait que dans
+`journalctl` (comme pour `sddm-greeter`, voir `Prototype-Results.md`
+§3.5) : `"... is not a valid import URL ... Try "file:/...".`.
+
+**Conséquence pour la suite** : tous les imports internes du Core
+utilisent des chemins **relatifs** (`import "../theme"`) — jamais de
+chemin absolu — ce qui reste valide indépendamment de l'endroit où le
+dépôt est cloné. Documenté ici pour éviter de perdre du temps à
+redécouvrir la même erreur plus tard.
+
 ## 4. Vérifications réelles effectuées
 
 - `qmllint` sur les 3 nouveaux fichiers + le harnais de test : aucun
@@ -162,6 +244,27 @@ n'apportait donc rien de toute façon.
   n'est pas testable sans automatisation d'entrée (aucun outil
   `ydotool`/`wtype`/`dotool` disponible sur cette machine).
 
+### Phase 1.2
+
+- `qmllint` sur `NebulaAvatar.qml`, `NebulaClock.qml`, `NebulaDate.qml` et
+  `tests/LoginScreenHarness.qml` : aucun avertissement.
+- `tests/LoginScreenHarness.qml` (Avatar + Clock + Date + Button assemblés
+  via `NebulaThemeProvider` seul) rendu réellement avec `qml6` et capturé
+  à l'écran : horloge à jour (`20:21:44`), date correcte au format système
+  (`Thursday 30 July 2026`), avatar en silhouette de repli, bouton
+  cohérent avec la Phase 1.1.
+- **Validation scaling différent** : même harnais relancé avec
+  `QT_SCALE_FACTOR=2` — mise à l'échelle propre, aucun texte tronqué,
+  aucun artefact, la silhouette de repli (vectorielle) reste nette (pas
+  de pixellisation, contrairement à ce qu'on aurait avec une image
+  bitmap).
+- `NebulaAvatar` testé séparément avec une vraie image
+  (`/usr/share/pixmaps/htop.png`, `fillMode: PreserveAspectCrop`) à côté
+  d'une instance en repli avec `radius: theme.radius.radiusMedium` — les
+  deux rendus confirmés par capture d'écran (image personnalisée
+  correctement découpée en cercle ; repli correctement découpé en carré
+  aux coins arrondis avec un `radius` différent).
+
 ## 5. Documentation à synchroniser (fait dans ce lot)
 
 - [`Design-System.md`](Design-System.md) — `fontWeight` → 
@@ -169,3 +272,6 @@ n'apportait donc rien de toute façon.
 - [`Development-Environment.md`](Development-Environment.md) et
   [`.github/workflows/qml-lint.yml`](../.github/workflows/qml-lint.yml) —
   retrait de `--warnings-as-errors` (D6).
+- [`Core-API.md`](Core-API.md) — `NebulaClock.format` ajouté (D7),
+  `NebulaAvatar.radius` ajouté et `fallbackIcon` confirmé (D8).
+- [`Roadmap.md`](Roadmap.md) — Phase 1.2 marquée terminée.

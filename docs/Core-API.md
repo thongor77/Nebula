@@ -92,19 +92,25 @@ pour rester cohérent avec le reste de la documentation.
 
 ### NebulaClock
 
-- **Responsabilité** : afficher l'heure courante.
-- **Inputs** : horloge système.
+- **Responsabilité** : afficher l'heure courante, mise à jour automatique.
+- **Inputs** : horloge système (`Timer` interne, 1 s).
 - **Outputs** : texte d'heure formaté.
-- **Properties** : `use24HourFormat` (bool), `showSeconds` (bool).
+- **Properties** : `use24HourFormat` (bool), `showSeconds` (bool), `format`
+  (string, vide par défaut — voir Phase 1.2 dans
+  `Core-Implementation-Status.md` : si non vide, remplace entièrement le
+  format dérivé de `use24HourFormat`/`showSeconds`).
 - **Signals** : aucun.
 - **Dependencies** : `NebulaThemeProvider` (typography, colors).
 
 ### NebulaDate
 
-- **Responsabilité** : afficher la date courante.
-- **Inputs** : date système.
+- **Responsabilité** : afficher la date courante, respecte la locale
+  système par défaut.
+- **Inputs** : date système (`Timer` interne, 60 s — suffisant pour
+  capturer le changement de jour sans logique de planification dédiée).
 - **Outputs** : texte de date formaté.
-- **Properties** : `dateFormat` (string), `locale` (string).
+- **Properties** : `dateFormat` (string), `locale` (string, vide par
+  défaut = locale système, via `Qt.formatDate` sans `Locale` explicite).
 - **Signals** : aucun.
 - **Dependencies** : `NebulaThemeProvider`.
 
@@ -123,10 +129,14 @@ pour rester cohérent avec le reste de la documentation.
 ### NebulaAvatar
 
 - **Responsabilité** : afficher l'avatar d'un utilisateur, avec repli sur
-  une icône générique.
+  une icône générique, ou à défaut une silhouette générique sans aucun
+  asset externe requis (testé réellement — voir
+  `Core-Implementation-Status.md`, Phase 1.2).
 - **Inputs** : `source` (chemin de l'image utilisateur).
-- **Outputs** : image rendue, découpée selon le token `radius` du thème.
-- **Properties** : `source` (url), `fallbackIcon` (url), `size` (real).
+- **Outputs** : image rendue, découpée selon `radius`.
+- **Properties** : `source` (url), `fallbackIcon` (url), `size` (real),
+  `radius` (real, par défaut `theme.radius.radiusPill` — un thème peut le
+  surcharger pour un avatar carré aux coins arrondis plutôt que circulaire).
 - **Signals** : aucun.
 - **Dependencies** : `NebulaThemeProvider` (radius, couleurs de repli).
 

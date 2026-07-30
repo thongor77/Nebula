@@ -114,6 +114,16 @@ prises et bug de conception trouvé/corrigé (tokens `accentColor` ==
 Pas de thème complet, pas d'effets avancés — conforme au périmètre de
 cette sous-étape.
 
+**Sous-étape Phase 1.2 — Core Components Expansion (terminée) :**
+`NebulaAvatar`, `NebulaClock`, `NebulaDate` implémentés et testés
+(`qmllint`, rendu réel, scaling différent `QT_SCALE_FACTOR=2`). Critère de
+fin atteint : écran de login statique (avatar + heure + date + bouton)
+démontré dans `tests/LoginScreenHarness.qml`, sans thème ni API SDDM.
+Décisions de réconciliation avec le brief (format libre pour `NebulaClock`
+en plus de `use24HourFormat`/`showSeconds`, `radius` ajouté à
+`NebulaAvatar`, `fallbackIcon` conservé) : voir
+[`docs/Core-Implementation-Status.md`](Core-Implementation-Status.md).
+
 Ordre de construction recommandé (plomberie avant composants visuels,
 composants simples avant composants interactifs — voir
 [`Theme-System.md`](Theme-System.md)) :
@@ -124,11 +134,12 @@ composants simples avant composants interactifs — voir
        `NebulaThemeConfig` (colors, spacing, radius, typography, animation)
 3. [ ] `ThemeLoader`
 4. [x] `ThemeProvider` — Phase 1.1, `core/theme/NebulaThemeProvider.qml`
-5. [x] `Button` — Phase 1.1, `core/components/NebulaButton.qml` ; [ ]
-       `Avatar` (primitives simples et autonomes)
+5. [x] `Button` — Phase 1.1 ; [x] `Avatar` — Phase 1.2, tous deux dans
+       `core/components/`
 6. [ ] `Background`
 7. [ ] `UserList`, `PasswordField`
-8. [ ] `Clock`, `Date`
+8. [x] `Clock`, `Date` — Phase 1.2, `core/components/NebulaClock.qml`,
+       `core/components/NebulaDate.qml`
 9. [ ] `PowerButtons` (shutdown / reboot / sleep — composé sur `Button`)
 10. [ ] `SessionSelector`, `KeyboardSelector`
 11. [ ] `Notification`
