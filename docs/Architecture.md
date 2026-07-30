@@ -59,7 +59,8 @@ l'architecture définitive :
   non bloquant pour la v1).
 
 Tant que ces points ne sont pas expérimentés, aucune décision les concernant
-n'est considérée comme définitive.
+n'est considérée comme définitive. Suivi ligne par ligne de ces inconnues
+et d'autres contraintes SDDM/Qt6 : [`SDDM-Compatibility.md`](SDDM-Compatibility.md).
 
 ## 5. Architecture cible
 
@@ -122,7 +123,8 @@ intermédiaire obligatoire entre `ThemeConfig`/`ThemeLoader` et les
 composants — voir DT-0006 et [`Theme-System.md`](Theme-System.md).
 
 Contrat détaillé de chaque composant :
-[`Specifications-Techniques.md`](Specifications-Techniques.md).
+[`Specifications-Techniques.md`](Specifications-Techniques.md). Contrat
+d'API public (propriétés, signaux, dépendances) : [`Core-API.md`](Core-API.md).
 Vocabulaire des valeurs visuelles (couleurs, spacing, radius, typography,
 animation, effets) : [`Design-System.md`](Design-System.md).
 

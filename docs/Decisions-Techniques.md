@@ -308,3 +308,62 @@ pas encore (voir aussi `Architecture.md`, section Hors périmètre).
 outil/application compagnon) devient une phase active planifiée dans
 `Roadmap.md`. Si ce moment arrive, cette décision doit être rouverte plutôt
 que contournée silencieusement.
+
+---
+
+## DT-0009 — Core API définie avant l'implémentation
+
+Date : 2026-07-30
+État : accepté
+
+### Contexte
+
+Fin de la Phase 0.5 (voir `Roadmap.md`) : avant d'écrire le moindre
+composant QML, il fallait décider si le contrat public du Core
+(propriétés, signaux, dépendances de chaque composant) devait être figé en
+documentation d'abord, ou découvert au fil de l'implémentation.
+
+> Note sur la forme : la demande d'origine proposait de créer ce contenu
+> comme un fichier ADR séparé (`DT-0009-Core-API-First.md`). Pour rester
+> cohérent avec DT-0001 à DT-0008, qui vivent tous comme sections d'un seul
+> fichier `Decisions-Techniques.md` (voir `META/Standards.md` : les
+> décisions propres à un seul projet vont dans ce fichier, le dossier
+> `META/ADR/` étant réservé aux décisions transversales au workspace), cette
+> décision est ajoutée ici plutôt que dans un fichier séparé.
+
+### Décision
+
+Les contrats d'API du Core (`docs/Core-API.md`) sont définis et documentés
+avant que l'implémentation QML ne commence. Toute Pull Request Core
+respecte le contrat déjà documenté ; toute divergence nécessaire est
+d'abord discutée et mise à jour dans `Core-API.md`, pas introduite
+silencieusement dans le code.
+
+### Alternatives étudiées
+
+- Définir l'API au fil de l'implémentation, sans contrat préalable :
+  rejeté, risque de changements structurels tardifs une fois plusieurs
+  thèmes déjà dépendants d'une première version de l'API.
+- Documenter l'API a posteriori, une fois le Core MVP livré : rejeté, un
+  contrat écrit après coup décrit ce qui existe, pas ce qui est garanti,
+  et perd son utilité pour des contributeurs externes qui commenceraient
+  avant la Phase 1.
+
+### Raisons
+
+- Éviter des changements structurels tardifs une fois plusieurs thèmes
+  dépendants du Core.
+- Permettre à plusieurs thèmes d'être développés en parallèle sur un
+  contrat stable.
+- Faciliter les contributions externes : un contributeur doit pouvoir
+  commencer une implémentation sans ambiguïté, uniquement à partir de
+  `docs/`.
+
+### Conséquences
+
+Toute Pull Request Core qui modifie une propriété, un signal ou une
+dépendance déjà documentée dans `Core-API.md` doit mettre à jour ce fichier
+dans la même PR (voir `CONTRIBUTING.md`). Le Core MVP (Phase 1) ne démarre
+qu'après la revue de `Core-API.md`, `SDDM-Compatibility.md`,
+`Development-Environment.md` et `Theme-Development.md` (voir `Roadmap.md`,
+Phase 0.5).

@@ -45,6 +45,10 @@ Themes never redefine what already exists in Core — see
 | [`docs/Specifications-Techniques.md`](docs/Specifications-Techniques.md) | Component contracts and per-theme requirements |
 | [`docs/Design-System.md`](docs/Design-System.md)               | Design token catalog (spacing, radius, typography, animation, effects, colors) |
 | [`docs/Theme-System.md`](docs/Theme-System.md)                 | End-to-end theming flow: ThemeLoader → ThemeConfig → ThemeProvider → Components |
+| [`docs/Core-API.md`](docs/Core-API.md)                          | Public API contract of every Core component            |
+| [`docs/SDDM-Compatibility.md`](docs/SDDM-Compatibility.md)     | Compatibility matrix with real SDDM/Qt6/Wayland constraints |
+| [`docs/Development-Environment.md`](docs/Development-Environment.md) | Local dev/test setup without touching the active SDDM greeter |
+| [`docs/Theme-Development.md`](docs/Theme-Development.md)       | How to create a new theme on top of Core                |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md)                            | Coding conventions, commit style, PR process        |
 | [`CLAUDE.md`](CLAUDE.md)                                        | Project context for AI-assisted development (FR)   |
 

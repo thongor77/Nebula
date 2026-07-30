@@ -55,7 +55,11 @@ qu'héritage, ThemeConfig centralisé, etc.).
 
 Voir [`docs/Roadmap.md`](docs/Roadmap.md).
 
-Phase actuelle : **Phase 0 — Architecture**, avant tout code.
+Phase actuelle : **Phase 0.5 — Architecture Contracts**, avant tout code.
+Documents de contrat : [`docs/Core-API.md`](docs/Core-API.md),
+[`docs/SDDM-Compatibility.md`](docs/SDDM-Compatibility.md),
+[`docs/Development-Environment.md`](docs/Development-Environment.md),
+[`docs/Theme-Development.md`](docs/Theme-Development.md).
 
 ## Conventions spécifiques
 

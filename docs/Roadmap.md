@@ -24,9 +24,31 @@ Core/Thèmes.
       DT-0003)
 - [ ] Revue de l'architecture avant de passer en Phase 1
 
+## Phase 0.5 — Architecture Contracts (en cours)
+
+Objectif : produire les contrats techniques (API, compatibilité, environnement
+de développement, création de thème) qui guideront toute l'implémentation
+future — pour qu'un développeur externe puisse commencer sans ambiguïté.
+
+Statut : en cours.
+
+Livrables :
+
+- [x] Contrat public du Core (`docs/Core-API.md`)
+- [x] Matrice de compatibilité SDDM (`docs/SDDM-Compatibility.md`)
+- [x] Environnement de développement (`docs/Development-Environment.md`)
+- [x] Guide de création de thème (`docs/Theme-Development.md`)
+- [ ] Revue de ces quatre documents avant de démarrer la Phase 1
+
+La Phase 1 (Core MVP) ne commence qu'après validation de cette phase — en
+particulier après avoir levé au moins les inconnues bloquantes listées
+dans `docs/SDDM-Compatibility.md` qui touchent les composants du premier
+lot (voir ordre de construction ci-dessous).
+
 ## Phase 1 — Core MVP
 
 Objectif : un Core minimal mais complet, sans aucun thème visuel dessus.
+Démarre après validation de la Phase 0.5.
 
 Ordre de construction recommandé (plomberie avant composants visuels,
 composants simples avant composants interactifs — voir
@@ -58,9 +80,10 @@ aucune duplication.
       sans dépendre des effets GPU (blur/glow/particules), encore non
       stabilisés à ce stade (voir Phase 3). `cyberpunk` sert de second
       thème pour valider justement ces effets.
-- [ ] Implémenter le thème en composition pure sur le Core
-- [ ] Documenter le processus de création d'un thème à partir de
-      l'expérience réelle
+- [ ] Implémenter le thème en suivant `docs/Theme-Development.md`, en
+      composition pure sur le Core
+- [ ] Mettre à jour `docs/Theme-Development.md` avec les ajustements
+      découverts lors de cette première implémentation réelle
 
 ## Phase 3 — Thèmes suivants et effets avancés
 

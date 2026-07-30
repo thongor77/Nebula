@@ -1,0 +1,88 @@
+# Development Environment — Nebula
+
+> Comment développer et tester un thème ou un composant Core sans toucher
+> au greeter SDDM actif de la machine de développement.
+
+---
+
+## 1. Principe
+
+Ne jamais remplacer le thème SDDM actif du système pour développer.
+SDDM fournit un mode de test qui affiche le greeter dans une fenêtre de la
+session courante, sans redémarrer ni modifier la configuration système.
+
+## 2. Outils nécessaires
+
+- SDDM installé avec son binaire de test (`sddm-greeter` ou
+  `sddm-greeter-qt6` selon la distribution).
+- Qt6 (paquets de développement QML : `qml6-module-qtquick`,
+  `qml6-module-qtquick-controls`, etc. selon la distribution).
+- `qmllint` (fourni par les outils de développement Qt6) pour le lint
+  local avant de pousser (voir `.github/workflows/qml-lint.yml`).
+- Un environnement graphique Wayland ou X11 actif (le mode test s'exécute
+  dans une fenêtre de la session courante, pas besoin d'un second TTY).
+
+## 3. Mode test du greeter
+
+Commande de base (le nom exact du binaire varie selon la distribution —
+`sddm-greeter` sur certaines, `sddm-greeter-qt6` sur d'autres) :
+
+```bash
+sddm-greeter --test-mode --theme /chemin/vers/nebula/themes/nord
+```
+
+Ceci affiche le thème ciblé dans une fenêtre, avec des données
+utilisateur/session simulées, sans nécessiter les privilèges du service
+SDDM système.
+
+Points de vigilance à vérifier lors du premier test réel (voir
+[`SDDM-Compatibility.md`](SDDM-Compatibility.md)) :
+
+- le binaire exact fourni par le paquet SDDM de la distribution utilisée ;
+- les variables d'environnement nécessaires (`QT_QPA_PLATFORM` pour forcer
+  Wayland ou X11 selon le test voulu) ;
+- le comportement du mode test vis-à-vis du multi-écran (probablement
+  limité à un seul écran en mode test, à confirmer).
+
+## 4. Commande future : `scripts/test-theme.sh`
+
+**Non implémentée à ce jour** — décrite ici pour fixer le comportement
+attendu avant de l'écrire (voir `Roadmap.md`, Phase 1).
+
+```bash
+./scripts/test-theme.sh ThemeName
+```
+
+Comportement prévu :
+
+1. Résoudre le chemin de `themes/ThemeName/`.
+2. Vérifier que le thème contient au minimum `theme.conf` et `Main.qml`
+   (voir [`Theme-Development.md`](Theme-Development.md)).
+3. Lancer `sddm-greeter --test-mode --theme <chemin résolu>` avec les
+   variables d'environnement appropriées.
+4. Afficher un message d'erreur clair si le thème est introuvable ou mal
+   formé, plutôt que de laisser échouer `sddm-greeter` silencieusement.
+
+Ce script est un simple wrapper de confort : il ne doit contenir aucune
+logique métier (celle-ci reste dans `NebulaThemeLoader`, voir
+`Core-API.md`).
+
+## 5. Rechargement à chaud pendant le développement
+
+Non garanti en v1 (voir `Architecture.md`, Inconnues critiques). En
+attendant, le cycle de développement attendu est : modifier le QML,
+relancer `sddm-greeter --test-mode`, observer. Un rechargement à chaud
+plus rapide pourra être ajouté à `test-theme.sh` si le besoin devient réel
+et récurrent (voir le principe de travail du workspace — pas d'outillage
+avant besoin observé).
+
+## 6. Lint avant de pousser
+
+Avant toute Pull Request touchant du QML :
+
+```bash
+find . -name "*.qml" -not -path "./.git/*" | xargs qmllint --warnings-as-errors
+```
+
+C'est exactement ce que fait `.github/workflows/qml-lint.yml` en CI —
+le lancer localement évite un aller-retour CI inutile.
