@@ -132,7 +132,8 @@ ambiguïté dans les fichiers QML des thèmes.
 ### Décision
 
 Tout composant public du Core est préfixé `Nebula` :
-`NebulaButton`, `NebulaClock`, `NebulaConfig`, `NebulaTheme`, etc.
+`NebulaButton`, `NebulaClock`, `NebulaThemeConfig`, `NebulaThemeProvider`,
+etc.
 
 ### Alternatives étudiées
 

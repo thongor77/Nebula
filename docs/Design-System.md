@@ -106,6 +106,11 @@ ne doit jamais supposer qu'un effet est gratuit.
 Nommage en camelCase pour rester cohérent avec les propriétés QML (plutôt
 que le `PascalCase` de la proposition d'origine).
 
+Le niveau de sévérité `info` de `NebulaNotification` (voir `Core-API.md`)
+n'a pas de token de couleur dédié : il réutilise `accentColor` par
+convention, plutôt que d'ajouter un token pour un seul usage. À revoir si
+un second cas d'usage apparaît.
+
 ## 8. Statut
 
 Ce catalogue est un vocabulaire de référence pour la Phase 1 (Core MVP).

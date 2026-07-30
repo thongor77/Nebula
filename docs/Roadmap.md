@@ -5,7 +5,7 @@
 
 ---
 
-## Phase 0 — Architecture (en cours)
+## Phase 0 — Architecture (terminée, sauf prototypes)
 
 Objectif : ne pas écrire de code avant d'avoir validé le contrat
 Core/Thèmes.
@@ -21,16 +21,19 @@ Core/Thèmes.
 - [ ] Valider les inconnues critiques par prototype (API SDDM/Wayland,
       multi-écran, mécanisme de configuration, coût réel des effets GPU,
       format d'export compatible avec le futur Nebula Designer — voir
-      DT-0003)
-- [ ] Revue de l'architecture avant de passer en Phase 1
+      DT-0003). Reste ouvert : ce n'est pas un livrable documentaire, seul
+      un test sur SDDM réel peut le clore (voir `Architecture-Review.md`,
+      §7).
+- [x] Revue de l'architecture avant de passer en Phase 1 — satisfaite par
+      la Phase 0.6 (`docs/Architecture-Review.md`)
 
-## Phase 0.5 — Architecture Contracts (en cours)
+## Phase 0.5 — Architecture Contracts (terminée)
 
 Objectif : produire les contrats techniques (API, compatibilité, environnement
 de développement, création de thème) qui guideront toute l'implémentation
 future — pour qu'un développeur externe puisse commencer sans ambiguïté.
 
-Statut : en cours.
+Statut : terminée.
 
 Livrables :
 
@@ -38,17 +41,38 @@ Livrables :
 - [x] Matrice de compatibilité SDDM (`docs/SDDM-Compatibility.md`)
 - [x] Environnement de développement (`docs/Development-Environment.md`)
 - [x] Guide de création de thème (`docs/Theme-Development.md`)
-- [ ] Revue de ces quatre documents avant de démarrer la Phase 1
+- [x] Revue de ces quatre documents — faite en Phase 0.6
+      (`docs/Architecture-Review.md`)
 
-La Phase 1 (Core MVP) ne commence qu'après validation de cette phase — en
-particulier après avoir levé au moins les inconnues bloquantes listées
-dans `docs/SDDM-Compatibility.md` qui touchent les composants du premier
-lot (voir ordre de construction ci-dessous).
+## Phase 0.6 — Architecture Review (terminée)
+
+Objectif : revue finale de cohérence documentaire avant démarrage du
+Core MVP — vérifier que l'architecture permet une implémentation claire,
+maintenable et extensible, sans code QML.
+
+Statut : terminée.
+
+Livrables :
+
+- [x] Revue de cohérence croisée de tous les documents d'architecture,
+      contradictions et doublons corrigés (`docs/Architecture-Review.md`)
+- [x] Frontière Core/Theme/ThemeProvider confirmée explicitement
+      (`docs/Architecture-Review.md`, section 4 ; enrichissement de
+      `docs/Theme-System.md` avec ordre d'initialisation et valeurs par
+      défaut)
+- [x] Périmètre exact du Core MVP (`docs/Core-MVP.md`), réconcilié avec
+      l'ordre de construction ci-dessous et avec `NebulaButton` désormais
+      formalisé
+- [x] Spécification du thème pilote (`docs/Nord-Theme-Specification.md`)
+- [x] Risques techniques consolidés (SDDM, GPU, Wayland —
+      `docs/Architecture-Review.md`, section 5)
+- [x] Règle "Core ou Theme, documenter l'API avant d'implémenter, éviter
+      toute dépendance à un thème" ajoutée dans `CLAUDE.md`
 
 ## Phase 1 — Core MVP
 
 Objectif : un Core minimal mais complet, sans aucun thème visuel dessus.
-Démarre après validation de la Phase 0.5.
+Démarre après validation de la Phase 0.6.
 
 Ordre de construction recommandé (plomberie avant composants visuels,
 composants simples avant composants interactifs — voir
@@ -58,16 +82,20 @@ composants simples avant composants interactifs — voir
 2. [ ] Design tokens (`docs/Design-System.md` → implémentation)
 3. [ ] `ThemeLoader`
 4. [ ] `ThemeProvider`
-5. [ ] `Background`
-6. [ ] `Avatar`, `UserList`, `PasswordField`
-7. [ ] `Clock`, `Date`
-8. [ ] `PowerButtons` (shutdown / reboot / sleep)
-9. [ ] `SessionSelector`, `KeyboardSelector`
-10. [ ] `Notification`
-11. [ ] `AnimationManager` (version minimale)
-12. [ ] Mettre en place `tests/` avec une première suite de tests pour
+5. [ ] `Button`, `Avatar` (primitives simples et autonomes)
+6. [ ] `Background`
+7. [ ] `UserList`, `PasswordField`
+8. [ ] `Clock`, `Date`
+9. [ ] `PowerButtons` (shutdown / reboot / sleep — composé sur `Button`)
+10. [ ] `SessionSelector`, `KeyboardSelector`
+11. [ ] `Notification`
+12. [ ] `AnimationManager` (version minimale)
+13. [ ] Mettre en place `tests/` avec une première suite de tests pour
        les composants livrés ci-dessus
-13. [ ] Zéro warning QML sur l'ensemble du Core
+14. [ ] Zéro warning QML sur l'ensemble du Core
+
+Périmètre exact et exclusions du MVP : voir
+[`Core-MVP.md`](Core-MVP.md).
 
 ## Phase 2 — Premier thème de référence
 

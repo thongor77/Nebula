@@ -55,11 +55,30 @@ qu'héritage, ThemeConfig centralisé, etc.).
 
 Voir [`docs/Roadmap.md`](docs/Roadmap.md).
 
-Phase actuelle : **Phase 0.5 — Architecture Contracts**, avant tout code.
-Documents de contrat : [`docs/Core-API.md`](docs/Core-API.md),
-[`docs/SDDM-Compatibility.md`](docs/SDDM-Compatibility.md),
-[`docs/Development-Environment.md`](docs/Development-Environment.md),
-[`docs/Theme-Development.md`](docs/Theme-Development.md).
+Phases 0 à 0.6 (architecture, contrats, revue) terminées — voir
+[`docs/Architecture-Review.md`](docs/Architecture-Review.md),
+[`docs/Core-MVP.md`](docs/Core-MVP.md) et
+[`docs/Nord-Theme-Specification.md`](docs/Nord-Theme-Specification.md).
+Prochaine étape : Phase 1 — Core MVP, pas encore commencée (aucun code
+QML écrit). Reste ouvert avant d'implémenter : valider par prototype les
+inconnues critiques listées dans
+[`docs/SDDM-Compatibility.md`](docs/SDDM-Compatibility.md).
+
+## Règle avant toute nouvelle fonctionnalité
+
+Ajoutée lors de la revue d'architecture Phase 0.6
+([`docs/Architecture-Review.md`](docs/Architecture-Review.md)). Avant
+d'implémenter quoi que ce soit :
+
+1. Vérifier si la fonctionnalité appartient au Core ou au Theme (voir
+   [`docs/Architecture-Review.md`](docs/Architecture-Review.md), section
+   Frontière Core/Theme/ThemeProvider). En cas de doute, elle appartient
+   au Core.
+2. Documenter l'API avant l'implémentation
+   ([`docs/Core-API.md`](docs/Core-API.md), voir DT-0009) — pas l'inverse.
+3. Éviter toute dépendance spécifique à un thème dans le Core (aucun nom
+   de thème — `cyberpunk`, `nord`, etc. — ne doit apparaître dans
+   `core/`).
 
 ## Conventions spécifiques
 
@@ -70,8 +89,8 @@ En plus des standards globaux (`META/Standards.md`) :
   (`CLAUDE.md`, `docs/`) en français — cohérent avec la règle globale
   public → anglais / interne → français.
 - **Nommage** : préfixe `Nebula` pour tout composant exporté par le Core
-  (`NebulaButton`, `NebulaClock`, `NebulaConfig`, ...). Voir
-  [`docs/Specifications-Techniques.md`](docs/Specifications-Techniques.md).
+  (`NebulaButton`, `NebulaClock`, `NebulaThemeProvider`, ...). Voir
+  [`docs/Core-API.md`](docs/Core-API.md).
 - **Philosophie de priorité** : Stabilité > Performance > Maintenabilité >
   Accessibilité > Beauté. Ne jamais sacrifier la performance pour un effet
   visuel.

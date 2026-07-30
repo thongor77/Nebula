@@ -108,6 +108,18 @@ pour rester cohérent avec le reste de la documentation.
 - **Signals** : aucun.
 - **Dependencies** : `NebulaThemeProvider`.
 
+### NebulaButton
+
+- **Responsabilité** : bouton interactif générique, brique de base
+  réutilisable pour toute action.
+- **Inputs** : interaction utilisateur (clic, activation clavier).
+- **Outputs** : déclenchement d'une action.
+- **Properties** : `label` (string), `icon` (url), `enabled` (bool),
+  `variant` (enum : `primary` / `secondary` / `ghost`, liée aux tokens de
+  couleur du Design System).
+- **Signals** : `clicked()`.
+- **Dependencies** : `NebulaThemeProvider`.
+
 ### NebulaAvatar
 
 - **Responsabilité** : afficher l'avatar d'un utilisateur, avec repli sur
@@ -171,7 +183,8 @@ pour rester cohérent avec le reste de la documentation.
   `canSuspend` (bool), `confirmBeforeAction` (bool).
 - **Signals** : `shutdownRequested()`, `rebootRequested()`,
   `suspendRequested()`.
-- **Dependencies** : `NebulaThemeProvider`.
+- **Dependencies** : `NebulaButton` (chaque action est un `NebulaButton`
+  configuré), `NebulaThemeProvider`.
 
 ### NebulaBackground
 

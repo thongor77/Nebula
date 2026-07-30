@@ -33,6 +33,7 @@
 | Animations GPU       | À vérifier — inconnue critique   | Lié directement au point "Blur" et au coût des effets GPU. |
 | Vidéo background     | À vérifier                       | Dépend de la disponibilité de Qt Multimedia dans l'environnement (souvent restreint) du greeter — non testé. |
 | Audio login          | À vérifier                       | Les processus greeter SDDM tournent historiquement dans une session restreinte sans accès garanti au bus audio utilisateur — point de vigilance connu sur d'autres greeters QML, à confirmer pour Nebula. |
+| Permissions utilisateur sddm | À vérifier — risque transverse | L'utilisateur système `sddm` peut avoir un accès restreint (lecture de fichiers hors des chemins standards, groupes GPU/audio, confinement AppArmor/SELinux selon la distribution) — impacte potentiellement le chargement d'assets de thème, les effets GPU et l'audio simultanément. Voir Architecture-Review.md, Technical Risks. |
 
 ## 3. Comment lever une inconnue
 

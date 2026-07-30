@@ -66,9 +66,19 @@
 
 - **Rôle** : affichage de l'heure et de la date courantes.
 - **Fournit** : format configurable (12h/24h, format de date) via
-  `ThemeConfig`.
+  `NebulaThemeProvider`.
 - **Contrainte de performance** : pas de timer plus fréquent que
   nécessaire (1x/seconde maximum pour l'horloge).
+
+### NebulaButton
+
+- **Rôle** : bouton interactif générique, brique de base réutilisable pour
+  toute action (composé notamment par `NebulaPowerButtons`, disponible
+  aussi pour les besoins additionnels d'un thème).
+- **Fournit** : label, icône optionnelle, variantes visuelles liées aux
+  tokens de couleur du [Design System](Design-System.md) (`primary`,
+  `secondary`, `ghost`), état désactivé, focus clavier.
+- **Dépendances** : `NebulaThemeProvider`.
 
 ### NebulaUserList
 
@@ -106,6 +116,8 @@
 
 - **Rôle** : actions arrêt / redémarrage / veille.
 - **Fournit** : confirmation optionnelle avant action destructive.
+- **Dépendances** : `NebulaButton` (chaque action est un `NebulaButton`
+  configuré), `NebulaThemeProvider`.
 
 ### NebulaNotification
 
@@ -115,8 +127,9 @@
 ### NebulaAnimationManager
 
 - **Rôle** : point d'entrée unique pour déclencher des animations
-  cohérentes (durées, courbes d'easing) définies par `ThemeConfig`, plutôt
-  que des `Behavior`/`Animation` ad-hoc dans chaque composant.
+  cohérentes (durées, courbes d'easing) exposées par
+  `NebulaThemeProvider`, plutôt que des `Behavior`/`Animation` ad-hoc dans
+  chaque composant.
 
 ### NebulaSoundManager
 
@@ -153,7 +166,7 @@ Tout thème dans `themes/<nom>/` doit fournir, au minimum :
 | Sélecteur de disposition clavier   | `NebulaKeyboardSelector`      |
 | Horloge                            | `NebulaClock`                 |
 | Date                               | `NebulaDate`                  |
-| Arrêt / redémarrage / veille        | `NebulaPowerButtons`          |
+| Arrêt / redémarrage / veille        | `NebulaPowerButtons` (`NebulaButton`) |
 | États de focus accessibles          | hérité de chaque composant Core |
 
 Optionnel, selon l'identité du thème :

@@ -111,11 +111,17 @@ Une restructuration plus large en `src/{core,themes,tools,shared}/` a été
 
 ### 5.3 Composants Core visés
 
-`Clock`, `Date`, `UserList`, `Avatar`, `PasswordField`, `SessionSelector`,
-`PowerButtons`, `KeyboardSelector`, `Notification`, `Background`,
-`WallpaperEngine`, `ThemeConfig`, `ThemeProvider`, `AnimationManager`,
-`SoundManager`, `ThemeLoader`, `BlurEffect`, `GlowEffect`, `Particles`,
-polices et icônes partagées.
+`Clock`, `Date`, `Button`, `UserList`, `Avatar`, `PasswordField`,
+`SessionSelector`, `PowerButtons`, `KeyboardSelector`, `Notification`,
+`Background`, `WallpaperEngine`, `ThemeConfig`, `ThemeProvider`,
+`AnimationManager`, `SoundManager`, `ThemeLoader`, `BlurEffect`,
+`GlowEffect`, `Particles`, polices et icônes partagées.
+
+`Button` a été formalisé lors de la revue Phase 0.6
+(`Architecture-Review.md`) : il était déjà utilisé comme exemple dans
+DT-0002 (`ThemeButton extends NebulaButton`) sans jamais avoir été
+documenté comme composant réel — corrigé dans `Core-API.md` et
+`Specifications-Techniques.md`.
 
 `Avatar` a été extrait de `UserList` (réutilisable seul, par exemple pour un
 futur écran mono-utilisateur) et `ThemeProvider` a été ajouté comme

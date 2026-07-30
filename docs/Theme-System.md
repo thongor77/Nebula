@@ -72,13 +72,59 @@ thème, et ne lit `NebulaThemeConfig` qu'au travers de `NebulaThemeProvider`.
 - Permet de faire évoluer le mécanisme de stockage (DT-0003) sans jamais
   toucher aux composants qui le consomment.
 
-## 4. Conséquence sur le contrat des composants
+## 4. Ordre d'initialisation
+
+Garanti par le Core, quel que soit le mécanisme de stockage retenu
+(DT-0003) :
+
+1. `NebulaThemeLoader` s'exécute en premier et se termine — avec succès ou
+   par un repli sur le thème minimal — **avant** que `NebulaThemeProvider`
+   ne soit instancié.
+2. `NebulaThemeProvider` n'est exposé aux composants qu'une fois rempli de
+   valeurs valides (jamais de valeur `undefined`).
+3. Aucun composant Core ne doit lire `NebulaThemeProvider` avant cet
+   instant. En pratique, un composant qui a besoin d'une valeur de theming
+   dans son `Component.onCompleted` peut supposer que `NebulaThemeProvider`
+   est déjà pleinement résolu — pas de risque de course entre chargement
+   du thème et affichage du premier composant.
+
+Cette garantie fait partie du contrat de `NebulaThemeProvider` (voir
+[`Core-API.md`](Core-API.md)) et doit être vérifiée par un test dès la
+première implémentation (voir `Specifications-Techniques.md`, Definition
+of Done : suite de tests minimale).
+
+## 5. Valeurs par défaut
+
+`NebulaThemeConfig` doit toujours résoudre **chaque** token du
+[Design System](Design-System.md) vers une valeur concrète, y compris
+quand :
+
+- le thème actif ne définit pas explicitement un token donné (un thème
+  n'est pas obligé de tout redéfinir) ;
+- `NebulaThemeLoader` est tombé en repli sur le thème minimal après un
+  échec de chargement.
+
+Pour cela, le Core embarque un jeu de valeurs par défaut pour l'ensemble
+des tokens du Design System (le "thème minimal" de repli mentionné dans
+`Specifications-Techniques.md`, section NebulaThemeLoader). Un composant
+Core ne doit jamais avoir à gérer lui-même l'absence d'une valeur — c'est
+la responsabilité de `NebulaThemeConfig`/`NebulaThemeProvider`, jamais celle
+du composant qui consomme le token.
+
+## 6. Gestion des erreurs
+
+Voir `NebulaThemeLoader` dans [`Core-API.md`](Core-API.md) :
+`themeLoadFailed(reason)` est émis, puis le thème minimal (section 5
+ci-dessus) est chargé à la place — jamais d'écran noir ou de composant
+affichant une valeur indéfinie.
+
+## 7. Conséquence sur le contrat des composants
 
 Le "Definition of Done" d'un composant Core (voir
 `Specifications-Techniques.md`) inclut désormais : *le composant lit ses
 valeurs visuelles exclusivement via `NebulaThemeProvider`*.
 
-## 5. Lien avec Nebula Designer (vision long terme)
+## 8. Lien avec Nebula Designer (vision long terme)
 
 Le futur outil graphique **Nebula Designer** (voir `Roadmap.md`, Phase 4)
 devra pouvoir modifier les valeurs d'un thème puis les exporter dans un

@@ -6,8 +6,15 @@ exists yet. Before writing code, read:
 1. [`README.md`](README.md)
 2. [`docs/Architecture.md`](docs/Architecture.md)
 3. [`docs/Decisions-Techniques.md`](docs/Decisions-Techniques.md)
-4. [`docs/Specifications-Techniques.md`](docs/Specifications-Techniques.md)
-5. [`docs/Roadmap.md`](docs/Roadmap.md)
+4. [`docs/Design-System.md`](docs/Design-System.md)
+5. [`docs/Theme-System.md`](docs/Theme-System.md)
+6. [`docs/Specifications-Techniques.md`](docs/Specifications-Techniques.md)
+7. [`docs/Core-API.md`](docs/Core-API.md)
+8. [`docs/SDDM-Compatibility.md`](docs/SDDM-Compatibility.md)
+9. [`docs/Development-Environment.md`](docs/Development-Environment.md)
+10. [`docs/Theme-Development.md`](docs/Theme-Development.md) (if you are
+    creating a theme rather than a Core component)
+11. [`docs/Roadmap.md`](docs/Roadmap.md)
 
 If you want to help before implementation starts, the most useful
 contribution is feedback on the architecture and specifications above, not
@@ -27,7 +34,9 @@ Duplicating a component across themes is treated as a bug — see
 - Small QML files, single responsibility per file.
 - Clear, descriptive property names — no abbreviations that aren't obvious.
 - Consistent formatting (4-space indentation, one component per file).
-- No magic numbers — named constants or `ThemeConfig` values instead.
+- No magic numbers — use named tokens exposed through
+  `NebulaThemeProvider` instead (see `docs/Design-System.md`), never read
+  `ThemeConfig`/`ThemeLoader` directly.
 - Keep JavaScript minimal inside QML; business logic belongs in
   `core/utils/` helper files, not inline in components.
 - Document the *why*, not the *what* — a comment should explain a
@@ -36,9 +45,9 @@ Duplicating a component across themes is treated as a bug — see
 ## Naming convention
 
 Every component exported by Core is prefixed `Nebula`:
-`NebulaButton`, `NebulaClock`, `NebulaConfig`, `NebulaTheme`, etc. See
-[`docs/Specifications-Techniques.md`](docs/Specifications-Techniques.md)
-for the full component list.
+`NebulaButton`, `NebulaClock`, `NebulaThemeConfig`, `NebulaThemeProvider`,
+etc. See [`docs/Core-API.md`](docs/Core-API.md) for the full component
+list and public API contract.
 
 ## Performance rules
 
@@ -85,13 +94,18 @@ Don't mix a fix and a new feature in the same commit.
 - Explain the architectural reasoning behind non-trivial choices, and
   link to the relevant section of `docs/` if applicable.
 - If your change affects the Core/Theme contract, update
-  `docs/Specifications-Techniques.md` in the same PR.
+  `docs/Specifications-Techniques.md` **and** `docs/Core-API.md` in the
+  same PR (see DT-0009).
+- Before any new feature: check whether it belongs to Core or to a theme,
+  document its API before implementing it, and avoid any dependency on a
+  specific theme (see `CLAUDE.md`).
 
 ## Definition of Done for a Core component
 
 See the checklist in
 [`docs/Specifications-Techniques.md`](docs/Specifications-Techniques.md#4-definition-of-done--composant-core):
-zero QML warnings, all visual values sourced from `ThemeConfig`, every
+zero QML warnings, all visual values sourced exclusively from
+`NebulaThemeProvider` (never `ThemeConfig`/`ThemeLoader` directly), every
 public property documented, keyboard focus handled for interactive
 components, consistent behavior across Wayland and X11 (or the
 difference is documented and intentional).
