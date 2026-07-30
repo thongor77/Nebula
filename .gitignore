@@ -1,0 +1,29 @@
+# Qt / QML
+*.qmlc
+*.jsc
+.qmlls.ini
+
+# Build directories
+build/
+Build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+*.cmake
+!CMakeLists.txt
+
+# Editors / IDE
+.vscode/
+.idea/
+*.kate-swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Local Claude settings (kept out of the public repo)
+.claude/settings.local.json

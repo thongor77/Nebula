@@ -1,0 +1,37 @@
+name: QML Lint
+
+# Activates once Core components land (Phase 1 — see docs/Roadmap.md).
+# Kept in the repo now so CI is ready the moment the first .qml file is added.
+
+on:
+  pull_request:
+    paths:
+      - "**/*.qml"
+      - "**/*.js"
+  push:
+    branches: [main]
+    paths:
+      - "**/*.qml"
+      - "**/*.js"
+
+jobs:
+  qmllint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt6 (qmllint)
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.7.*"
+          modules: "qtdeclarative"
+
+      - name: Run qmllint on all QML files
+        run: |
+          set -e
+          files=$(find . -name "*.qml" -not -path "./.git/*")
+          if [ -z "$files" ]; then
+            echo "No QML files yet — nothing to lint."
+            exit 0
+          fi
+          echo "$files" | xargs qmllint --warnings-as-errors

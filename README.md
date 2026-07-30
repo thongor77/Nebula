@@ -1,0 +1,62 @@
+# Nebula
+
+> Modern SDDM framework and theme suite for KDE Plasma 6 and Wayland.
+
+Nebula is not a collection of unrelated SDDM login themes. It is a modular
+**framework** — a reusable Core plus a set of themes built on top of it —
+for building high-quality, consistent SDDM login screens.
+
+## Status
+
+**Architecture phase.** No QML implementation exists yet. The current focus
+is defining the Core/Theme contract, the component list, and the technical
+decisions before any code is written. See [`docs/Roadmap.md`](docs/Roadmap.md).
+
+## Goals
+
+- KDE Plasma 6, Qt6, SDDM 0.21+
+- Wayland first, X11 compatible
+- HiDPI and multi-monitor support
+- Smooth 60 FPS animations without sacrificing performance or battery life
+- Zero QML warnings
+- Easy theme customization without touching Core code
+
+## Structure
+
+```text
+core/          reusable components, effects, animations, utils, assets
+themes/        theme identities (cyberpunk, hacker, amoled, nord, glass, hypr)
+docs/          architecture, technical decisions, roadmap, specifications
+scripts/       packaging and tooling scripts
+.github/       CI workflows and issue/PR templates
+```
+
+Themes never redefine what already exists in Core — see
+[`docs/Architecture.md`](docs/Architecture.md) for the full rationale.
+
+## Documentation
+
+| Document                                                      | Content                                          |
+| -------------------------------------------------------------- | ------------------------------------------------- |
+| [`docs/Architecture.md`](docs/Architecture.md)                 | Problem, users, use cases, target architecture     |
+| [`docs/Decisions-Techniques.md`](docs/Decisions-Techniques.md) | Why each major technical choice was made           |
+| [`docs/Roadmap.md`](docs/Roadmap.md)                            | Phased plan from architecture to first theme       |
+| [`docs/Specifications-Techniques.md`](docs/Specifications-Techniques.md) | Component contracts and per-theme requirements |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md)                            | Coding conventions, commit style, PR process        |
+| [`CLAUDE.md`](CLAUDE.md)                                        | Project context for AI-assisted development (FR)   |
+
+## Requirements (planned)
+
+- KDE Plasma 6 with SDDM 0.21+
+- Qt 6
+- A Wayland or X11 session
+
+Installation instructions will be added once a first theme ships.
+
+## Contributing
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) before opening a pull request.
+
+## License
+
+GPLv3 — see [`LICENSE`](LICENSE).
