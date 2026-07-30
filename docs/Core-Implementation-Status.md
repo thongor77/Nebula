@@ -2,7 +2,11 @@
 
 > État d'avancement du Core MVP (voir [`Core-MVP.md`](Core-MVP.md) pour le
 > périmètre complet, [`Roadmap.md`](Roadmap.md) pour l'ordre de
-> construction). Mis à jour à chaque composant livré.
+> construction). Mis à jour à chaque composant livré. Les découvertes
+> techniques (bugs trouvés, causes, solutions) sont détaillées dans
+> [`Development-Journal.md`](Development-Journal.md) — ce document-ci
+> reste centré sur *quoi* est fait et *quelles* décisions ont été prises,
+> pas sur le récit du débogage.
 
 ---
 
@@ -78,6 +82,21 @@
 - Dépendance : `NebulaThemeProvider`.
 - `qmllint` : aucun avertissement.
 
+### NebulaLoginLayout (`core/layouts/NebulaLoginLayout.qml`) — Phase 1.3
+
+- Testé réellement (voir §4) : quatre zones (`wallpaperContent`,
+  `mainContent` par défaut, `statusContent`, `footerContent`), aucune
+  couleur ni asset ni logique SDDM — géométrie seule (marges/espacements
+  via tokens `spacing`).
+- Responsive : dimensionnement relatif/pourcentage plutôt que coordonnées
+  absolues, vérifié à plusieurs tailles/ratios (16:9 large, portrait
+  étroit, `QT_SCALE_FACTOR=2`).
+- Deux découvertes réelles pendant le test (bug de boucle de binding,
+  limitation de débordement vertical sur ratio extrême) — voir
+  [`Development-Journal.md`](Development-Journal.md), entrées Phase 1.3.
+- Dépendance : `NebulaThemeProvider` (spacing uniquement).
+- `qmllint` : aucun avertissement.
+
 ## 2. Composants en cours / pas commencés
 
 Reste du périmètre du Core MVP (voir `Core-MVP.md`) : `NebulaThemeLoader`,
@@ -90,6 +109,12 @@ Reste du périmètre du Core MVP (voir `Core-MVP.md`) : `NebulaThemeLoader`,
 `tests/LoginScreenHarness.qml`, assemblé uniquement via
 `NebulaThemeProvider`, sans dépendre d'un thème ni de l'API SDDM — voir
 §4.
+
+**Critère de fin de la Phase 1.3 atteint** : `tests/LoginScreenHarness.qml`
+n'assemble plus les composants directement — il instancie
+`NebulaLoginLayout` et y place son contenu (Avatar, Clock, Date, Button)
+via la zone par défaut. Résultat visuel identique à la Phase 1.2, vérifié
+par capture d'écran.
 
 ## 3. Décisions prises pendant cette phase
 
@@ -229,6 +254,36 @@ chemin absolu — ce qui reste valide indépendamment de l'endroit où le
 dépôt est cloné. Documenté ici pour éviter de perdre du temps à
 redécouvrir la même erreur plus tard.
 
+### D10 — Contenu des zones via `property alias ... : zone.data`, pas de `Loader`/`Component`
+
+**Contexte** : `NebulaLoginLayout` doit accepter que son utilisateur
+(harnais aujourd'hui, thème réel plus tard) place ses propres composants
+dans quatre zones, sans que `NebulaLoginLayout` connaisse ces composants
+à l'avance.
+
+**Décision** : chaque zone expose une propriété `property alias
+xxxContent: zoneItem.data`, et `mainContent` est en plus la propriété
+`default` (les enfants anonymes y atterrissent automatiquement). Pas de
+`Loader`/`Component` — inutile ici, tout le contenu est statique au
+moment de l'écriture du QML, pas chargé dynamiquement à l'exécution.
+
+**Raisons** : reste le pattern QML le plus simple pour ce besoin ;
+cohérent avec l'absence de système de modules/singleton décidée en
+Phase 1.1 (D2/D3).
+
+**Conséquences** : documenté comme contrat dans `Core-API.md`. Si
+`NebulaThemeLoader` a un jour besoin de charger le contenu d'une zone
+dynamiquement (thème sélectionné à l'exécution), ce choix devra être
+réévalué — `Loader`/`Component` deviendraient alors pertinents.
+
+### D11 — Limitation assumée : pas de gestion du débordement vertical
+
+Voir `Development-Journal.md` (Phase 1.3, entrée sur le ratio 900×300).
+Décision : ne pas ajouter de logique de rétrécissement adaptatif
+maintenant — aucun écran réel visé par Nebula n'a un ratio aussi extrême
+(voir `SDDM-Compatibility.md`). À revisiter seulement si un besoin réel
+apparaît (voir principe de travail du workspace).
+
 ## 4. Vérifications réelles effectuées
 
 - `qmllint` sur les 3 nouveaux fichiers + le harnais de test : aucun
@@ -265,6 +320,19 @@ redécouvrir la même erreur plus tard.
   correctement découpée en cercle ; repli correctement découpé en carré
   aux coins arrondis avec un `radius` différent).
 
+### Phase 1.3
+
+- `qmllint` sur `NebulaLoginLayout.qml` et `tests/LoginScreenHarness.qml`
+  mis à jour : aucun avertissement.
+- Bug de boucle de binding trouvé, corrigé, revérifié (voir D-Journal) ;
+  rendu final identique visuellement à la Phase 1.2 (capture d'écran
+  comparée).
+- Testé à plusieurs tailles/ratios réels : 480×520 (référence), 960×540
+  (16:9 large), 340×700 (portrait étroit), 900×300 (ratio extrême — a
+  révélé la limitation D11), et `QT_SCALE_FACTOR=2` sur la taille de
+  référence — tous rendus capturés à l'écran, aucun avertissement QML
+  restant après correction du bug de boucle.
+
 ## 5. Documentation à synchroniser (fait dans ce lot)
 
 - [`Design-System.md`](Design-System.md) — `fontWeight` → 
@@ -275,3 +343,11 @@ redécouvrir la même erreur plus tard.
 - [`Core-API.md`](Core-API.md) — `NebulaClock.format` ajouté (D7),
   `NebulaAvatar.radius` ajouté et `fallbackIcon` confirmé (D8).
 - [`Roadmap.md`](Roadmap.md) — Phase 1.2 marquée terminée.
+- [`Core-API.md`](Core-API.md) — entrée `NebulaLoginLayout` ajoutée.
+- [`Architecture.md`](Architecture.md) — `core/layouts/` (et
+  `config/`/`theme/`/`services/`, oubliés lors de la Phase 1.1) ajoutés
+  à l'arborescence cible ; `LoginLayout` ajouté à la liste des composants.
+- [`Core-MVP.md`](Core-MVP.md) — `NebulaLoginLayout` ajouté au périmètre.
+- [`Roadmap.md`](Roadmap.md) — Phase 1.3 marquée terminée.
+- [`Development-Journal.md`](Development-Journal.md) — nouveau document
+  (Phase 1.3), rétro-rempli avec les découvertes des Phases 1.0 à 1.3.

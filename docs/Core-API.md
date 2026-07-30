@@ -208,6 +208,28 @@ pour rester cohérent avec le reste de la documentation.
 - **Dependencies** : `NebulaButton` (chaque action est un `NebulaButton`
   configuré), `NebulaThemeProvider`.
 
+### NebulaLoginLayout
+
+- **Responsabilité** : squelette commun d'un écran de connexion — quatre
+  zones (fond, contenu principal, statut, pied de page), géométrie
+  uniquement (marges, espacements, dimensionnement responsive). Aucune
+  couleur, aucun asset, aucune logique SDDM (voir §1).
+- **Inputs** : contenu placé par le thème dans chaque zone.
+- **Outputs** : positionnement des zones.
+- **Properties** : `wallpaperContent`, `mainContent` (zone par défaut),
+  `statusContent`, `footerContent` — chacune un point d'insertion de
+  contenu (`property alias ... : zone.data`), pas une propriété de valeur
+  simple.
+- **Contrat** : le contenu placé dans `mainContent`/`statusContent` doit
+  se centrer horizontalement uniquement (jamais `anchors.centerIn`) — ces
+  zones dimensionnent leur hauteur sur leur propre contenu, voir
+  `docs/Development-Journal.md` (Phase 1.3).
+- **Limitation connue** : pas de gestion du débordement vertical sur une
+  fenêtre à ratio extrême (très basse et large) — voir
+  `docs/Development-Journal.md`.
+- **Signals** : aucun.
+- **Dependencies** : `NebulaThemeProvider` (spacing uniquement).
+
 ### NebulaBackground
 
 - **Responsabilité** : afficher le fond d'écran simple (image statique ou

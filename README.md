@@ -10,11 +10,13 @@ for building high-quality, consistent SDDM login screens.
 
 **Core MVP in progress.** The architecture, contracts and a real technical
 prototype are done (see [`docs/Roadmap.md`](docs/Roadmap.md), Phases 0 to
-1.0). Phase 1.1 and 1.2 landed the first real Core components —
+1.0). Phases 1.1-1.3 landed the first real Core components —
 `NebulaThemeConfig`, `NebulaThemeProvider`, `NebulaButton`, `NebulaAvatar`,
-`NebulaClock`, `NebulaDate` — each tested and visually verified. A static
-login screen (avatar + clock + date + button, no theme) already works on
-top of Core alone — see
+`NebulaClock`, `NebulaDate` — plus `NebulaLoginLayout`, the shared
+four-zone skeleton every theme's login screen will build on. Each piece
+is tested and visually verified. A static login screen (avatar + clock +
+date + button, no theme) already works on top of Core alone, built
+through the layout — see
 [`docs/Core-Implementation-Status.md`](docs/Core-Implementation-Status.md).
 No theme exists yet.
 
@@ -61,6 +63,7 @@ Themes never redefine what already exists in Core — see
 | [`docs/Nord-Theme-Specification.md`](docs/Nord-Theme-Specification.md) | Palette, typography, layout for the pilot theme (Nord) |
 | [`docs/Prototype-Results.md`](docs/Prototype-Results.md)       | Phase 1.0 real-world test results: SDDM API, multi-screen, HiDPI |
 | [`docs/Core-Implementation-Status.md`](docs/Core-Implementation-Status.md) | What's actually implemented in `core/`, and why |
+| [`docs/Development-Journal.md`](docs/Development-Journal.md)  | Technical discoveries from actually building Nebula (bugs found, causes, fixes) |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md)                            | Coding conventions, commit style, PR process        |
 | [`CLAUDE.md`](CLAUDE.md)                                        | Project context for AI-assisted development (FR)   |
 

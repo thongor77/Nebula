@@ -30,6 +30,11 @@ faire fonctionner un écran de connexion réel (voir `Architecture.md` §8,
 
 ## 3. Composants
 
+### Layout
+
+- `NebulaLoginLayout` (Phase 1.3) — squelette commun (zones fond /
+  contenu principal / statut / pied de page), géométrie uniquement.
+
 ### Primitives simples et autonomes
 
 - `NebulaButton`

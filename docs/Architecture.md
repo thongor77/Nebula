@@ -91,8 +91,12 @@ et d'autres contraintes SDDM/Qt6 : [`SDDM-Compatibility.md`](SDDM-Compatibility.
 nebula/
 ├── core/
 │   ├── components/
+│   ├── layouts/
 │   ├── effects/
 │   ├── animations/
+│   ├── config/
+│   ├── theme/
+│   ├── services/
 │   ├── utils/
 │   └── assets/
 ├── themes/
@@ -136,7 +140,15 @@ Une restructuration plus large en `src/{core,themes,tools,shared}/` a été
 `SessionSelector`, `PowerButtons`, `KeyboardSelector`, `Notification`,
 `Background`, `WallpaperEngine`, `ThemeConfig`, `ThemeProvider`,
 `AnimationManager`, `SoundManager`, `ThemeLoader`, `BlurEffect`,
-`GlowEffect`, `Particles`, polices et icônes partagées.
+`GlowEffect`, `Particles`, `LoginLayout`, polices et icônes partagées.
+
+`LoginLayout` (Phase 1.3, `core/layouts/`) fournit le squelette commun
+(zones : fond, contenu principal, statut, pied de page) que tous les
+thèmes assemblent — géométrie uniquement, aucune couleur ni logique SDDM
+(voir `Core-API.md`). Ceci ne contredit pas la règle 5.2 selon laquelle
+un thème définit son "layout" : le thème décide *quoi* placer dans
+chaque zone et *comment* l'agencer à l'intérieur, `LoginLayout` ne décide
+que de la géométrie des zones elles-mêmes.
 
 `Button` a été formalisé lors de la revue Phase 0.6
 (`Architecture-Review.md`) : il était déjà utilisé comme exemple dans

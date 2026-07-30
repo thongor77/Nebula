@@ -124,6 +124,18 @@ en plus de `use24HourFormat`/`showSeconds`, `radius` ajouté à
 `NebulaAvatar`, `fallbackIcon` conservé) : voir
 [`docs/Core-Implementation-Status.md`](Core-Implementation-Status.md).
 
+**Sous-étape Phase 1.3 — Layout Foundation (terminée) :** `NebulaLoginLayout`
+implémenté (`core/layouts/`) — squelette commun à quatre zones (fond,
+contenu principal, statut, pied de page), géométrie uniquement, testé à
+plusieurs tailles/ratios et à `QT_SCALE_FACTOR=2`. Critère de fin atteint :
+`tests/LoginScreenHarness.qml` instancie désormais `NebulaLoginLayout` au
+lieu d'assembler les composants directement, résultat visuel identique à
+la Phase 1.2. Un bug de boucle de binding (`anchors.centerIn` sur une zone
+qui se dimensionne sur son propre contenu) et une limitation de
+débordement vertical sur ratio extrême ont été trouvés et documentés —
+voir [`docs/Development-Journal.md`](Development-Journal.md), nouveau
+document créé cette phase pour ce type de découverte.
+
 Ordre de construction recommandé (plomberie avant composants visuels,
 composants simples avant composants interactifs — voir
 [`Theme-System.md`](Theme-System.md)) :
@@ -136,17 +148,18 @@ composants simples avant composants interactifs — voir
 4. [x] `ThemeProvider` — Phase 1.1, `core/theme/NebulaThemeProvider.qml`
 5. [x] `Button` — Phase 1.1 ; [x] `Avatar` — Phase 1.2, tous deux dans
        `core/components/`
-6. [ ] `Background`
-7. [ ] `UserList`, `PasswordField`
-8. [x] `Clock`, `Date` — Phase 1.2, `core/components/NebulaClock.qml`,
+6. [x] `LoginLayout` — Phase 1.3, `core/layouts/NebulaLoginLayout.qml`
+7. [ ] `Background`
+8. [ ] `UserList`, `PasswordField`
+9. [x] `Clock`, `Date` — Phase 1.2, `core/components/NebulaClock.qml`,
        `core/components/NebulaDate.qml`
-9. [ ] `PowerButtons` (shutdown / reboot / sleep — composé sur `Button`)
-10. [ ] `SessionSelector`, `KeyboardSelector`
-11. [ ] `Notification`
-12. [ ] `AnimationManager` (version minimale)
-13. [ ] Mettre en place `tests/` avec une première suite de tests pour
+10. [ ] `PowerButtons` (shutdown / reboot / sleep — composé sur `Button`)
+11. [ ] `SessionSelector`, `KeyboardSelector`
+12. [ ] `Notification`
+13. [ ] `AnimationManager` (version minimale)
+14. [ ] Mettre en place `tests/` avec une première suite de tests pour
        les composants livrés ci-dessus
-14. [ ] Zéro warning QML sur l'ensemble du Core
+15. [ ] Zéro warning QML sur l'ensemble du Core
 
 Périmètre exact et exclusions du MVP : voir
 [`Core-MVP.md`](Core-MVP.md).
