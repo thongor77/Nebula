@@ -19,6 +19,8 @@ QtObject {
     readonly property QtObject radius: config.radius
     readonly property QtObject typography: config.typography
     readonly property QtObject animation: config.animation
+    readonly property QtObject overlay: config.overlay
+    readonly property QtObject surface: config.surface
 
     // Asset exposure (fonts/icons resolved by a real theme) is deferred
     // until NebulaThemeLoader exists — placeholder kept empty on purpose.

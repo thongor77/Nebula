@@ -69,6 +69,19 @@ QtObject {
     // enableEffects, ...) are deliberately not implemented yet: no
     // component consumes them until Phase 3 (see docs/Roadmap.md).
 
+    readonly property QtObject overlay: QtObject {
+        property real overlayOpacity: 0.35
+    }
+
+    readonly property QtObject surface: QtObject {
+        property real surfaceOpacity: 1.0
+        property real surfaceBorderWidth: 1
+    }
+    // surfaceRadius/surfacePadding deliberately NOT added as separate
+    // tokens: NebulaSurface reuses radius.radiusLarge/spacing.spacingMd
+    // by default (overridable per-instance) — see
+    // docs/Decisions-Techniques.md, DT-0013.
+
     // Simple validation: every group must hold sane, usable values.
     // Not a full schema validator — just a sanity check that the
     // resolved config is fit to hand to components.
