@@ -28,6 +28,7 @@ core/          reusable components, effects, animations, utils, assets
 themes/        theme identities (cyberpunk, hacker, amoled, nord, glass, hypr)
 docs/          architecture, technical decisions, roadmap, specifications
 scripts/       packaging and tooling scripts
+tests/         test suite for Core components
 .github/       CI workflows and issue/PR templates
 ```
 
@@ -42,6 +43,8 @@ Themes never redefine what already exists in Core — see
 | [`docs/Decisions-Techniques.md`](docs/Decisions-Techniques.md) | Why each major technical choice was made           |
 | [`docs/Roadmap.md`](docs/Roadmap.md)                            | Phased plan from architecture to first theme       |
 | [`docs/Specifications-Techniques.md`](docs/Specifications-Techniques.md) | Component contracts and per-theme requirements |
+| [`docs/Design-System.md`](docs/Design-System.md)               | Design token catalog (spacing, radius, typography, animation, effects, colors) |
+| [`docs/Theme-System.md`](docs/Theme-System.md)                 | End-to-end theming flow: ThemeLoader → ThemeConfig → ThemeProvider → Components |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md)                            | Coding conventions, commit style, PR process        |
 | [`CLAUDE.md`](CLAUDE.md)                                        | Project context for AI-assisted development (FR)   |
 

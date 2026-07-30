@@ -40,7 +40,10 @@ d'écran, paramètres d'animation et layout. Chaque thème importe le Core,
 jamais l'inverse.
 
 Détail complet, utilisateurs cibles, cas d'usage et inconnues :
-[`docs/Architecture.md`](docs/Architecture.md).
+[`docs/Architecture.md`](docs/Architecture.md). Vocabulaire des tokens
+visuels : [`docs/Design-System.md`](docs/Design-System.md). Flux de
+theming (`ThemeLoader` → `ThemeConfig` → `ThemeProvider` → composants) :
+[`docs/Theme-System.md`](docs/Theme-System.md).
 
 ## Décisions techniques
 
@@ -69,6 +72,7 @@ En plus des standards globaux (`META/Standards.md`) :
   Accessibilité > Beauté. Ne jamais sacrifier la performance pour un effet
   visuel.
 - **Configuration** : aucune couleur, police ou espacement codé en dur ;
-  tout passe par `ThemeConfig`.
+  tout passe par `ThemeConfig`, mais un composant ne le lit jamais
+  directement — uniquement via `NebulaThemeProvider` (voir DT-0006).
 - Détail des conventions de code (QML, JS, commits, PR) :
   [`CONTRIBUTING.md`](CONTRIBUTING.md).

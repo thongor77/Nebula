@@ -30,7 +30,8 @@ Nebula répond à ce problème en séparant strictement ce qui est **générique
 ## 3. Cas d'usage
 
 1. Un utilisateur installe un thème Nebula existant (ex. `nord`) et
-   personnalise ses couleurs / son fond d'écran via `ThemeConfig`, sans
+   personnalise ses couleurs / son fond d'écran via les valeurs exposées
+   par `ThemeConfig` (voir [`Theme-System.md`](Theme-System.md)), sans
    toucher au QML.
 2. Un contributeur crée un nouveau thème : il écrit uniquement des fichiers
    de configuration et de layout, en import ant les composants du Core.
@@ -81,8 +82,17 @@ nebula/
 │   └── hypr/
 ├── docs/
 ├── scripts/
+├── tests/
 └── .github/
 ```
+
+`tests/` a été ajouté suite à l'analyse de la proposition externe
+*Nebula Architecture Enhancement Proposal* — son absence était un vrai
+manque, à structurer dès la Phase 1 (voir `Roadmap.md`).
+
+Une restructuration plus large en `src/{core,themes,tools,shared}/` a été
+étudiée mais différée — voir DT-0008 dans
+[`Decisions-Techniques.md`](Decisions-Techniques.md).
 
 - `core/` contient tout ce qui est réutilisable.
 - `themes/` ne contient que l'identité de chaque thème.
@@ -100,14 +110,21 @@ nebula/
 
 ### 5.3 Composants Core visés
 
-`Clock`, `Date`, `UserList`, `PasswordField`, `SessionSelector`,
+`Clock`, `Date`, `UserList`, `Avatar`, `PasswordField`, `SessionSelector`,
 `PowerButtons`, `KeyboardSelector`, `Notification`, `Background`,
-`WallpaperEngine`, `ThemeConfig`, `AnimationManager`, `SoundManager`,
-`ThemeLoader`, `BlurEffect`, `GlowEffect`, `Particles`, polices et icônes
-partagées.
+`WallpaperEngine`, `ThemeConfig`, `ThemeProvider`, `AnimationManager`,
+`SoundManager`, `ThemeLoader`, `BlurEffect`, `GlowEffect`, `Particles`,
+polices et icônes partagées.
+
+`Avatar` a été extrait de `UserList` (réutilisable seul, par exemple pour un
+futur écran mono-utilisateur) et `ThemeProvider` a été ajouté comme
+intermédiaire obligatoire entre `ThemeConfig`/`ThemeLoader` et les
+composants — voir DT-0006 et [`Theme-System.md`](Theme-System.md).
 
 Contrat détaillé de chaque composant :
 [`Specifications-Techniques.md`](Specifications-Techniques.md).
+Vocabulaire des valeurs visuelles (couleurs, spacing, radius, typography,
+animation, effets) : [`Design-System.md`](Design-System.md).
 
 ### 5.4 Objectifs non fonctionnels
 
@@ -117,6 +134,9 @@ Contrat détaillé de chaque composant :
 - 60 FPS, animations fluides et discrètes.
 - Faible empreinte mémoire, démarrage rapide.
 - Zéro warning QML.
+- Aucune animation active ne tourne quand elle n'est pas visible à
+  l'écran (pas d'animation permanente en arrière-plan d'un composant
+  masqué).
 
 ### 5.5 Priorités de conception
 
@@ -130,7 +150,26 @@ En cas d'arbitrage, l'ordre de priorité est :
 
 Ne jamais sacrifier la performance uniquement pour un effet visuel.
 
-## 6. Ce que chaque thème doit fournir
+## 6. Critère de réussite du Core
+
+Créer un nouveau thème doit se limiter à ajouter, dans `themes/<nom>/` :
+
+- un fichier de configuration du thème (couleurs, tokens du Design System) ;
+- un fichier de layout ;
+- ses assets propres (fonds d'écran, icônes spécifiques).
+
+**Sans jamais modifier `core/`.** Si un nouveau thème nécessite de modifier
+le Core, c'est le signe que l'architecture doit être revue — pas que le
+thème doit contourner le Core (voir DT-0002). Ce critère est le test
+décisif de la réussite de la séparation Core/Thèmes.
+
+## 7. Modules Qt6 privilégiés
+
+Voir DT-0007 dans [`Decisions-Techniques.md`](Decisions-Techniques.md) pour
+la liste des modules QML privilégiés (`QtQuick`, `QtQuick.Controls`,
+`QtQuick.Shapes`, `ShaderEffect`) et de ceux à éviter.
+
+## 8. Ce que chaque thème doit fournir
 
 Obligatoire : écran de connexion, champ mot de passe, sélecteur
 utilisateur, sélecteur de session, sélecteur de disposition clavier,
@@ -139,7 +178,7 @@ horloge, date, arrêt, redémarrage, veille, états de focus accessibles.
 Optionnel : fond animé, effets GPU, météo, batterie, nom d'hôte, diaporama
 de fonds d'écran.
 
-## 7. Hors périmètre (pour l'instant)
+## 9. Hors périmètre (pour l'instant)
 
 - Éditeur de thème graphique, aperçu live, système de plugins, moteur de
   wallpaper avancé, bibliothèque de shaders, marketplace en ligne,
