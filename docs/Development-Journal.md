@@ -10,6 +10,69 @@
 
 ---
 
+## 2026-07-31 — Phase 1.5
+
+**Contexte** : test manuel de `NebulaBackground`/`NebulaWallpaper` en
+plaçant plusieurs instances de `NebulaBackground` côte à côte dans un
+`Row`, pour comparer visuellement plusieurs configurations à la fois.
+
+**Découverte** : le rendu était incohérent (les trois panneaux censés
+être séparés semblaient fusionner en une seule image continue).
+`journalctl` a révélé l'avertissement réel : `QML Row: Cannot specify
+left, right, horizontalCenter, fill or centerIn anchors for items inside
+Row. Row will not function.`
+
+**Cause** : `NebulaBackground` utilise `anchors.fill: parent` en interne
+(cohérent avec son rôle de conteneur plein écran). Les positionneurs Qt
+Quick (`Row`, `Column`, `Grid`) gèrent eux-mêmes la position de leurs
+enfants et interdisent explicitement `fill`/`centerIn`/ancrages sur ces
+enfants directs.
+
+**Solution** : ce n'est pas un bug de `NebulaBackground` — c'est un usage
+invalide. Le harnais de test a été corrigé pour tester chaque
+configuration séparément (une fenêtre entière à la fois) plutôt que côte
+à côte dans un `Row`. Documenté comme contrainte d'usage explicite dans
+`Core-API.md`.
+
+**Impact** : tout composant Core qui utilise `anchors.fill: parent` en
+interne (`NebulaBackground`, `NebulaLoginLayout`) ne doit jamais être
+placé comme enfant direct d'un `Row`/`Column`/`Grid`. Règle ajoutée à
+`Rendering-Guidelines.md`.
+
+---
+
+## 2026-07-31 — Phase 1.5
+
+**Contexte** : ajout des groupes `overlay`/`surface` dans
+`NebulaThemeConfig.qml` pour `NebulaOverlay`. Rendu testé réellement
+(`qml6` + capture d'écran) par-dessus un `NebulaWallpaper` déjà validé.
+
+**Découverte** : le voile s'affichait totalement opaque (fond noir uni),
+cachant complètement le wallpaper en dessous — alors que
+`overlayOpacity` valait `0.35` par défaut.
+
+**Cause** : `theme.overlay.overlayOpacity` levait
+`TypeError: Cannot read property 'overlayOpacity' of undefined` —
+visible uniquement via `journalctl`. Le groupe `overlay` avait bien été
+ajouté à `NebulaThemeConfig.qml`, mais pas répercuté dans
+`NebulaThemeProvider.qml`, qui ré-expose chaque groupe une par une
+(`readonly property QtObject colors: config.colors`, etc.) plutôt que de
+déléguer génériquement à `config`. Le binding `opacity:` en échec a
+laissé la propriété à sa valeur par défaut (opaque), plutôt que de
+propager visiblement une erreur.
+
+**Solution** : ajout de `readonly property QtObject overlay:
+config.overlay` et `surface: config.surface` dans
+`NebulaThemeProvider.qml`.
+
+**Impact** : chaque nouveau groupe de tokens ajouté à
+`NebulaThemeConfig.qml` doit être répercuté manuellement dans
+`NebulaThemeProvider.qml` — ce n'est pas automatique. À surveiller à
+chaque futur ajout de token tant que ce passage un par un n'est pas
+remplacé par un mécanisme générique.
+
+---
+
 ## 2026-07-30 — Phase 1.4
 
 **Contexte** : `NebulaAuthService.qml` (racine `QtObject`) devait réagir

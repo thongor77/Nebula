@@ -8,18 +8,20 @@ for building high-quality, consistent SDDM login screens.
 
 ## Status
 
-**Core MVP in progress.** The architecture, contracts and a real technical
-prototype are done (see [`docs/Roadmap.md`](docs/Roadmap.md), Phases 0 to
-1.0). Phases 1.1-1.4 landed the first real Core components —
+**Core MVP visually complete.** The architecture, contracts and a real
+technical prototype are done (see [`docs/Roadmap.md`](docs/Roadmap.md),
+Phases 0 to 1.0). Phases 1.1-1.5 landed every visual building block —
 `NebulaThemeConfig`, `NebulaThemeProvider`, `NebulaButton`, `NebulaAvatar`,
 `NebulaClock`, `NebulaDate`, `NebulaLoginLayout` (the shared four-zone
-skeleton every theme's login screen will build on) — plus a
-Service/Platform abstraction (`NebulaAuthService`, `NebulaUserService`,
-`NebulaSessionService`, `NebulaPowerService` in `core/services/`,
-SDDM-specific skeleton adapters in `platform/sddm/`) so Core components
-will never call SDDM directly. Each piece is tested and visually
-verified. A static login screen (avatar + clock + date + button, no
-theme, no SDDM) already works on top of Core alone — see
+skeleton), `NebulaBackground`/`NebulaWallpaper`/`NebulaOverlay`/
+`NebulaSurface` (the layered visual foundation every theme composes) —
+plus a Service/Platform abstraction (`NebulaAuthService`,
+`NebulaUserService`, `NebulaSessionService`, `NebulaPowerService` in
+`core/services/`, SDDM-specific skeleton adapters in `platform/sddm/`) so
+Core components will never call SDDM directly. Each piece is tested and
+visually verified. A full layered login screen (Background → Wallpaper →
+Overlay → Layout → Surface → Avatar/Clock/Date/Button, no theme, no
+SDDM) already works on top of Core alone — see
 [`docs/Core-Implementation-Status.md`](docs/Core-Implementation-Status.md).
 No theme exists yet.
 
@@ -70,6 +72,7 @@ Themes never redefine what already exists in Core — see
 | [`docs/Development-Journal.md`](docs/Development-Journal.md)  | Technical discoveries from actually building Nebula (bugs found, causes, fixes) |
 | [`docs/Services-Architecture.md`](docs/Services-Architecture.md) | How Core components reach SDDM only through Services and Platform Adapters |
 | [`docs/Nebula-Principles.md`](docs/Nebula-Principles.md)       | The project's small set of stable, fundamental rules |
+| [`docs/Rendering-Guidelines.md`](docs/Rendering-Guidelines.md) | Allowed/forbidden QML primitives in Core, plus a performance reference |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md)                            | Coding conventions, commit style, PR process        |
 | [`CLAUDE.md`](CLAUDE.md)                                        | Project context for AI-assisted development (FR)   |
 

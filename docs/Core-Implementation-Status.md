@@ -109,14 +109,28 @@
   (`console.warn` à la place).
 - `qmllint` : aucun avertissement (après correction, voir D12 ci-dessous).
 
+### NebulaBackground / NebulaWallpaper / NebulaOverlay / NebulaSurface (`core/components/`) — Phase 1.5
+
+- Testés réellement (voir §4) : image personnalisée + repli couleur
+  (`NebulaWallpaper`), voile plat + dégradé (`NebulaOverlay`), panneau
+  avec padding/radius/bordure + ombre plate optionnelle (`NebulaSurface`).
+- `NebulaBackground` revu par rapport à son contrat Phase 0.6 (jamais
+  implémenté) : devient un conteneur racine pur, sans propriété d'image
+  — voir DT-0012.
+- Deux bugs réels trouvés et corrigés pendant le test (voir §4 et
+  `Development-Journal.md`) : contrainte `Row`/`anchors.fill`, et tokens
+  `overlay`/`surface` non répercutés dans `NebulaThemeProvider`.
+- `qmllint` : aucun avertissement sur les 4 fichiers.
+
 ## 2. Composants en cours / pas commencés
 
 Reste du périmètre du Core MVP (voir `Core-MVP.md`) : `NebulaThemeLoader`,
-`NebulaBackground`, `NebulaUserList`, `NebulaPasswordField`,
-`NebulaSessionSelector`, `NebulaKeyboardSelector`, `NebulaPowerButtons`,
-`NebulaNotification`, `NebulaAnimationManager` — non commencés. Leur
-contrat `Core-API.md` a cependant déjà été mis à jour pour dépendre des
-Services (Phase 1.4) plutôt que de SDDM directement.
+`NebulaUserList`, `NebulaPasswordField`, `NebulaSessionSelector`,
+`NebulaKeyboardSelector`, `NebulaPowerButtons`, `NebulaNotification`,
+`NebulaAnimationManager`, `NebulaWallpaperEngine`,
+`NebulaBlurEffect`/`NebulaGlowEffect`/`NebulaParticles` (Phase 3) — non
+commencés. Leur contrat `Core-API.md` a cependant déjà été mis à jour pour
+dépendre des Services (Phase 1.4) plutôt que de SDDM directement.
 
 **Critère de fin de la Phase 1.2 atteint** : un écran de login statique
 (avatar + heure + date + bouton) est démontré dans
@@ -129,6 +143,16 @@ n'assemble plus les composants directement — il instancie
 `NebulaLoginLayout` et y place son contenu (Avatar, Clock, Date, Button)
 via la zone par défaut. Résultat visuel identique à la Phase 1.2, vérifié
 par capture d'écran.
+
+**Critère de fin de la Phase 1.5 atteint** :
+`tests/LoginScreenHarness.qml` affiche un véritable écran de connexion en
+couches (`NebulaBackground` → `NebulaWallpaper` → `NebulaOverlay` →
+`NebulaLoginLayout` → `NebulaSurface` → Avatar/Clock/Date/Button),
+exclusivement composé de composants Core, sans thème. Vérifié par capture
+d'écran. Le Core est désormais considéré comme visuellement complet pour
+le périmètre du MVP (voir `Core-MVP.md`) : les phases suivantes peuvent se
+concentrer sur `NebulaPasswordField`/`NebulaUserList`/
+`NebulaSessionSelector` et l'intégration SDDM réelle.
 
 **Critère de fin de la Phase 1.4 atteint** : aucun composant Core
 n'appelle `sddm.*` directement (aucun n'existe encore qui le pourrait —
@@ -337,6 +361,52 @@ Décision complète et règle générale pour la suite : voir DT-0011 dans
 `Decisions-Techniques.md`. Détail du diagnostic : voir
 `Development-Journal.md`, Phase 1.4.
 
+### D14 — `NebulaBackground`/`NebulaWallpaper` séparés (Phase 1.5)
+
+Réconciliation avec le brief : `NebulaBackground` était déjà documenté
+(Phase 0.6) avec un contrat image (`source`/`fillMode`/`dimmed`), jamais
+implémenté. Séparé en conteneur racine pur (`NebulaBackground`) + image
+simple (`NebulaWallpaper`) pour respecter "chaque composant doit avoir
+une responsabilité unique". Décision complète : voir DT-0012.
+
+### D15 — Contrainte trouvée : `anchors.fill` incompatible avec les positionneurs
+
+**Trouvé pendant le test** : placer `NebulaBackground` (qui utilise
+`anchors.fill: parent` en interne) comme enfant direct d'un `Row` de test
+a produit `QML Row: Cannot specify ... fill ... anchors for items inside
+Row. Row will not function.` Corrigé en révisant le harnais de test (une
+configuration par fenêtre entière, pas côte à côte) — ce n'était pas un
+bug du composant, mais un usage invalide à documenter. Voir
+`Rendering-Guidelines.md` §5 et `Development-Journal.md`, Phase 1.5.
+
+### D16 — Bug réel : tokens `overlay`/`surface` non répercutés dans `NebulaThemeProvider`
+
+**Trouvé pendant le test** : `NebulaOverlay` s'affichait totalement
+opaque (wallpaper invisible) au premier essai. Cause :
+`theme.overlay.overlayOpacity` levait `TypeError: ... of undefined` —
+`NebulaThemeConfig` avait bien reçu les nouveaux groupes `overlay`/
+`surface`, mais `NebulaThemeProvider` ne les ré-exposait pas encore
+(chaque groupe y est répercuté individuellement, pas délégué
+génériquement). Corrigé en ajoutant les deux lignes manquantes. Détail :
+`Development-Journal.md`, Phase 1.5. **Rappel pour la suite** : tout
+nouveau groupe de tokens ajouté à `NebulaThemeConfig` doit être
+explicitement répercuté dans `NebulaThemeProvider` — ce n'est pas
+automatique.
+
+### D17 — Pas de tokens `surfaceRadius`/`surfacePadding` dédiés
+
+Voir DT-0013 dans `Decisions-Techniques.md` : `NebulaSurface` réutilise
+`radius.radiusLarge`/`spacing.spacingMd` par défaut plutôt que d'ajouter
+des tokens dédiés non justifiés par un besoin réel observé.
+
+### D18 — Bonus phase 1.5 réalisés : `VisualHarness.qml` et référence de performance
+
+Les deux demandes optionnelles du brief ont été faites : voir
+`tests/VisualHarness.qml` (tous les composants sur une page, utile pour
+les régressions visuelles futures) et `Rendering-Guidelines.md` §6
+(référence de performance — ~52 objets QML au démarrage, 2 `Timer` actifs
+en continu, aucun binding par-frame identifié en dehors d'eux).
+
 ## 4. Vérifications réelles effectuées
 
 - `qmllint` sur les 3 nouveaux fichiers + le harnais de test : aucun
@@ -406,6 +476,31 @@ Décision complète et règle générale pour la suite : voir DT-0011 dans
   ("Nebula User" au lieu de la chaîne "nebula" codée en dur) — capture
   d'écran comparée, aucune régression visuelle par ailleurs.
 
+### Phase 1.5
+
+- `qmllint` sur `NebulaBackground.qml`, `NebulaWallpaper.qml`,
+  `NebulaOverlay.qml`, `NebulaSurface.qml`, `NebulaThemeConfig.qml`
+  (nouveaux groupes), `NebulaThemeProvider.qml` (correctif D16),
+  `tests/LoginScreenHarness.qml` et `tests/VisualHarness.qml` : aucun
+  avertissement — y compris sur les fichiers qui contenaient pourtant des
+  bugs réels à l'exécution (D15, D16), invisibles à `qmllint`.
+- `NebulaWallpaper` testé réellement avec 3 cas : image valide en mode
+  `crop`, chemin invalide (repli couleur confirmé, pas d'icône cassée),
+  mode `fit` — capture d'écran pour chacun.
+- `NebulaOverlay` testé réellement : voile plat (bug D16 trouvé et
+  corrigé ici), puis dégradé — capture d'écran pour chacun.
+- `NebulaSurface` testé réellement avec et sans ombre — capture d'écran.
+- Composition en couches complète (`Background → Wallpaper → Overlay →
+  LoginLayout → Surface → Avatar/Clock/Date/Button`) testée dans
+  `tests/LoginScreenHarness.qml` — capture d'écran, aucune erreur
+  `journalctl`.
+- `tests/VisualHarness.qml` (bonus) exécuté réellement : les 8 composants
+  (Button ×4 variantes, Avatar ×2 formes, Clock, Date, Surface, fond en
+  couches) s'affichent correctement sur une seule page.
+- Référence de performance (bonus) établie par lecture du code réel —
+  voir `Rendering-Guidelines.md` §6 pour le détail et les limites de la
+  méthodologie (pas de trace `qmlprofiler`, comptage manuel).
+
 ## 5. Documentation à synchroniser (fait dans ce lot)
 
 - [`Design-System.md`](Design-System.md) — `fontWeight` → 
@@ -440,3 +535,16 @@ Décision complète et règle générale pour la suite : voir DT-0011 dans
 - [`Services-Architecture.md`](Services-Architecture.md),
   [`Nebula-Principles.md`](Nebula-Principles.md) — nouveaux documents
   (Phase 1.4).
+- [`Core-API.md`](Core-API.md) — `NebulaBackground` révisé,
+  `NebulaWallpaper`/`NebulaOverlay`/`NebulaSurface` ajoutés.
+- [`Design-System.md`](Design-System.md) — `opacityOverlay` retiré (Phase
+  0.6, jamais implémenté) ; `overlayOpacity`/`surfaceOpacity`/
+  `surfaceBorderWidth` ajoutés (section 6bis).
+- [`Decisions-Techniques.md`](Decisions-Techniques.md) — DT-0012
+  (séparation Background/Wallpaper), DT-0013 (pas de tokens
+  surface dédiés).
+- [`Architecture.md`](Architecture.md) — pas de changement structurel
+  (composants déjà dans `core/components/`).
+- [`Rendering-Guidelines.md`](Rendering-Guidelines.md) — nouveau document
+  (Phase 1.5).
+- [`Roadmap.md`](Roadmap.md) — Phase 1.5 marquée terminée.

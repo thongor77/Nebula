@@ -307,26 +307,88 @@ pour rester cohérent avec le reste de la documentation.
 - **Signals** : aucun.
 - **Dependencies** : `NebulaThemeProvider` (spacing uniquement).
 
-### NebulaBackground
+### NebulaBackground (contrat révisé en Phase 1.5)
 
-- **Responsabilité** : afficher le fond d'écran simple (image statique ou
-  fond animé basique).
-- **Inputs** : source d'image / paramètres du thème.
-- **Outputs** : rendu du fond.
-- **Properties** : `source` (url), `fillMode` (enum), `dimmed` (bool).
+- **Responsabilité** : racine visuelle d'un écran — occupe toute la
+  surface disponible et accueille les autres couches visuelles
+  (`NebulaWallpaper`, `NebulaOverlay`, `NebulaLoginLayout`, ...) comme de
+  simples enfants. Ne contient plus de logique d'image ni de couleur
+  propre depuis la Phase 1.5 (voir DT-0012 dans
+  `Decisions-Techniques.md` — l'ancien contrat `source`/`fillMode`/
+  `dimmed`, documenté en Phase 0.6, n'a jamais été implémenté et a été
+  déplacé vers `NebulaWallpaper`).
+- **Inputs** : aucun.
+- **Outputs** : aucun — conteneur pur.
+- **Properties** : aucune propriété spécifique (hérite des propriétés
+  standard d'un `Item`).
+- **Signals** : aucun.
+- **Dependencies** : aucune.
+- **Contrainte d'usage** : utilise `anchors.fill: parent` en interne — ne
+  peut donc pas être placé comme enfant direct d'un `Row`/`Column`/`Grid`
+  (positionneurs Qt Quick qui interdisent `fill`/`centerIn` sur leurs
+  enfants). Trouvé en testant, voir `Development-Journal.md`, Phase 1.5.
+
+### NebulaWallpaper (Phase 1.5)
+
+- **Responsabilité** : afficher une image de fond simple, avec repli sur
+  une couleur unie si l'image est absente ou échoue à charger.
+- **Inputs** : `source` (chemin de l'image).
+- **Outputs** : rendu de l'image, ou de la couleur de repli
+  (`theme.colors.backgroundColor`) si `source` est vide ou en échec.
+- **Properties** : `source` (url), `mode` (enum : `fill` / `fit` / `crop`,
+  correspond à `Image.fillMode`).
 - **Signals** : aucun.
 - **Dependencies** : `NebulaThemeProvider`.
+- **Hors périmètre (Phase 1.5)** : diaporama, vidéo, image distante —
+  voir `NebulaWallpaperEngine` ci-dessous, qui prendra le relais pour ces
+  cas avancés.
 
 ### NebulaWallpaperEngine
 
 - **Responsabilité** : gestion avancée de fond (diaporama, vidéo, shader),
-  distincte du cas simple géré par `NebulaBackground`.
+  distincte du cas simple géré par `NebulaWallpaper` depuis la Phase 1.5.
 - **Inputs** : liste de sources, mode de rotation.
 - **Outputs** : rendu de fond avancé.
 - **Properties** : `sources` (liste), `rotationInterval` (int), `mode`
   (enum : `slideshow` / `video` / `shader`).
 - **Signals** : `sourceChanged(index: int)`.
-- **Dependencies** : `NebulaBackground`, `NebulaThemeProvider`.
+- **Dependencies** : `NebulaWallpaper`, `NebulaThemeProvider`.
+
+### NebulaOverlay (Phase 1.5)
+
+- **Responsabilité** : voile visuel plat par-dessus une autre couche
+  (typiquement `NebulaWallpaper`) pour améliorer la lisibilité du texte.
+  Aucun flou, aucun `ShaderEffect` — remplissage uni ou dégradé à deux
+  arrêts uniquement (voir `Rendering-Guidelines.md`).
+- **Inputs** : aucun.
+- **Outputs** : rendu du voile.
+- **Properties** : `useGradient` (bool), `color1`/`color2` (color, arrêts
+  du dégradé si activé).
+- **Signals** : aucun.
+- **Dependencies** : `NebulaThemeProvider` (token `overlay.overlayOpacity`).
+
+### NebulaSurface (Phase 1.5)
+
+- **Responsabilité** : panneau générique derrière tout contenu de type
+  carte (panneau de connexion, carte utilisateur, boîte de dialogue,
+  futur menu de session). Gère uniquement padding, radius, bordure,
+  opacité et une ombre plate optionnelle (aucun flou/`ShaderEffect`, voir
+  `Rendering-Guidelines.md`).
+- **Inputs** : contenu placé via la zone par défaut (`default property`).
+- **Outputs** : rendu du panneau.
+- **Properties** : `padding` (real, défaut `spacing.spacingMd`), `radius`
+  (real, défaut `radius.radiusLarge`), `borderWidth` (real, défaut
+  `surface.surfaceBorderWidth`), `borderColor` (color), `surfaceColor`
+  (color, défaut `colors.surfaceColor`), `shadowEnabled` (bool, défaut
+  `false`), `shadowColor` (color), `shadowOffset` (real).
+- **Contrat** : se dimensionne pour épouser exactement son contenu — le
+  contenu ne doit jamais se centrer avec `anchors.centerIn: parent`
+  (même contrainte que les zones de `NebulaLoginLayout`, voir DT-0011).
+- **Signals** : aucun.
+- **Dependencies** : `NebulaThemeProvider` (spacing, radius, colors,
+  token `surface.surfaceOpacity`/`surfaceBorderWidth`). Ne réutilise
+  volontairement pas de tokens `surfaceRadius`/`surfacePadding` dédiés —
+  voir DT-0013 dans `Decisions-Techniques.md`.
 
 ### NebulaBlurEffect
 

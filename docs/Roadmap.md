@@ -153,6 +153,21 @@ corrigé (`Connections{}` invalide comme enfant direct d'un `QtObject` —
 pas de default property) : voir DT-0011 et
 [`docs/Development-Journal.md`](Development-Journal.md).
 
+**Sous-étape Phase 1.5 — Visual Foundation (terminée) :**
+`NebulaBackground` (revu — conteneur racine pur, voir DT-0012),
+`NebulaWallpaper`, `NebulaOverlay`, `NebulaSurface` implémentés et
+testés. `tests/LoginScreenHarness.qml` affiche désormais un écran de
+connexion en couches complet (Background → Wallpaper → Overlay →
+LoginLayout → Surface → composants fonctionnels) — critère de fin
+atteint, le Core est considéré visuellement complet pour le périmètre du
+MVP. Bonus réalisés : `tests/VisualHarness.qml` (tous les composants sur
+une page) et une référence de performance (voir
+[`docs/Rendering-Guidelines.md`](Rendering-Guidelines.md) §6). Nouveau
+document [`docs/Rendering-Guidelines.md`](Rendering-Guidelines.md). Deux
+bugs réels trouvés et corrigés (contrainte `Row`/`anchors.fill`, tokens
+`overlay`/`surface` non répercutés dans `NebulaThemeProvider`) : voir
+[`docs/Development-Journal.md`](Development-Journal.md).
+
 Ordre de construction recommandé (plomberie avant composants visuels,
 composants simples avant composants interactifs — voir
 [`Theme-System.md`](Theme-System.md)) :
@@ -169,7 +184,8 @@ composants simples avant composants interactifs — voir
 7. [x] `AuthService`, `UserService`, `SessionService`, `PowerService` —
        Phase 1.4, `core/services/` (contrat public + adapter injecté,
        squelettes `platform/sddm/` — pas de câblage SDDM réel)
-8. [ ] `Background`
+8. [x] `Background` — Phase 1.5, `NebulaBackground` + `NebulaWallpaper` +
+       `NebulaOverlay` + `NebulaSurface` (`core/components/`)
 9. [ ] `UserList`, `PasswordField` (dépendent désormais de
        `UserService`/`AuthService`, voir `Core-API.md`)
 10. [x] `Clock`, `Date` — Phase 1.2, `core/components/NebulaClock.qml`,

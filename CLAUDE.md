@@ -68,19 +68,26 @@ technique réel (voir [`docs/Architecture-Review.md`](docs/Architecture-Review.m
 [`docs/Prototype-Results.md`](docs/Prototype-Results.md) — API SDDM
 réelle et comportement multi-écran vérifiés sur une installation SDDM
 0.21 réelle).
-Phase 1 (Core MVP) en cours : `NebulaThemeConfig`, `NebulaThemeProvider`,
-`NebulaButton` (Phase 1.1), `NebulaAvatar`, `NebulaClock`, `NebulaDate`
-(Phase 1.2), `NebulaLoginLayout` (Phase 1.3, squelette à 4 zones),
+Phase 1 (Core MVP) en cours, **visuellement complète depuis la
+Phase 1.5** : `NebulaThemeConfig`, `NebulaThemeProvider`, `NebulaButton`
+(Phase 1.1), `NebulaAvatar`, `NebulaClock`, `NebulaDate` (Phase 1.2),
+`NebulaLoginLayout` (Phase 1.3, squelette à 4 zones),
 `NebulaAuthService`/`NebulaUserService`/`NebulaSessionService`/
 `NebulaPowerService` + squelettes `platform/sddm/` (Phase 1.4, voir
-[`docs/Services-Architecture.md`](docs/Services-Architecture.md)) —
+[`docs/Services-Architecture.md`](docs/Services-Architecture.md)),
+`NebulaBackground`/`NebulaWallpaper`/`NebulaOverlay`/`NebulaSurface`
+(Phase 1.5, voir
+[`docs/Rendering-Guidelines.md`](docs/Rendering-Guidelines.md)) —
 implémentés et testés, voir
 [`docs/Core-Implementation-Status.md`](docs/Core-Implementation-Status.md)
 et le journal des découvertes techniques
 [`docs/Development-Journal.md`](docs/Development-Journal.md). Écran de
-login statique (sans thème, sans SDDM) déjà démontrable via
-`NebulaLoginLayout` + Services mockés (`tests/LoginScreenHarness.qml`).
-`prototype/` reste jetable, distinct de `core/`.
+connexion complet en couches (sans thème, sans SDDM) démontrable via
+`tests/LoginScreenHarness.qml` ; tous les composants visibles d'un coup
+via `tests/VisualHarness.qml`. Reste pour la suite du Core MVP :
+`NebulaPasswordField`, `NebulaUserList`, `NebulaSessionSelector`,
+intégration SDDM réelle, premier thème (Nord). `prototype/` reste
+jetable, distinct de `core/`.
 
 ## Règle avant toute nouvelle fonctionnalité
 

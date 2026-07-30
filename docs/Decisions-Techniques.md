@@ -473,3 +473,92 @@ besoin d'aucun enfant QML déclaratif (`Timer`, `Connections`, ...), rester
 `QtObject`. S'il en a réellement besoin, utiliser `Item` plutôt que de
 chercher un contournement — et le documenter, comme pour
 `MockAuthAdapter`.
+
+---
+
+## DT-0012 — Séparation `NebulaBackground` (conteneur) / `NebulaWallpaper` (image)
+
+Date : 2026-07-31
+État : accepté
+
+### Contexte
+
+`NebulaBackground` était documenté depuis la Phase 0.6 avec un contrat
+`source`/`fillMode`/`dimmed` (affichage d'image), mais jamais implémenté.
+La Phase 1.5 introduit `NebulaWallpaper`, dont le rôle — charger une
+image simple avec repli — recouvre exactement cet ancien contrat. Fallait
+choisir : garder un seul composant élargi, ou séparer.
+
+### Décision
+
+Séparer. `NebulaBackground` devient un conteneur racine pur (aucune
+propriété, `anchors.fill: parent`, aucune couleur) ; `NebulaWallpaper`
+reprend le contrat `source`/`mode` (renommé de `fillMode` à `mode` pour
+rester cohérent avec le style des autres énumérations du projet, ex.
+`NebulaButton.variant`).
+
+### Alternatives étudiées
+
+- Garder un seul `NebulaBackground` avec toutes les responsabilités
+  (conteneur + image) : rejeté — viole la règle "chaque composant doit
+  avoir une responsabilité unique" (brief Phase 1.5), et empêcherait de
+  composer librement `NebulaOverlay` entre le fond et le contenu sans
+  dépendre de la présence d'une image.
+
+### Raisons
+
+Une fois `NebulaOverlay` et `NebulaSurface` introduits dans la même
+phase, la composition en couches (Background → Wallpaper → Overlay →
+Layout → Surface) exige que chaque couche soit un composant distinct et
+librement empilable — un `NebulaBackground` qui gérerait aussi le
+chargement d'image ne pourrait pas jouer ce rôle de simple conteneur.
+
+### Conséquences
+
+Rupture d'API par rapport au contrat Phase 0.6 (jamais implémenté, donc
+sans impact réel sur du code existant). `Core-API.md` mis à jour pour
+refléter les deux composants séparément.
+
+---
+
+## DT-0013 — Pas de tokens `surfaceRadius`/`surfacePadding` dédiés
+
+Date : 2026-07-31
+État : accepté
+
+### Contexte
+
+Le brief de la Phase 1.5 suggérait d'enrichir `ThemeConfig` avec
+`surfaceRadius`, `surfacePadding`, en plus de `surfaceOpacity` et
+`surfaceBorderWidth`.
+
+### Décision
+
+Ajouter uniquement `overlayOpacity`, `surfaceOpacity` et
+`surfaceBorderWidth` comme nouveaux tokens (rien de comparable
+n'existait). Pour le rayon et le padding, `NebulaSurface` réutilise par
+défaut `radius.radiusLarge` et `spacing.spacingMd` — déjà des tokens
+génériques exploitables tels quels, surchargeables par instance
+(`NebulaSurface { radius: ... }`) si un thème a réellement besoin d'une
+valeur différente pour ses surfaces.
+
+### Alternatives étudiées
+
+- Ajouter `surfaceRadius`/`surfacePadding` comme suggéré : rejeté —
+  dupliquerait `radiusLarge`/`spacingMd` sans different d'usage réel tant
+  qu'aucun thème ne demande explicitement une valeur différente pour ses
+  surfaces spécifiquement.
+
+### Raisons
+
+Cohérent avec le principe de travail du workspace (pas d'abstraction
+avant besoin observé) et avec le précédent déjà posé par `NebulaButton`,
+qui réutilise déjà `radius.radiusMedium` sans token dédié
+`buttonRadius`.
+
+### Conséquences
+
+Si un thème a un jour besoin d'un rayon/padding spécifiquement différent
+pour ses surfaces (indépendamment des autres usages de `radiusLarge`/
+`spacingMd`), cette décision devra être rouverte et des tokens dédiés
+ajoutés à ce moment-là.

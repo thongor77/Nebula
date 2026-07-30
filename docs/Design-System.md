@@ -82,7 +82,6 @@ Tokens de configuration des effets optionnels (`NebulaBlurEffect`,
 - `blurAmount`
 - `glowIntensity`
 - `shadowElevation`
-- `opacityOverlay`
 - `enableEffects` (interrupteur global — doit permettre de désactiver tous
   les effets GPU d'un coup, notamment sur matériel bas de gamme)
 - `particleDensity`
@@ -90,6 +89,26 @@ Tokens de configuration des effets optionnels (`NebulaBlurEffect`,
 Ces tokens sont conceptuels tant que le coût réel des effets GPU n'a pas
 été mesuré (voir `Architecture.md`, section Inconnues critiques). Un thème
 ne doit jamais supposer qu'un effet est gratuit.
+
+Le token `opacityOverlay` initialement listé ici (Phase 0.6) a été
+retiré : il anticipait un besoin déjà couvert, en Phase 1.5, par
+`overlayOpacity` (section 6bis ci-dessous) — un voile plat, sans lien
+avec les effets GPU. Garder les deux aurait créé une confusion de
+nommage inutile.
+
+## 6bis. Overlay et Surface (Phase 1.5)
+
+Tokens consommés par `NebulaOverlay` et `NebulaSurface` — aucun lien avec
+les effets GPU de la section précédente, tous deux déjà implémentés :
+
+- `overlayOpacity` — opacité du voile plat de `NebulaOverlay`.
+- `surfaceOpacity` — opacité globale d'une `NebulaSurface`.
+- `surfaceBorderWidth` — épaisseur de bordure d'une `NebulaSurface`.
+
+`NebulaSurface` réutilise volontairement `radius.radiusLarge` et
+`spacing.spacingMd` pour son rayon et son padding par défaut, plutôt que
+d'introduire des tokens `surfaceRadius`/`surfacePadding` dédiés — voir
+`Decisions-Techniques.md`, DT-0013.
 
 ## 7. Couleurs
 
