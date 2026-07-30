@@ -8,6 +8,9 @@
 > **Aucune ligne marquée "à vérifier" ne doit être traitée comme acquise
 > pendant l'implémentation.** Elle doit être testée avant que le Core ne
 > s'appuie dessus sans plan de repli.
+>
+> Premières lignes levées par un test réel (Phase 1.0) : voir
+> [`Prototype-Results.md`](Prototype-Results.md).
 
 ---
 
@@ -22,18 +25,19 @@
 
 | Fonction           | Statut                        | Notes |
 | -------------------- | -------------------------------- | ------- |
-| QML                  | Vérifié                          | Les greeters SDDM sont chargés en QML depuis SDDM 0.18+ ; c'est le mécanisme de base, pas une inconnue. |
-| QtQuick              | Vérifié                          | Module de base requis par tout greeter QML. |
-| QtQuick.Controls     | À vérifier                       | Disponibilité et thème par défaut du module dans l'environnement du greeter selon la distribution (packaging Qt6 minimal parfois utilisé pour SDDM) — voir DT-0007. |
-| QtQuick.Shapes       | À vérifier                       | Dépend du backend de rendu du greeter, non testé à ce jour. |
-| ShaderEffect         | À vérifier                       | Dépend du backend de scène Qt Quick actif (OpenGL/software) dans le contexte du greeter — inconnue critique, voir `Architecture.md`. |
-| Blur                 | À vérifier — inconnue critique   | Coût réel non mesuré sur matériel bas de gamme (`Architecture.md`, Inconnues critiques). |
-| Multi écran          | À vérifier — inconnue critique   | Comportement exact de SDDM avec plusieurs sorties Wayland non confirmé (`Architecture.md`, Inconnues critiques). |
-| HiDPI                | Probable, à confirmer            | Géré nativement par Qt6 en général ; comportement spécifique au processus greeter SDDM non testé. |
-| Animations GPU       | À vérifier — inconnue critique   | Lié directement au point "Blur" et au coût des effets GPU. |
-| Vidéo background     | À vérifier                       | Dépend de la disponibilité de Qt Multimedia dans l'environnement (souvent restreint) du greeter — non testé. |
-| Audio login          | À vérifier                       | Les processus greeter SDDM tournent historiquement dans une session restreinte sans accès garanti au bus audio utilisateur — point de vigilance connu sur d'autres greeters QML, à confirmer pour Nebula. |
-| Permissions utilisateur sddm | À vérifier — risque transverse | L'utilisateur système `sddm` peut avoir un accès restreint (lecture de fichiers hors des chemins standards, groupes GPU/audio, confinement AppArmor/SELinux selon la distribution) — impacte potentiellement le chargement d'assets de thème, les effets GPU et l'audio simultanément. Voir Architecture-Review.md, Technical Risks. |
+| QML                  | Vérifié                          | Les greeters SDDM sont chargés en QML depuis SDDM 0.18+ ; c'est le mécanisme de base, pas une inconnue. Confirmé réellement par `Prototype-Results.md` (SDDM 0.21.0-7, Qt 6.11.1). |
+| QtQuick              | Vérifié                          | Module de base requis par tout greeter QML. Confirmé par `Prototype-Results.md`. |
+| QtQuick.Controls     | Vérifié                          | Présent dans `qt6-declarative` (styles Basic/Fusion/Material/Universal/FluentWinUI3), dépendance directe du paquet `sddm` — voir `Prototype-Results.md` §1. Reste "à vérifier" : le rendu visuel réel d'un contrôle Controls dans le greeter (seule la présence du module a été confirmée, pas son usage). |
+| QtQuick.Shapes       | Vérifié (présence du module)     | `qmldir` présent dans `qt6-declarative` — voir `Prototype-Results.md` §1. Rendu réel non testé (aucun `Shape` utilisé dans le prototype, hors périmètre Phase 1.0). |
+| ShaderEffect         | À vérifier                       | Explicitement hors périmètre du prototype Phase 1.0 (brief : "ne pas créer de shaders"). `qt6-shadertools` est installé, mais seule la présence du paquet est confirmée, pas l'exécution. |
+| Blur                 | À vérifier — inconnue critique   | Coût réel non mesuré sur matériel bas de gamme (`Architecture.md`, Inconnues critiques). Explicitement hors périmètre du prototype Phase 1.0. |
+| Multi écran          | **Vérifié** — comportement confirmé | Une `QQuickView` par écran physique, chacune chargeant `Main.qml` indépendamment avec son propre `screenModel` (count=1 dans chaque vue) — voir `Prototype-Results.md` §3.3. Testé avec 3 écrans réels (dont deux échelles différentes). |
+| HiDPI                | Vérifié (géométrie), rendu pixel à vérifier | Géométries de fenêtre confirmées en coordonnées logiques post-scaling sur un vrai setup mixte (échelles 1 et 1.4 simultanées) — voir `Prototype-Results.md` §3.4. Le rendu visuel pixel (netteté, artefacts) reste à vérifier. |
+| Animations GPU       | À vérifier — inconnue critique   | Lié directement au point "Blur" et au coût des effets GPU. Explicitement hors périmètre du prototype Phase 1.0. |
+| Vidéo background     | À vérifier                       | Dépend de la disponibilité de Qt Multimedia dans l'environnement (souvent restreint) du greeter — non testé (hors périmètre Phase 1.0). |
+| Audio login          | À vérifier                       | Les processus greeter SDDM tournent historiquement dans une session restreinte sans accès garanti au bus audio utilisateur — point de vigilance connu sur d'autres greeters QML, à confirmer pour Nebula. Non testé en Phase 1.0. |
+| Permissions utilisateur sddm | À vérifier — risque transverse | L'utilisateur système `sddm` peut avoir un accès restreint (lecture de fichiers hors des chemins standards, groupes GPU/audio, confinement AppArmor/SELinux selon la distribution) — impacte potentiellement le chargement d'assets de thème, les effets GPU et l'audio simultanément. Non testé : le prototype Phase 1.0 a tourné en mode test (sous l'utilisateur courant), pas via le service SDDM réel sous l'utilisateur système `sddm` — voir `Prototype-Results.md` §3.6. |
+| Authentification (`sddm.login()`) | À vérifier | Le mode test n'a pas de backend d'authentification réel (`QLocalSocket::connectToServer: Invalid name`) — voir `Prototype-Results.md` §3.5. Un vrai lancement de service serait nécessaire pour tester de bout en bout, délibérément non tenté (risque disproportionné pour un prototype jetable). |
 
 ## 3. Comment lever une inconnue
 

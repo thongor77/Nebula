@@ -42,21 +42,42 @@ Nebula répond à ce problème en séparant strictement ce qui est **générique
 
 ## 4. Inconnues critiques
 
-Ces points doivent être validés par un prototype avant d'être figés dans
-l'architecture définitive :
+Levées par le prototype technique de Phase 1.0
+([`Prototype-Results.md`](Prototype-Results.md)), sur la base d'un test
+réel (SDDM 0.21.0-7, Qt 6.11.1, Plasma 6.7.3, Wayland, 3 écrans réels) :
 
-- **API réelle de SDDM 0.21+ sous Wayland** : quelles propriétés/signaux
-  sont réellement exposés au QML par rapport à la théorie de la doc SDDM.
-- **Multi-écran** : comportement exact de SDDM avec plusieurs sorties
-  Wayland (une fenêtre de login par écran ? partagée ?).
+- ~~**API réelle de SDDM 0.21+ sous Wayland**~~ — **résolu.** Propriétés de
+  contexte réelles confirmées : `sddm`, `userModel`, `sessionModel`,
+  `keyboard`, `screenModel`, `config`. Détail :
+  [`Prototype-Results.md`](Prototype-Results.md) §3.2, contrat mis à jour
+  dans [`Core-API.md`](Core-API.md).
+- ~~**Multi-écran**~~ — **résolu.** Une `QQuickView` par écran physique,
+  chacune chargeant `Main.qml` indépendamment avec son propre
+  `screenModel`. Détail : [`Prototype-Results.md`](Prototype-Results.md)
+  §3.3.
+
+Encore ouvertes, explicitement hors périmètre du prototype de Phase 1.0 :
+
 - **Performance des effets GPU** (blur, particules) sur du matériel bas de
   gamme — nécessaire pour respecter la règle "ne jamais sacrifier la
-  performance pour un effet visuel".
-- **Mécanisme de configuration** : fichier `.conf` classique SDDM vs QML
-  `Qt.labs.settings` vs JSON — impacte directement la conception de
-  `ThemeConfig`.
+  performance pour un effet visuel". Non testé (brief Phase 1.0 : "ne pas
+  créer de shaders").
+- **Rendu visuel HiDPI réel** (netteté, artefacts) — la géométrie
+  logique post-scaling a été vérifiée sur un vrai setup mixte (échelles 1
+  et 1.4), pas le rendu pixel. Voir
+  [`Prototype-Results.md`](Prototype-Results.md) §3.4.
+- **Mécanisme de configuration** : la lecture `theme.conf` →
+  `config.clé` en QML est confirmée fonctionnelle (voir
+  `Prototype-Results.md` §3.2), mais le format d'écriture/export pour un
+  futur outil externe reste ouvert — impacte la conception définitive de
+  `ThemeConfig` (DT-0003).
 - **Rechargement à chaud d'un thème** en développement (souhaitable mais
   non bloquant pour la v1).
+- **Authentification de bout en bout** (`sddm.login()`) : non testable en
+  mode test (pas de backend réel) ; un vrai lancement de service SDDM
+  serait nécessaire, délibérément non tenté en Phase 1.0 (risque
+  disproportionné pour un prototype jetable — voir
+  `Prototype-Results.md` §3.6).
 
 Tant que ces points ne sont pas expérimentés, aucune décision les concernant
 n'est considérée comme définitive. Suivi ligne par ligne de ces inconnues

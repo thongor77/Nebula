@@ -35,14 +35,36 @@ Ceci affiche le thème ciblé dans une fenêtre, avec des données
 utilisateur/session simulées, sans nécessiter les privilèges du service
 SDDM système.
 
-Points de vigilance à vérifier lors du premier test réel (voir
-[`SDDM-Compatibility.md`](SDDM-Compatibility.md)) :
+Points de vigilance confirmés par le premier test réel (Phase 1.0, voir
+[`Prototype-Results.md`](Prototype-Results.md)) :
 
 - le binaire exact fourni par le paquet SDDM de la distribution utilisée ;
 - les variables d'environnement nécessaires (`QT_QPA_PLATFORM` pour forcer
   Wayland ou X11 selon le test voulu) ;
-- le comportement du mode test vis-à-vis du multi-écran (probablement
-  limité à un seul écran en mode test, à confirmer).
+- **le mode test ouvre une vue par écran physique connecté**, pas une
+  seule — sur une machine multi-écran, s'attendre à voir apparaître
+  plusieurs fenêtres, une par sortie (confirmé avec 3 écrans réels, voir
+  `Prototype-Results.md` §3.3) ;
+- **`sddm.login()` ne fonctionne pas en mode test** : aucun backend
+  d'authentification réel n'est connecté (`QLocalSocket::connectToServer:
+  Invalid name` dans les logs) — voir `Prototype-Results.md` §3.5.
+
+### 3.1 Lire les logs du greeter
+
+`sddm-greeter` (et `sddm-greeter-qt6`) **n'écrit pas ses logs sur
+stdout/stderr** dès qu'il détecte ne pas être attaché à un terminal
+interactif (ce qui est systématiquement le cas si vous redirigez la
+sortie vers un fichier) — il bascule sur le journal systemd. Une
+redirection classique (`sddm-greeter --test-mode ... > out.log 2>&1`)
+produira un fichier vide même si le greeter tourne normalement et logue
+des avertissements QML. Utiliser plutôt :
+
+```bash
+journalctl --no-pager -n 100 | grep -iE "sddm-greeter|votre-theme"
+```
+
+Découverte empiriquement pendant le prototype de Phase 1.0 — voir
+[`Prototype-Results.md`](Prototype-Results.md) §3.5.
 
 ## 4. Commande future : `scripts/test-theme.sh`
 

@@ -134,7 +134,9 @@ pour rester cohérent avec le reste de la documentation.
 
 - **Responsabilité** : lister les utilisateurs disponibles et gérer la
   sélection.
-- **Inputs** : liste des utilisateurs exposée par SDDM.
+- **Inputs** : propriété de contexte réelle `userModel` exposée par SDDM
+  (confirmée par `Prototype-Results.md` §3.2 : `userModel.lastUser`,
+  `userModel.lastIndex`).
 - **Outputs** : utilisateur sélectionné.
 - **Properties** : `model` (liste), `currentIndex` (int), `currentUser`
   (lecture seule).
@@ -146,7 +148,9 @@ pour rester cohérent avec le reste de la documentation.
 - **Responsabilité** : saisir le mot de passe et déclencher
   l'authentification.
 - **Inputs** : saisie clavier.
-- **Outputs** : tentative d'authentification transmise à SDDM (jamais
+- **Outputs** : tentative d'authentification transmise à SDDM via
+  `sddm.login(username, password, sessionIndex)` (propriété de contexte
+  réelle `sddm`, confirmée par `Prototype-Results.md` §3.2 ; jamais
   stockée par le composant).
 - **Properties** : `placeholderText` (string), `hasError` (bool),
   `isBusy` (bool, pendant l'authentification).
@@ -156,7 +160,10 @@ pour rester cohérent avec le reste de la documentation.
 ### NebulaSessionSelector
 
 - **Responsabilité** : choisir la session à lancer.
-- **Inputs** : liste des sessions détectées par SDDM.
+- **Inputs** : propriété de contexte réelle `sessionModel` exposée par
+  SDDM (confirmée par `Prototype-Results.md` §3.2 : `sessionModel.lastIndex`),
+  peuplée à partir des fichiers `.desktop` de
+  `/usr/share/wayland-sessions/` et `/usr/share/xsessions/`.
 - **Outputs** : session sélectionnée.
 - **Properties** : `model` (liste), `currentIndex` (int), `currentSession`
   (lecture seule).
@@ -166,7 +173,9 @@ pour rester cohérent avec le reste de la documentation.
 ### NebulaKeyboardSelector
 
 - **Responsabilité** : choisir la disposition clavier avant connexion.
-- **Inputs** : liste des dispositions disponibles (SDDM/système).
+- **Inputs** : propriété de contexte réelle `keyboard` exposée par SDDM
+  (confirmée par `Prototype-Results.md` §3.2 : `keyboard.currentLayout`,
+  `keyboard.layouts` — array d'objets avec `.longName`).
 - **Outputs** : disposition sélectionnée.
 - **Properties** : `model` (liste), `currentIndex` (int), `currentLayout`
   (lecture seule).
@@ -176,8 +185,11 @@ pour rester cohérent avec le reste de la documentation.
 ### NebulaPowerButtons
 
 - **Responsabilité** : exposer les actions arrêt / redémarrage / veille.
-- **Inputs** : capacités système exposées par SDDM (la veille n'est pas
-  toujours disponible — inconnue à valider par plateforme).
+- **Inputs** : propriété de contexte réelle `sddm` exposée par SDDM
+  (confirmée par `Prototype-Results.md` §3.2 : `sddm.canHibernate`,
+  `sddm.canSuspend`, `sddm.canReboot`, `sddm.canPowerOff`, et les méthodes
+  `sddm.hibernate()`/`suspend()`/`reboot()`/`powerOff()`). La veille n'est
+  pas toujours disponible (`can*` à `false` selon la plateforme).
 - **Outputs** : déclenchement d'une action système.
 - **Properties** : `canShutdown` (bool), `canReboot` (bool),
   `canSuspend` (bool), `confirmBeforeAction` (bool).

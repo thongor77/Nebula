@@ -5,7 +5,7 @@
 
 ---
 
-## Phase 0 — Architecture (terminée, sauf prototypes)
+## Phase 0 — Architecture (terminée)
 
 Objectif : ne pas écrire de code avant d'avoir validé le contrat
 Core/Thèmes.
@@ -18,12 +18,11 @@ Core/Thèmes.
 - [x] Définir les conventions de code et le processus de contribution
 - [x] Documenter le catalogue de design tokens (`docs/Design-System.md`)
 - [x] Documenter le flux de theming Core ↔ composants (`docs/Theme-System.md`)
-- [ ] Valider les inconnues critiques par prototype (API SDDM/Wayland,
-      multi-écran, mécanisme de configuration, coût réel des effets GPU,
-      format d'export compatible avec le futur Nebula Designer — voir
-      DT-0003). Reste ouvert : ce n'est pas un livrable documentaire, seul
-      un test sur SDDM réel peut le clore (voir `Architecture-Review.md`,
-      §7).
+- [x] Valider les inconnues critiques par prototype — fait en Phase 1.0
+      (`docs/Prototype-Results.md`) : API SDDM réelle et multi-écran
+      résolus ; coût des effets GPU, rendu HiDPI pixel, mécanisme de
+      configuration (écriture/export) et authentification de bout en bout
+      restent ouverts, explicitement hors périmètre de ce prototype.
 - [x] Revue de l'architecture avant de passer en Phase 1 — satisfaite par
       la Phase 0.6 (`docs/Architecture-Review.md`)
 
@@ -69,10 +68,42 @@ Livrables :
 - [x] Règle "Core ou Theme, documenter l'API avant d'implémenter, éviter
       toute dépendance à un thème" ajoutée dans `CLAUDE.md`
 
+## Phase 1.0 — SDDM Technical Prototype (terminée)
+
+Objectif : valider l'environnement SDDM réel avant le développement du
+Core, par un prototype jetable (`prototype/`) — pas un thème, pas de
+composants Core, pas de `ThemeProvider`.
+
+Statut : terminée.
+
+Livrables :
+
+- [x] `prototype/Main.qml`, `theme.conf`, `README.md`
+- [x] Testé en standalone (`qml6`) et via `sddm-greeter-qt6 --test-mode`
+      sur une installation SDDM 0.21 réelle (voir
+      `docs/Prototype-Results.md`)
+- [x] API SDDM réelle vérifiée (`sddm`, `userModel`, `sessionModel`,
+      `keyboard`, `screenModel`, `config`) — inconnue critique levée
+- [x] Comportement multi-écran vérifié (une vue par écran physique) —
+      inconnue critique levée, testé avec 3 écrans réels
+- [x] Géométrie HiDPI vérifiée sur un setup à échelles mixtes (1 et 1.4)
+- [x] `docs/Prototype-Results.md` créé ; répercussions sur
+      `SDDM-Compatibility.md`, `Core-API.md`, `Development-Environment.md`,
+      `Theme-Development.md` et `Architecture.md` (Inconnues critiques)
+- [ ] Coût réel des effets GPU, rendu pixel HiDPI, mécanisme de
+      configuration définitif, authentification de bout en bout —
+      délibérément non couverts par ce prototype (voir
+      `Prototype-Results.md` §7), à valider plus tard sans bloquer le
+      Core MVP (voir `Core-MVP.md`, exclusions)
+
+Le dossier `prototype/` est jetable : il ne sera pas conservé comme base
+de code du Core (voir `Core-MVP.md` et `Theme-Development.md` pour la
+structure définitive d'un thème réel).
+
 ## Phase 1 — Core MVP
 
 Objectif : un Core minimal mais complet, sans aucun thème visuel dessus.
-Démarre après validation de la Phase 0.6.
+Démarre après validation de la Phase 1.0.
 
 Ordre de construction recommandé (plomberie avant composants visuels,
 composants simples avant composants interactifs — voir

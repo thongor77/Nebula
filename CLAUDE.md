@@ -55,14 +55,15 @@ qu'héritage, ThemeConfig centralisé, etc.).
 
 Voir [`docs/Roadmap.md`](docs/Roadmap.md).
 
-Phases 0 à 0.6 (architecture, contrats, revue) terminées — voir
-[`docs/Architecture-Review.md`](docs/Architecture-Review.md),
-[`docs/Core-MVP.md`](docs/Core-MVP.md) et
-[`docs/Nord-Theme-Specification.md`](docs/Nord-Theme-Specification.md).
-Prochaine étape : Phase 1 — Core MVP, pas encore commencée (aucun code
-QML écrit). Reste ouvert avant d'implémenter : valider par prototype les
-inconnues critiques listées dans
-[`docs/SDDM-Compatibility.md`](docs/SDDM-Compatibility.md).
+Phases 0 à 1.0 terminées — architecture, contrats, revue, et prototype
+technique réel (voir [`docs/Architecture-Review.md`](docs/Architecture-Review.md),
+[`docs/Core-MVP.md`](docs/Core-MVP.md),
+[`docs/Nord-Theme-Specification.md`](docs/Nord-Theme-Specification.md) et
+[`docs/Prototype-Results.md`](docs/Prototype-Results.md) — API SDDM
+réelle et comportement multi-écran vérifiés sur une installation SDDM
+0.21 réelle).
+Prochaine étape : Phase 1 — Core MVP, pas encore commencée (aucun
+composant Core écrit ; `prototype/` est jetable, pas du Core).
 
 ## Règle avant toute nouvelle fonctionnalité
 

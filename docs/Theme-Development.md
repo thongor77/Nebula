@@ -12,15 +12,29 @@
 ```text
 themes/
     ExampleTheme/
+        metadata.desktop
         theme.conf
         Main.qml
         assets/
         README.md
 ```
 
+- `metadata.desktop` — **ajouté suite au prototype de Phase 1.0**
+  (voir [`Prototype-Results.md`](Prototype-Results.md) §6) : chaque thème
+  SDDM réellement installé sur une machine (`breeze`, etc.) en fournit un,
+  au format `[SddmGreeterTheme]` (`Name=`, `Description=`, `MainScript=`,
+  `ConfigFile=`, `Theme-API=`, `QtVersion=`, ...). Non strictement requis
+  pour un test direct via `sddm-greeter --test-mode --theme <chemin>` avec
+  les noms de fichiers par défaut (vérifié : ça fonctionne sans), mais
+  nécessaire pour qu'un thème soit sélectionnable normalement par SDDM
+  (`/usr/share/sddm/themes/<nom>/` + `Current=<nom>` dans la configuration
+  SDDM). À fournir dès la Phase 2 (premier thème Nord).
 - `theme.conf` — valeurs des tokens du [Design System](Design-System.md)
   pour ce thème (couleurs, spacing, radius, typography, animation,
-  effets). Format exact encore ouvert — voir DT-0003.
+  effets). Format ini `[General] clé=valeur`, confirmé fonctionnel
+  (accessible en QML via `config.clé`) — voir `Prototype-Results.md` §3.2.
+  Mécanisme d'écriture/export pour un futur outil externe encore ouvert —
+  voir DT-0003.
 - `Main.qml` — assemble les composants du Core (voir
   [`Core-API.md`](Core-API.md)) selon le layout propre au thème.
 - `assets/` — fonds d'écran, icônes spécifiques au thème (les assets
@@ -69,6 +83,8 @@ script `scripts/test-theme.sh`.
 ## 5. Checklist avant de proposer un thème
 
 - [ ] Le thème ne modifie aucun fichier sous `core/`.
+- [ ] `metadata.desktop` présent (requis pour une installation normale,
+      voir section 1).
 - [ ] `theme.conf` ne définit que des valeurs de tokens déjà catalogués
       dans `Design-System.md` — toute valeur manquante est d'abord ajoutée
       au Design System, pas inventée localement.

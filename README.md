@@ -29,6 +29,7 @@ themes/        theme identities (cyberpunk, hacker, amoled, nord, glass, hypr)
 docs/          architecture, technical decisions, roadmap, specifications
 scripts/       packaging and tooling scripts
 tests/         test suite for Core components
+prototype/     throwaway Phase 1.0 SDDM environment probe (not a theme)
 .github/       CI workflows and issue/PR templates
 ```
 
@@ -52,6 +53,7 @@ Themes never redefine what already exists in Core — see
 | [`docs/Architecture-Review.md`](docs/Architecture-Review.md)   | Phase 0.6 consistency review: what was fixed, risks, Core/Theme boundary |
 | [`docs/Core-MVP.md`](docs/Core-MVP.md)                          | Exact scope and exclusions of the Core MVP (Phase 1)     |
 | [`docs/Nord-Theme-Specification.md`](docs/Nord-Theme-Specification.md) | Palette, typography, layout for the pilot theme (Nord) |
+| [`docs/Prototype-Results.md`](docs/Prototype-Results.md)       | Phase 1.0 real-world test results: SDDM API, multi-screen, HiDPI |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md)                            | Coding conventions, commit style, PR process        |
 | [`CLAUDE.md`](CLAUDE.md)                                        | Project context for AI-assisted development (FR)   |
 
