@@ -20,6 +20,15 @@ Item {
 
     anchors.fill: parent
 
+    // Shared responsive width cap for the Main Content and Status zones
+    // (90% of the available width, never wider than 640). This is a
+    // layout contract of the Core itself, not a themeable design value —
+    // no theme should be able to make a login card absurdly wide on a
+    // 4K screen — so it deliberately stays a local, non-token constant
+    // (Phase 1.6 audit, docs/Development-Journal.md). Kept as one shared
+    // property instead of duplicating the expression in both zones.
+    readonly property real _contentWidth: Math.min(root.width * 0.9, 640)
+
     // Wallpaper Area — full-bleed background slot (e.g. a future
     // NebulaBackground). Declared first so it paints behind every other
     // zone.
@@ -46,7 +55,7 @@ Item {
     Item {
         id: mainArea
         anchors.centerIn: parent
-        width: Math.min(parent.width * 0.9, 640)
+        width: root._contentWidth
         height: childrenRect.height
     }
 
@@ -60,7 +69,7 @@ Item {
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.topMargin: root.theme.spacing.spacingLg
-        width: Math.min(parent.width * 0.9, 640)
+        width: root._contentWidth
         height: childrenRect.height
     }
 

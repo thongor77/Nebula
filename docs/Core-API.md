@@ -176,7 +176,9 @@ pour rester cohérent avec le reste de la documentation.
   `variant` (enum : `primary` / `secondary` / `ghost`, liée aux tokens de
   couleur du Design System).
 - **Signals** : `clicked()`.
-- **Dependencies** : `NebulaThemeProvider`.
+- **Dependencies** : `NebulaThemeProvider` (colors, spacing, radius,
+  typography, animation, et depuis la Phase 1.6 le groupe `interaction` —
+  voir `Design-Tokens-Reference.md`).
 
 ### NebulaAvatar
 
@@ -380,7 +382,9 @@ pour rester cohérent avec le reste de la documentation.
   (real, défaut `radius.radiusLarge`), `borderWidth` (real, défaut
   `surface.surfaceBorderWidth`), `borderColor` (color), `surfaceColor`
   (color, défaut `colors.surfaceColor`), `shadowEnabled` (bool, défaut
-  `false`), `shadowColor` (color), `shadowOffset` (real).
+  `false`), `shadowColor` (color), `shadowOffset` (real), `shadowOpacity`
+  (real, défaut `0.25` — promue de valeur inline codée en dur à propriété
+  en Phase 1.6, voir `Design-Tokens-Reference.md`).
 - **Contrat** : se dimensionne pour épouser exactement son contenu — le
   contenu ne doit jamais se centrer avec `anchors.centerIn: parent`
   (même contrainte que les zones de `NebulaLoginLayout`, voir DT-0011).

@@ -122,6 +122,29 @@
   `overlay`/`surface` non répercutés dans `NebulaThemeProvider`.
 - `qmllint` : aucun avertissement sur les 4 fichiers.
 
+### Design System Hardening — Phase 1.6
+
+- Audit complet des 14 fichiers du Core (`core/config`, `core/theme`,
+  `core/components`, `core/layouts`, `core/services`) à la recherche de
+  valeurs codées en dur. Résultat détaillé et classification de chaque
+  valeur trouvée : [`Design-Tokens-Reference.md`](Design-Tokens-Reference.md).
+- Nouveau groupe de tokens `interaction` (`opacityDisabled`,
+  `scalePressed`, `pressedDarkenFactor`, `borderWidthThin`,
+  `borderWidthFocus`) ajouté à `NebulaThemeConfig`/`NebulaThemeProvider`
+  — extrait de valeurs jusque-là codées en dur dans `NebulaButton`.
+- `NebulaSurface.shadowOpacity` : promue de valeur inline codée en dur à
+  propriété par instance, cohérente avec `shadowColor`/`shadowOffset`
+  déjà existantes.
+- `NebulaLoginLayout` : largeur responsive des zones Main
+  Content/Status dédupliquée en une seule propriété interne
+  (`_contentWidth`) au lieu d'être répétée deux fois.
+- `tests/ThemeSyncCheck.qml` (nouveau) : vérifie automatiquement que tout
+  groupe de tokens de `NebulaThemeConfig` est exposé par
+  `NebulaThemeProvider` — testé réellement dans les deux sens (voir §4).
+- `scripts/check-design-system.sh` (nouveau) : point d'entrée unique
+  (`qmllint` + `ThemeSyncCheck` + harnais visuels) avant un commit.
+- `qmllint` : aucun avertissement sur l'ensemble des fichiers modifiés.
+
 ## 2. Composants en cours / pas commencés
 
 Reste du périmètre du Core MVP (voir `Core-MVP.md`) : `NebulaThemeLoader`,
@@ -162,6 +185,15 @@ mais le contrat `Core-API.md` l'interdit désormais explicitement pour
 fonctionner sans SDDM, désormais via `NebulaUserService`/
 `NebulaAuthService` réels (avec adapters fictifs) plutôt que des valeurs
 codées en dur.
+
+**Critère de fin de la Phase 1.6 atteint** : plus aucune valeur codée en
+dur identifiée par l'audit ne reste sans classification explicite
+(devenue token, restée locale et documentée, ou promue en propriété
+d'instance) ; `ThemeConfig`/`ThemeProvider` sont vérifiés synchronisés
+automatiquement par `tests/ThemeSyncCheck.qml` ; `VisualHarness.qml`/
+`LoginScreenHarness.qml` confirment l'absence de régression visuelle
+(capture d'écran, taille par défaut et `QT_SCALE_FACTOR=2`). Le Core est
+considéré stable pour démarrer le premier thème (Nord).
 
 ## 3. Décisions prises pendant cette phase
 
@@ -407,6 +439,37 @@ les régressions visuelles futures) et `Rendering-Guidelines.md` §6
 (référence de performance — ~52 objets QML au démarrage, 2 `Timer` actifs
 en continu, aucun binding par-frame identifié en dehors d'eux).
 
+### D19 — Nouveau groupe de tokens `interaction` (Phase 1.6)
+
+`NebulaButton` codait en dur son retour visuel d'interaction
+(assombrissement à la pression, largeurs de bordure focus/ghost, opacité
+désactivée, échelle de pression). Justifié comme tokens (et non laissé
+local) car les prochains composants interactifs du Roadmap
+(`NebulaPasswordField`, `NebulaUserList`, `NebulaSessionSelector`) auront
+besoin des mêmes états et doivent rester visuellement cohérents entre
+eux. Détail : [`Design-Tokens-Reference.md`](Design-Tokens-Reference.md).
+
+### D20 — `NebulaAvatar`/`NebulaLoginLayout` : valeurs restées locales, documentées
+
+L'audit Phase 1.6 a aussi trouvé des valeurs codées en dur qui ne sont
+**pas** devenues des tokens : la taille par défaut et les ratios de la
+silhouette de repli de `NebulaAvatar` (géométrie décorative, pas
+d'identité de thème), et la largeur responsive des zones de
+`NebulaLoginLayout` (contrat de layout du Core, pas une valeur qu'un
+thème doit pouvoir changer — dédupliquée en une propriété interne). Voir
+`Design-Tokens-Reference.md`, section « Valeurs volontairement non
+tokenisées ».
+
+### D21 — `tests/ThemeSyncCheck.qml` : détection automatique de la régression D16
+
+La Phase 1.5 avait trouvé un bug réel (D16) uniquement à l'exécution :
+des tokens définis dans `NebulaThemeConfig` mais jamais répercutés dans
+`NebulaThemeProvider`. Plutôt que de compter sur une relecture manuelle
+à chaque nouvelle phase, `tests/ThemeSyncCheck.qml` compare
+automatiquement les groupes de tokens des deux objets (`Object.keys()`
+fonctionne sur un `QtObject` QML, voir `Development-Journal.md`) et
+échoue si l'un manque. Intégré à `scripts/check-design-system.sh`.
+
 ## 4. Vérifications réelles effectuées
 
 - `qmllint` sur les 3 nouveaux fichiers + le harnais de test : aucun
@@ -501,6 +564,26 @@ en continu, aucun binding par-frame identifié en dehors d'eux).
   voir `Rendering-Guidelines.md` §6 pour le détail et les limites de la
   méthodologie (pas de trace `qmlprofiler`, comptage manuel).
 
+### Phase 1.6
+
+- `qmllint` sur `NebulaThemeConfig.qml`, `NebulaThemeProvider.qml`,
+  `NebulaButton.qml`, `NebulaSurface.qml`, `NebulaLoginLayout.qml` et
+  `tests/ThemeSyncCheck.qml` : aucun avertissement.
+- `tests/ThemeSyncCheck.qml` exécuté réellement dans les deux sens :
+  retrait temporaire de `interaction` dans `NebulaThemeProvider` →
+  échec détecté et message explicite (`FAIL - token group(s) ... :
+  interaction`, code de sortie `1`) ; remise en place → succès (`PASS -
+  8 token group(s) ...`, code de sortie `0`).
+- `tests/VisualHarness.qml` et `tests/LoginScreenHarness.qml` relancés
+  après le refactor des tokens — rendu identique à la Phase 1.5 (mêmes
+  valeurs numériques, seulement déplacées vers des tokens), confirmé par
+  capture d'écran à la taille par défaut et à `QT_SCALE_FACTOR=2`.
+- `scripts/check-design-system.sh` exécuté de bout en bout réellement :
+  `qmllint` et `ThemeSyncCheck` bloquants confirmés, les deux harnais
+  visuels s'ouvrent en séquence sans jamais faire échouer le script sur
+  leur code de sortie (voir D21 et `Development-Journal.md` pour la
+  limite trouvée en testant la fermeture des fenêtres Wayland).
+
 ## 5. Documentation à synchroniser (fait dans ce lot)
 
 - [`Design-System.md`](Design-System.md) — `fontWeight` → 
@@ -548,3 +631,19 @@ en continu, aucun binding par-frame identifié en dehors d'eux).
 - [`Rendering-Guidelines.md`](Rendering-Guidelines.md) — nouveau document
   (Phase 1.5).
 - [`Roadmap.md`](Roadmap.md) — Phase 1.5 marquée terminée.
+- [`Design-Tokens-Reference.md`](Design-Tokens-Reference.md) — nouveau
+  document (Phase 1.6) : référence exhaustive de chaque token, valeur par
+  défaut et composants qui l'utilisent.
+- [`Design-System.md`](Design-System.md) — section 6ter (groupe
+  `interaction`) ajoutée.
+- [`Theme-System.md`](Theme-System.md) — contrat de synchronisation
+  `NebulaThemeConfig`/`NebulaThemeProvider` explicité, référence à
+  `tests/ThemeSyncCheck.qml`.
+- [`Core-API.md`](Core-API.md) — dépendance `interaction` ajoutée à
+  `NebulaButton` ; `shadowOpacity` ajoutée aux Properties de
+  `NebulaSurface`.
+- [`Development-Journal.md`](Development-Journal.md) — trois nouvelles
+  entrées (Phase 1.6) : énumération d'un `QtObject` via `Object.keys()`,
+  `QT_LOGGING_TO_CONSOLE` comme alternative directe à `journalctl`,
+  limite de `xdotool`/`wmctrl` sur des fenêtres Wayland natives.
+- [`Roadmap.md`](Roadmap.md) — Phase 1.6 marquée terminée.

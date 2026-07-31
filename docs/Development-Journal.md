@@ -10,6 +10,73 @@
 
 ---
 
+## 2026-07-31 — Phase 1.6
+
+**Contexte** : écrire `tests/ThemeSyncCheck.qml`, qui doit détecter
+automatiquement tout token présent dans `NebulaThemeConfig` mais oublié
+dans `NebulaThemeProvider` (voir l'entrée Phase 1.5 ci-dessous — c'est
+exactement ce bug que ce test doit attraper mécaniquement).
+
+**Découverte** : un `QtObject` déclaré en QML est bien énumérable côté
+JavaScript — `Object.keys(obj)` et `for (var k in obj)` renvoient les
+noms de toutes ses `property` déclarées (plus `objectName` et les
+signaux `xxxChanged`). Testé réellement avec un fichier `qml6` minimal
+avant de l'utiliser dans le vrai test. Cela permet de comparer les
+groupes de tokens exposés par deux objets sans lister leurs noms à la
+main (donc sans avoir à maintenir cette liste séparément du code réel).
+
+**Impact** : `ThemeSyncCheck.qml` compare `Object.keys(config)` à
+`Object.keys(provider)` (filtrés aux propriétés de type objet) et échoue
+avec `Qt.exit(1)` si un groupe manque — vérifié réellement dans les deux
+sens (retrait temporaire de `interaction` dans `NebulaThemeProvider` →
+échec détecté ; remise en place → succès).
+
+---
+
+**Contexte** : lire la sortie `console.log`/`console.error` de `qml6`
+directement dans ce terminal, sans passer par `journalctl` (voir l'entrée
+Phase 1.2 ci-dessous, qui documentait déjà que `qml6` route ses logs vers
+le journal quand il tourne détaché d'un terminal interactif).
+
+**Découverte** : la variable d'environnement `QT_LOGGING_TO_CONSOLE=1`
+(ou les remplaçants recommandés par l'avertissement de dépréciation,
+`QT_ASSUME_STDERR_HAS_CONSOLE=1`/`QT_FORCE_STDERR_LOGGING=1`) force Qt à
+écrire directement sur stderr, sans redirection ni `journalctl`
+intermédiaire. Plus direct que le contournement documenté en Phase 1.2
+pour ce cas précis (lire la sortie d'un script qu'on vient de lancer
+soi-même) — `journalctl` reste nécessaire quand on inspecte les logs
+*a posteriori* d'un processus déjà lancé autrement (ex. le vrai greeter
+SDDM).
+
+**Impact** : `tests/ThemeSyncCheck.qml` et `scripts/check-design-system.sh`
+s'appuient sur cette variable pour rester silencieux/lisibles en usage
+normal (terminal interactif) tout en produisant une sortie exploitable
+quand on les lance depuis un script ou un outil automatisé.
+
+---
+
+**Contexte** : faire fermer automatiquement les fenêtres de
+`VisualHarness.qml`/`LoginScreenHarness.qml` ouvertes par
+`scripts/check-design-system.sh`, pour tester le script de bout en bout
+sans intervention manuelle.
+
+**Découverte** : `xdotool search`/`windowclose` ne voit aucune fenêtre
+`qml6` sur cette session — normal, ce sont des clients Wayland natifs
+(`WAYLAND_DISPLAY=wayland-0`), et `xdotool`/`wmctrl` n'ont accès qu'aux
+fenêtres X11/XWayland. Aucun équivalent (`kdotool`, `ydotool`) n'est
+installé. Envoyer `SIGTERM` au processus (`pkill`) fonctionne pour
+l'arrêter mais produit un code de sortie non nul (`143`), contrairement
+à une fermeture propre par clic sur le bouton de fermeture — deux
+chemins de sortie différents, seul le premier a pu être testé ici.
+
+**Impact** : `scripts/check-design-system.sh` ne conditionne jamais son
+propre succès au code de sortie des harnais visuels (`|| true`) — ce
+sont des vérifications manuelles à l'œil, jamais un pass/fail
+automatique, donc peu importe lequel des deux chemins de sortie se
+produit en usage réel.
+
+---
+
 ## 2026-07-31 — Phase 1.5
 
 **Contexte** : test manuel de `NebulaBackground`/`NebulaWallpaper` en

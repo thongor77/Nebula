@@ -32,6 +32,7 @@ Item {
     property bool shadowEnabled: false
     property color shadowColor: "#000000"
     property real shadowOffset: 2
+    property real shadowOpacity: 0.25
 
     implicitWidth: contentContainer.childrenRect.width + padding * 2
     implicitHeight: contentContainer.childrenRect.height + padding * 2
@@ -43,7 +44,7 @@ Item {
         anchors.leftMargin: root.shadowOffset
         radius: root.radius
         color: root.shadowColor
-        opacity: 0.25
+        opacity: root.shadowOpacity
     }
 
     Rectangle {

@@ -82,6 +82,20 @@ QtObject {
     // by default (overridable per-instance) — see
     // docs/Decisions-Techniques.md, DT-0013.
 
+    // Shared visual feedback for interactive states (pressed, focused,
+    // disabled) — added in Phase 1.6 after auditing NebulaButton, which
+    // had these hardcoded. Any future interactive component
+    // (NebulaPasswordField, NebulaUserList, ...) reuses the same tokens
+    // instead of inventing its own feedback values — see
+    // docs/Design-Tokens-Reference.md.
+    readonly property QtObject interaction: QtObject {
+        property real opacityDisabled: 0.5
+        property real scalePressed: 0.97
+        property real pressedDarkenFactor: 1.3
+        property real borderWidthThin: 1
+        property real borderWidthFocus: 2
+    }
+
     // Simple validation: every group must hold sane, usable values.
     // Not a full schema validator — just a sanity check that the
     // resolved config is fit to hand to components.
@@ -90,4 +104,5 @@ QtObject {
         && radius.radiusMedium > 0
         && typography.fontSizeBody > 0
         && animation.durationNormal > 0
+        && interaction.opacityDisabled > 0
 }

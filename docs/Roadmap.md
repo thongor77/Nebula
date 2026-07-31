@@ -168,6 +168,23 @@ bugs réels trouvés et corrigés (contrainte `Row`/`anchors.fill`, tokens
 `overlay`/`surface` non répercutés dans `NebulaThemeProvider`) : voir
 [`docs/Development-Journal.md`](Development-Journal.md).
 
+**Sous-étape Phase 1.6 — Design System Hardening (terminée) :** audit
+complet des 14 fichiers du Core, nouveau groupe de tokens `interaction`
+(`opacityDisabled`, `scalePressed`, `pressedDarkenFactor`,
+`borderWidthThin`, `borderWidthFocus`) extrait de valeurs codées en dur
+dans `NebulaButton`, `NebulaSurface.shadowOpacity` promue en propriété,
+largeur responsive de `NebulaLoginLayout` dédupliquée. Nouveau document
+[`docs/Design-Tokens-Reference.md`](Design-Tokens-Reference.md) (chaque
+token : nom, type, défaut, description, composants utilisateurs).
+`tests/ThemeSyncCheck.qml` (nouveau) détecte automatiquement toute
+divergence `ThemeConfig`/`ThemeProvider` — la régression trouvée en
+Phase 1.5 — testé réellement dans les deux sens.
+`scripts/check-design-system.sh` (nouveau) : point d'entrée unique
+(`qmllint` + `ThemeSyncCheck` + harnais visuels) avant un commit. Aucune
+régression visuelle (capture d'écran, taille par défaut et
+`QT_SCALE_FACTOR=2`). Le Core est considéré stable : voir
+[`docs/Core-Implementation-Status.md`](Core-Implementation-Status.md).
+
 Ordre de construction recommandé (plomberie avant composants visuels,
 composants simples avant composants interactifs — voir
 [`Theme-System.md`](Theme-System.md)) :

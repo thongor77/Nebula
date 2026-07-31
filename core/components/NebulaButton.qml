@@ -19,7 +19,7 @@ Rectangle {
     implicitWidth: content.implicitWidth + theme.spacing.spacingLg * 2
     implicitHeight: content.implicitHeight + theme.spacing.spacingMd * 2
     radius: theme.radius.radiusMedium
-    opacity: enabled ? 1.0 : 0.5
+    opacity: enabled ? 1.0 : theme.interaction.opacityDisabled
 
     activeFocusOnTab: true
 
@@ -31,14 +31,14 @@ Rectangle {
         }
     }
 
-    color: mouseArea.pressed ? Qt.darker(baseColor, 1.3) : baseColor
-    border.width: activeFocus ? 2 : (variant === "ghost" ? 1 : 0)
+    color: mouseArea.pressed ? Qt.darker(baseColor, theme.interaction.pressedDarkenFactor) : baseColor
+    border.width: activeFocus ? theme.interaction.borderWidthFocus : (variant === "ghost" ? theme.interaction.borderWidthThin : 0)
     border.color: activeFocus ? theme.colors.accentColor : theme.colors.textSecondary
 
     // Simple, one-shot interaction feedback — not a permanent/looping
     // animation, so it stays compliant with the "no animation on an
     // invisible/idle component" rule (docs/Architecture.md §5.4).
-    scale: mouseArea.pressed ? 0.97 : 1.0
+    scale: mouseArea.pressed ? theme.interaction.scalePressed : 1.0
 
     Behavior on scale {
         NumberAnimation { duration: root.theme.animation.durationFast; easing.type: Easing.OutQuad }

@@ -110,6 +110,26 @@ les effets GPU de la section précédente, tous deux déjà implémentés :
 d'introduire des tokens `surfaceRadius`/`surfacePadding` dédiés — voir
 `Decisions-Techniques.md`, DT-0013.
 
+## 6ter. Interaction (Phase 1.6)
+
+Tokens de retour visuel pour les états interactifs (pression, focus,
+désactivation), extraits de `NebulaButton` où ils étaient codés en dur —
+trouvés lors de l'audit Design System de la Phase 1.6. Tout futur
+composant interactif (`NebulaPasswordField`, `NebulaUserList`,
+`NebulaSessionSelector`, ...) doit les réutiliser plutôt qu'inventer ses
+propres valeurs de retour :
+
+- `opacityDisabled` — opacité d'un composant désactivé.
+- `scalePressed` — facteur d'échelle pendant la pression.
+- `pressedDarkenFactor` — facteur d'assombrissement (`Qt.darker`) de la
+  couleur de base pendant la pression.
+- `borderWidthThin` — épaisseur de bordure fine (ex. variante `ghost` au
+  repos).
+- `borderWidthFocus` — épaisseur de bordure d'un composant focus.
+
+Valeurs concrètes et détail : voir
+[`Design-Tokens-Reference.md`](Design-Tokens-Reference.md).
+
 ## 7. Couleurs
 
 | Token             | Usage indicatif                          |

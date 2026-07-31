@@ -21,6 +21,7 @@ QtObject {
     readonly property QtObject animation: config.animation
     readonly property QtObject overlay: config.overlay
     readonly property QtObject surface: config.surface
+    readonly property QtObject interaction: config.interaction
 
     // Asset exposure (fonts/icons resolved by a real theme) is deferred
     // until NebulaThemeLoader exists — placeholder kept empty on purpose.

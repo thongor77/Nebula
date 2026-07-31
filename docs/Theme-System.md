@@ -71,6 +71,12 @@ thème, et ne lit `NebulaThemeConfig` qu'au travers de `NebulaThemeProvider`.
   soit l'évolution interne de `NebulaThemeConfig`/`NebulaThemeLoader`.
 - Permet de faire évoluer le mécanisme de stockage (DT-0003) sans jamais
   toucher aux composants qui le consomment.
+- Doit rester en permanence synchronisé avec `NebulaThemeConfig` : tout
+  groupe de tokens ajouté à l'un doit être exposé par l'autre. Régression
+  réelle trouvée en Phase 1.5 (`overlay`/`surface` définis mais non
+  exposés) — voir `docs/Development-Journal.md`. Vérifié automatiquement
+  depuis la Phase 1.6 par `tests/ThemeSyncCheck.qml` (voir
+  [`Design-Tokens-Reference.md`](Design-Tokens-Reference.md)).
 
 ## 4. Ordre d'initialisation
 
