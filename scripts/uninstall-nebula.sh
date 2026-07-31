@@ -56,9 +56,24 @@ remove_core() {
     echo "Removed Nebula Core module ($NEBULA_MODULE_DIR)."
 }
 
+remove_greeter_environment() {
+    local conf="/etc/sddm.conf.d/nebula.conf"
+    if [ ! -f "$conf" ]; then
+        return 0
+    fi
+    if grep -q "Written by Nebula's install-nebula.sh" "$conf"; then
+        rm -f "$conf"
+        echo "Removed $conf."
+    else
+        echo "Leaving $conf in place — doesn't carry Nebula's marker comment," >&2
+        echo "meaning it wasn't written by install-nebula.sh." >&2
+    fi
+}
+
 case "$ARG" in
     --core)
         remove_core
+        remove_greeter_environment
         ;;
     --all)
         shopt -s nullglob
@@ -68,6 +83,7 @@ case "$ARG" in
             remove_theme "$theme_name"
         done
         remove_core
+        remove_greeter_environment
         ;;
     *)
         remove_theme "$ARG"

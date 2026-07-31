@@ -175,6 +175,58 @@
   systemd du service SDDM réel) aurait rendu cette architecture
   beaucoup plus fragile à déployer.
 
+## 9. `XMLHttpRequest` local sous le vrai service SDDM : `GreeterEnvironment=` requis (résolu en Phase 3.0)
+
+- **Versions concernées** : SDDM 0.21.0-7, Qt6 6.11.1 (`qt6-base`/
+  `qt6-declarative`), système Arch/EndeavourOS — configuration réelle de
+  la machine de développement au moment du test. Non vérifié sur d'autres
+  versions ; le comportement décrit en §4 (XHR local désactivé par
+  défaut) n'est a priori pas spécifique à cette version de Qt6, mais
+  seule celle-ci a été testée.
+- **Symptôme** : un thème installé via `scripts/install-nebula.sh`
+  charge et s'affiche sans erreur QML visible, mais garde les couleurs
+  par défaut du Core (`#2a2a2a`/`#1e1e1e`/`#f0f0f0`, celles codées en dur
+  dans `NebulaThemeConfig`) au lieu de celles de son `theme.conf` — quel
+  que soit le thème (Nord, Template, Glass), et quelle que soit la
+  variante (`glass-dark`/`glass-light`).
+- **Cause** : §4 documentait déjà que `QML_XHR_ALLOW_FILE_READ=1` est
+  nécessaire sous `qml6` et `sddm-greeter --test-mode`, mais aucune
+  vérification n'avait été faite sur ce que reçoit réellement le
+  processus greeter lancé par le vrai service `sddm.service` (via
+  systemd) — celui-ci ne définit cette variable nulle part par défaut
+  (confirmé : ni dans `/etc/sddm.conf`, ni dans
+  `/usr/lib/sddm/sddm.conf.d/default.conf`, ni dans l'unité systemd
+  `sddm.service`). Découvert en testant Glass sous
+  `sddm-greeter-qt6 --test-mode` sans avoir exporté la variable dans le
+  shell — l'échec silencieux de `NebulaThemeLoader` (voir §5, DT-0018)
+  masquait le vrai thème derrière les valeurs par défaut du Core,
+  visuellement plausible pour `glass-dark` par coïncidence (les deux
+  sont des gris sombres) mais immédiatement visible pour `glass-light`
+  (fond de carte resté sombre au lieu de blanc — voir
+  `Glass-Theme-Report.md`).
+- **Solution** : `GreeterEnvironment=QML_XHR_ALLOW_FILE_READ=1` dans
+  `/etc/sddm.conf.d/`, sous `[General]` — mécanisme officiel de SDDM
+  pour définir des variables d'environnement pour le processus greeter
+  (confirmé réellement présent dans le binaire `/usr/bin/sddm` installé,
+  via recherche de chaîne UTF-16LE — les chaînes Qt `QString` ne sont pas
+  visibles avec un `strings` ASCII classique, piège rencontré pendant
+  cette investigation). `scripts/install-nebula.sh` écrit désormais ce
+  fichier automatiquement ; `scripts/uninstall-nebula.sh --core`/`--all`
+  le retire. Voir DT-0023 dans `Decisions-Techniques.md` et
+  `Installation.md`.
+- **Limite de la vérification** : confirmer que `GreeterEnvironment=`
+  atteint réellement le sous-processus greeter demanderait de redémarrer
+  le vrai service `sddm.service` — non fait dans cette session (risque
+  de couper la session graphique active, hors du périmètre accepté pour
+  cette découverte). La présence réelle de la chaîne dans le binaire
+  installé et la description officielle de la clé (« Comma-separated
+  list of environment variables to be set ») donnent une confiance forte
+  mais pas une vérification de bout en bout.
+- **Impact** : sans ce correctif, *tout* thème Nebula installé
+  système-wide affiche les mauvaises couleurs en usage réel, silencieusement
+  — un problème d'architecture de déploiement (Phase 2.2), pas un défaut
+  du thème testé au moment de sa découverte (Glass, Phase 3.0).
+
 ---
 
 ## Recommandation

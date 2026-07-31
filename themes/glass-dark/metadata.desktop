@@ -1,0 +1,15 @@
+[SddmGreeterTheme]
+Name=Glass Dark
+Description=Frosted glass, Fluent Design inspired — dark variant, Nebula's second official theme
+Author=Nebula contributors
+Copyright=(c) 2026, Nebula contributors
+License=GPL-3.0
+Type=sddm-theme
+Version=0.1
+Website=https://github.com/thongor77/Nebula
+Screenshot=preview.png
+MainScript=Main.qml
+ConfigFile=theme.conf
+Theme-Id=glass-dark
+Theme-API=2.0
+QtVersion=6

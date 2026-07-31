@@ -369,8 +369,48 @@ traitement particulier, conformément au brief. Validé sous `qml6`,
 
 ## Phase 3 — Thèmes suivants et effets avancés
 
+**Sous-étape Phase 3.0 — Glass (terminée) :** deuxième thème officiel,
+en deux variantes indépendantes (`themes/glass-light/`,
+`themes/glass-dark/`), toutes deux conformes au contrat SDK actuel.
+Portée décidée avec l'utilisateur (2026-07-31) : deux thèmes
+indépendants, mutualisation (contenu `Main.qml`, assets) limitée au
+dépôt/implémentation, jamais un nouveau mécanisme SDK. Premier thème à
+utiliser l'ensemble fonctionnel complet issu de la Phase 2.3
+(`NebulaUserList`/`NebulaPasswordField`/`NebulaSessionSelector`/
+`NebulaPowerButtons` ensemble) — Nord (Phase 2.1) avait été
+délibérément limité à un sous-ensemble plus restreint. Style verre
+dépoli sobre (Fluent Design/Breeze moderne/macOS Sonoma), sans effet
+GPU (aucun `BlurEffect` — pas encore dans le Core, voir
+[`docs/Rendering-Guidelines.md`](Rendering-Guidelines.md)). Typographie
+testée et justifiée (Noto Sans — Inter non installée sur la machine de
+test, Cantarell spécifique à GNOME/GTK). Surfaces réglées après
+comparaison réelle de 4 combinaisons opacité/rayon/ombre
+(`surfaceOpacity=0.75`/`radiusLarge=20`/ombre 0.3/décalage 4). Cinq
+animations testées (apparition, disparition, focus, changement
+d'utilisateur, validation du mot de passe), toutes ponctuelles,
+150–250 ms. HiDPI (100/125/150/200 %) et multi-écran (3 écrans réels)
+validés pour les deux variantes. Performances mesurées et comparées à
+Nord (~131 objets QML contre ~51, hausse entièrement due à l'ensemble
+fonctionnel plus large, pas au coût par composant ; mémoire résidente
++~10 Mo). Rapport complet :
+[`docs/Glass-Theme-Report.md`](Glass-Theme-Report.md). Découverte
+majeure, non spécifique à Glass : `NebulaThemeLoader` ne peut pas lire
+`theme.conf` sous le vrai service `sddm.service` sans
+`GreeterEnvironment=QML_XHR_ALLOW_FILE_READ=1` (SDDM 0.21.0-7, Qt6
+6.11.1) — touchait silencieusement Nord et Template de la même façon,
+corrigé immédiatement dans `scripts/install-nebula.sh` (DT-0023 dans
+`Decisions-Techniques.md`, `Compatibility-Matrix.md` §9). Limitation
+Core réelle documentée, non corrigée par principe (aucun composant Core
+modifié cette phase) : ni `NebulaPowerButtons` ni `NebulaPasswordField`
+n'exposent de propriété d'icône — les 5 icônes générées pour Glass
+existent mais ne sont câblées nulle part dans l'interface réelle (voir
+`Glass-Theme-Report.md`, Constat #1). Installation système réelle
+validée (`scripts/install-nebula.sh glass-dark` +
+`check-installation.sh`).
+
 - [ ] `BlurEffect`, `GlowEffect`, `Particles` dans `core/effects/`
-- [ ] Thèmes `cyberpunk`, `hacker`, `amoled`, `glass`, `hypr`
+- [ ] Thèmes `cyberpunk`, `hacker`, `amoled`, `hypr`
+- [x] Thème `glass` (voir sous-étape Phase 3.0 ci-dessus)
 - [ ] `WallpaperEngine`, `SoundManager`
 
 ## Phase 4 — Outillage avancé (vision long terme)

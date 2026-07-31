@@ -234,6 +234,42 @@ découvertes techniques (chemin QML par défaut, modules à espace de noms
   propre confirmée (aucune entrée, aucun bouton, aucun crash).
 - `qmllint` : aucun avertissement.
 
+### Phase 3.0 — Glass (deuxième thème officiel)
+
+**Aucun fichier sous `core/` modifié cette phase** — objectif du brief :
+prouver que le Core produit une interface moderne sans évolution
+d'architecture. `themes/glass-light/` et `themes/glass-dark/` (deux
+thèmes indépendants, contrat SDK complet chacun) utilisent l'ensemble
+des composants Core disponibles, y compris les quatre composants
+interactifs de la Phase 2.3 ensemble pour la première fois dans un
+thème officiel. Détail complet, rationale (typographie, surfaces,
+animations, HiDPI, performances) dans
+[`Glass-Theme-Report.md`](Glass-Theme-Report.md) plutôt que répété ici.
+
+- **Limitation Core réelle identifiée, non corrigée par principe** :
+  `NebulaPowerButtons` n'expose aucune propriété d'icône par action, et
+  `NebulaPasswordField` n'expose aucune propriété d'icône pour sa
+  bascule affichage/masquage — les 5 icônes générées pour Glass
+  (shutdown/restart/suspend/hibernate/reveal-password) existent dans
+  `themes/glass-{dark,light}/assets/icons/` mais ne sont câblées nulle
+  part dans l'écran de connexion réel. Piste future documentée dans
+  `Glass-Theme-Report.md` (Constat #1) : propriété d'icône par action
+  cohérente avec `NebulaButton.icon`, existante.
+- **Découverte hors `core/`, dans l'architecture de déploiement**
+  (Phase 2.2) : `NebulaThemeLoader` ne peut pas lire `theme.conf` sous
+  le vrai service `sddm.service` sans
+  `GreeterEnvironment=QML_XHR_ALLOW_FILE_READ=1` — touchait
+  silencieusement Nord et Template de la même façon, corrigé
+  immédiatement dans `scripts/install-nebula.sh` (DT-0023 dans
+  `Decisions-Techniques.md`). `NebulaThemeLoader` lui-même n'a pas
+  changé — la correction est entièrement côté installation.
+- Testé réellement : `qmllint`, `qml6` (4 échelles HiDPI), `qml6
+  tests/ThemeHarness.qml -- glass-dark`/`-- glass-light` (36 tokens
+  chacun), un harnais équivalent à `LoginWorkflowHarness.qml` avec les
+  tokens Glass, `sddm-greeter --test-mode` (3 écrans réels, 4 échelles,
+  les deux variantes), et installation système réelle
+  (`scripts/install-nebula.sh glass-dark` + `check-installation.sh`).
+
 ## 2. Composants en cours / pas commencés
 
 Reste du périmètre du Core MVP (voir `Core-MVP.md`) :

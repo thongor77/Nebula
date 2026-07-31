@@ -87,6 +87,16 @@ else
 fi
 
 echo
+echo "== GreeterEnvironment (QML_XHR_ALLOW_FILE_READ, see DT-0023) =="
+
+NEBULA_SDDM_CONF="/etc/sddm.conf.d/nebula.conf"
+if [ -f "$NEBULA_SDDM_CONF" ] && grep -q "GreeterEnvironment=.*QML_XHR_ALLOW_FILE_READ=1" "$NEBULA_SDDM_CONF"; then
+    pass "$NEBULA_SDDM_CONF sets QML_XHR_ALLOW_FILE_READ=1"
+else
+    fail "$NEBULA_SDDM_CONF missing or doesn't set QML_XHR_ALLOW_FILE_READ=1 — every theme's theme.conf will silently fail to load and fall back to Core defaults (see DT-0023)"
+fi
+
+echo
 echo "== Installed themes (/usr/share/sddm/themes/*/.nebula-managed) =="
 
 found_any=0

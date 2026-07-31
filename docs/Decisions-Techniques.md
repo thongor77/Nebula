@@ -980,3 +980,100 @@ voir `Deployment-Decision.md` §3). `scripts/install-nebula.sh`/
 architecture. `Theme-SDK.md`/`Creating-A-Theme.md`/
 `Compatibility-Matrix.md` mis à jour pour refléter la limitation
 résolue.
+
+## DT-0023 — `install-nebula.sh` configure `GreeterEnvironment=QML_XHR_ALLOW_FILE_READ=1`
+
+Date : 2026-07-31
+État : accepté
+
+### Contexte
+
+Découvert en validant Glass (Phase 3.0) sous `sddm-greeter-qt6
+--test-mode`, sans avoir exporté `QML_XHR_ALLOW_FILE_READ` dans le
+shell invoquant la commande : `NebulaThemeLoader` échoue silencieusement
+à lire `theme.conf` (voir DT-0018 — indistinguable d'un fichier manquant
+ou vide) et `NebulaThemeConfig` retombe entièrement sur ses valeurs par
+défaut codées en dur. `glass-dark` paraissait correct par pure
+coïncidence de teinte (les deux sont des gris sombres) ; `glass-light`
+l'a immédiatement révélé (carte restée sombre au lieu de blanche). Le
+Compatibility-Matrix.md §4 documentait déjà le besoin de cette variable
+sous `qml6`/`sddm-greeter --test-mode`, mais aucune vérification n'avait
+jamais été faite sur le vrai service `sddm.service` (lancé par systemd,
+pas manuellement) : ni `/etc/sddm.conf`, ni
+`/usr/lib/sddm/sddm.conf.d/default.conf`, ni l'unité
+`sddm.service` elle-même ne définissent cette variable. Sans correctif,
+tout thème Nebula installé système-wide afficherait les couleurs par
+défaut du Core au lieu des siennes, en usage réel, sans la moindre
+erreur visible.
+
+### Décision
+
+`scripts/install-nebula.sh` écrit désormais
+`/etc/sddm.conf.d/nebula.conf` :
+
+```ini
+[General]
+GreeterEnvironment=QML_XHR_ALLOW_FILE_READ=1
+```
+
+`scripts/uninstall-nebula.sh --core`/`--all` le retire (seulement s'il
+porte le commentaire-marqueur de Nebula — jamais un fichier du même nom
+écrit autrement). `scripts/check-installation.sh` vérifie sa présence
+et son contenu.
+
+### Alternatives étudiées
+
+- **Lire `config.<clé>` (propriété de contexte SDDM) directement depuis
+  `NebulaThemeLoader`, au lieu de `XMLHttpRequest`** : rejeté — ne
+  nécessiterait aucune permission particulière, mais romprait
+  `Nebula-Principles.md` §2 (« le Core ne connaît jamais SDDM
+  directement »), une frontière déjà délibérément posée en Phase 2.0.5
+  (voir `ThemeLoader.md` §3), pas un oubli. Resterait une option
+  architecturalement plus propre pour une phase dédiée (un Platform
+  Adapter `platform/sddm/` qui lirait `config` et fournirait des valeurs
+  déjà résolues à `NebulaThemeLoader`, en évitant XHR entièrement sous
+  SDDM réel) — hors du périmètre d'un correctif de déploiement
+  ponctuel ; à documenter comme piste future plutôt qu'à implémenter
+  maintenant.
+- **Ajouter une dépendance hors QML pur pour lire le fichier** (ex. un
+  plugin C++ `FileIO`, ou `Qt.labs.settings` en réinterprétant
+  `theme.conf` comme un fichier `QSettings`) : rejeté — même raisonnement
+  que DT-0018 (disproportionné, introduit une dépendance non justifiée
+  par un besoin observé) ; `Qt.labs.settings` en particulier changerait
+  aussi silencieusement les règles d'échappement/de commentaires du
+  format `theme.conf` actuel, un risque de régression non justifié par
+  ce correctif.
+- **Documenter seulement, sans toucher aux scripts d'installation** :
+  rejeté par décision explicite — cette découverte touche l'architecture
+  de déploiement (Phase 2.2) et non le thème en cours de validation
+  (Glass, Phase 3.0) ; la corriger dans les scripts d'installation
+  officiels évite qu'elle ne resurgisse identiquement à chaque futur
+  thème.
+
+### Raisons
+
+`GreeterEnvironment=` est le mécanisme que SDDM fournit lui-même pour
+exactement ce besoin (variables d'environnement du processus greeter) —
+confirmé réellement présent dans le binaire `/usr/bin/sddm` installé
+(SDDM 0.21.0-7) par recherche de chaîne UTF-16LE (`strings -e l -a`) ;
+une première recherche en `strings -a` classique (ASCII) ne le trouvait
+pas, les littéraux `QString` de Qt étant stockés en UTF-16 dans le
+binaire — piège rencontré et documenté pour éviter de le reproduire.
+C'est un correctif à l'installation, pas au Core : `NebulaThemeLoader`
+garde son architecture actuelle (XHR, découplée de SDDM), seul
+l'environnement du processus qui l'exécute change.
+
+### Conséquences
+
+Aucune vérification de bout en bout n'a été faite sur le vrai service
+`sddm.service` redémarré (risque de couper la session graphique active
+de la machine de développement, jugé disproportionné pour cette
+découverte) — seule la présence de la clé dans le binaire installé et
+sa description officielle (« Comma-separated list of environment
+variables to be set ») soutiennent cette décision. À vérifier de bout
+en bout lors d'un futur déploiement réel supervisé. Toute future
+réinstallation via `install-nebula.sh` régénère ce fichier ; un
+utilisateur ayant besoin d'autres `GreeterEnvironment=` doit les fusionner
+manuellement dans `/etc/sddm.conf.d/nebula.conf` (comportement de fusion
+de SDDM lui-même entre fichiers `sddm.conf.d/*.conf`, pas géré par
+Nebula).

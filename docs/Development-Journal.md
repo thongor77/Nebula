@@ -10,6 +10,65 @@
 
 ---
 
+## 2026-07-31 — Phase 3.0
+
+**Contexte** : valider Glass (HiDPI + multi-écran) sous
+`sddm-greeter-qt6 --test-mode`, en réutilisant les commandes déjà
+établies pour Nord/Template — sans réexporter
+`QML_XHR_ALLOW_FILE_READ=1` dans le même appel (habitude prise pour
+`qml6`/`ThemeHarness.qml`, oubliée pour `sddm-greeter-qt6` lui-même dans
+cette session).
+
+**Découverte** : `glass-dark` s'affichait sans aucune erreur QML visible
+et semblait correct au premier coup d'œil — mais `glass-light`, testé
+juste après avec la même omission, a montré une carte au fond sombre et
+texte clair au lieu de blanc/texte sombre attendu, alors que le fond
+d'écran chargé était bien le bon (clair). Vérification via
+`tests/ThemeHarness.qml -- glass-light` : les tokens se chargent
+correctement (`surfaceColor -> #ffffff` confirmé dans les logs). Un test
+isolé imprimant directement `theme.colors.surfaceColor` après le même
+chemin de chargement que `Main.qml` (`NebulaThemeLoader` +
+`NebulaThemeProvider`) a montré la vraie cause :
+`NebulaThemeLoader` échouait à lire `theme.conf`
+(`FAILED to load ...: Error: Invalid state`) et
+`NebulaThemeConfig` gardait ses valeurs par défaut du Core
+(`surfaceColor: #2a2a2a`, pas celles de Glass) — `QML_XHR_ALLOW_FILE_READ`
+n'était simplement pas défini pour cet appel précis de
+`sddm-greeter-qt6`. `glass-dark` avait paru correct par pure coïncidence
+de teinte (defaults du Core et palette de `glass-dark` sont tous deux
+des gris sombres), masquant le même échec de chargement dans les deux
+cas.
+
+**Découverte n°2** : en creusant si ce même oubli pouvait se produire
+sous le vrai service `sddm.service` (pas seulement dans un terminal de
+développement où on peut oublier d'exporter une variable) — confirmé
+qu'aucun mécanisme actuel n'y remédie : ni `/etc/sddm.conf`, ni
+`/usr/lib/sddm/sddm.conf.d/default.conf`, ni l'unité systemd
+`sddm.service` ne définissent `QML_XHR_ALLOW_FILE_READ`. SDDM fournit
+pourtant une clé faite pour ça, `GreeterEnvironment=` (visible en
+commentaire dans `default.conf`) — mais une première vérification par
+`strings -a /usr/bin/sddm` (ASCII) ne trouvait la chaîne pour aucune clé
+de configuration connue, y compris des clés dont le fonctionnement réel
+est pourtant certain (`ThemeDir`, `SessionDir`) — fausse alerte : les
+littéraux `QString` de Qt sont stockés en UTF-16 dans le binaire ;
+`strings -e l -a` (UTF-16LE) les révèle correctement, confirmant que
+`GreeterEnvironment` est une clé réellement implémentée dans ce binaire
+SDDM 0.21.0-7, pas un reliquat de template inutilisé.
+
+**Impact** : révèle une lacune de l'architecture de déploiement
+(Phase 2.2), pas un défaut du thème en cours de validation — voir
+DT-0023. `scripts/install-nebula.sh` écrit désormais
+`/etc/sddm.conf.d/nebula.conf` avec
+`GreeterEnvironment=QML_XHR_ALLOW_FILE_READ=1` ;
+`scripts/uninstall-nebula.sh --core`/`--all` le retire ;
+`scripts/check-installation.sh` vérifie sa présence. Sans ce correctif,
+*tout* thème Nebula installé système-wide (Nord, Template, Glass)
+aurait affiché les couleurs par défaut du Core au lieu des siennes en
+usage réel, silencieusement. Voir `Compatibility-Matrix.md` §9 pour le
+détail complet et la limite de vérification assumée (pas de redémarrage
+du vrai `sddm.service` testé, pour ne pas risquer de couper la session
+graphique active de la machine de développement).
+
 ## 2026-07-31 — Phase 2.2
 
 **Contexte** : trouver comment un thème installé séparément du dépôt

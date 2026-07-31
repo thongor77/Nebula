@@ -54,6 +54,31 @@ Pour installer un second thème sans toucher au premier :
 sudo scripts/install-nebula.sh template
 ```
 
+### Pourquoi `install-nebula.sh` touche aussi `/etc/sddm.conf.d/`
+
+`install-nebula.sh` écrit également `/etc/sddm.conf.d/nebula.conf` :
+
+```ini
+[General]
+GreeterEnvironment=QML_XHR_ALLOW_FILE_READ=1
+```
+
+`NebulaThemeLoader` lit chaque `theme.conf` lui-même via
+`XMLHttpRequest`, délibérément plutôt que via la propriété de contexte
+`config.<clé>` que SDDM expose déjà — pour garder le Core totalement
+découplé de SDDM (voir [`Nebula-Principles.md`](Nebula-Principles.md)
+§2 et [`ThemeLoader.md`](ThemeLoader.md) §3). Qt6 bloque par défaut la
+lecture de fichiers locaux via XHR ; sans cette variable, **chaque**
+thème installé échoue silencieusement à charger son `theme.conf` et
+`NebulaThemeConfig` retombe sur ses valeurs par défaut codées en dur —
+sans crash, sans erreur visible, juste les mauvaises couleurs
+(découvert pendant la Phase 3.0, voir DT-0023 dans
+`Decisions-Techniques.md`). `GreeterEnvironment=` est le mécanisme
+propre que SDDM fournit lui-même pour ça — confirmé réellement présent
+dans le binaire `sddm` installé sur cette machine (voir
+`Compatibility-Matrix.md`). Ce fichier est supprimé par
+`uninstall-nebula.sh --core`/`--all` (voir §4).
+
 ### Activer le thème installé
 
 `install-nebula.sh` installe le thème mais ne modifie jamais la
@@ -72,8 +97,10 @@ scripts/check-installation.sh nord
 Ne modifie jamais le système — vérifie uniquement : présence du module
 Core, présence du sous-module `Nebula.Platform.Sddm`, chargement réel
 via `qml6` (`import Nebula` fonctionne vraiment, pas seulement présence
-de fichiers), thèmes installés et leur intégrité, version installée
-(commit Git au moment de l'installation, quand disponible — voir §5).
+de fichiers), présence de `GreeterEnvironment=QML_XHR_ALLOW_FILE_READ=1`
+(voir ci-dessus et DT-0023), thèmes installés et leur intégrité, version
+installée (commit Git au moment de l'installation, quand disponible —
+voir §5).
 
 ## 4. Désinstallation
 
@@ -118,3 +145,10 @@ les thèmes déjà installés sans avoir à les réinstaller individuellement
   configuré échoue à charger — comportement de SDDM lui-même, pas de
   Nebula (vérifié réellement, voir `Nord-Validation-Report.md` et
   `Development-Journal.md`).
+- **Le thème se charge mais garde les couleurs par défaut du Core
+  (grises/sombres) au lieu de celles du thème** : `theme.conf` n'a pas
+  pu être lu — `GreeterEnvironment=QML_XHR_ALLOW_FILE_READ=1` absent de
+  `/etc/sddm.conf.d/` (installation faite avec une version d'
+  `install-nebula.sh` antérieure à Phase 3.0/DT-0023) ou écrasé par un
+  autre fichier `sddm.conf.d/*.conf` traité après `nebula.conf` dans
+  l'ordre alphabétique. Vérifier avec `scripts/check-installation.sh`.

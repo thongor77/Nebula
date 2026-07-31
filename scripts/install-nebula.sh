@@ -104,6 +104,30 @@ fi
 printf 'installed_from=%s\ninstalled_at=%s\n' "$installed_from" "$(date -Iseconds)" \
     > "$NEBULA_MODULE_DIR/.nebula-install-info"
 
+# NebulaThemeLoader reads theme.conf via XMLHttpRequest, deliberately —
+# see docs/ThemeLoader.md §3 — rather than SDDM's own `config.<key>`
+# context property, to keep Core decoupled from SDDM (Nebula-Principles.md
+# §2). Qt6 blocks local-file XHR reads by default; without this, every
+# theme's theme.conf silently fails to load and NebulaThemeConfig falls
+# back to its hardcoded defaults instead — no crash, no visible error,
+# just the wrong colors (discovered during Phase 3.0, see DT-0023).
+# GreeterEnvironment= is SDDM's own supported mechanism for setting
+# environment variables for the greeter process (confirmed present in
+# the installed sddm binary — see docs/Compatibility-Matrix.md).
+echo "== Configuring GreeterEnvironment (QML_XHR_ALLOW_FILE_READ) =="
+
+SDDM_CONF_D="/etc/sddm.conf.d"
+NEBULA_SDDM_CONF="$SDDM_CONF_D/nebula.conf"
+mkdir -p "$SDDM_CONF_D"
+cat > "$NEBULA_SDDM_CONF" << 'EOF'
+# Written by Nebula's install-nebula.sh — safe to remove, Nebula will
+# regenerate it on the next install. See docs/Decisions-Techniques.md
+# (DT-0023) for why this is required.
+[General]
+GreeterEnvironment=QML_XHR_ALLOW_FILE_READ=1
+EOF
+echo "  wrote $NEBULA_SDDM_CONF"
+
 echo "== Installing theme '$THEME' -> $THEME_INSTALL_DIR =="
 
 rm -rf "$THEME_INSTALL_DIR"
