@@ -79,7 +79,7 @@ Comportement prévu :
 
 1. Résoudre le chemin de `themes/ThemeName/`.
 2. Vérifier que le thème contient au minimum `theme.conf` et `Main.qml`
-   (voir [`Theme-Development.md`](Theme-Development.md)).
+   (voir [`Theme-SDK.md`](Theme-SDK.md)).
 3. Lancer `sddm-greeter --test-mode --theme <chemin résolu>` avec les
    variables d'environnement appropriées.
 4. Afficher un message d'erreur clair si le thème est introuvable ou mal

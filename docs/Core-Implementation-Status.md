@@ -145,6 +145,21 @@
   (`qmllint` + `ThemeSyncCheck` + harnais visuels) avant un commit.
 - `qmllint` : aucun avertissement sur l'ensemble des fichiers modifiés.
 
+### Phase 2.0 — Theme SDK Foundation
+
+**Aucun fichier sous `core/` modifié cette phase** — c'était l'objectif :
+prouver que le Core est déjà suffisant pour accueillir un thème, pas le
+faire évoluer. Le SDK lui-même (`themes/template/`,
+[`docs/Theme-SDK.md`](Theme-SDK.md), `docs/Creating-A-Theme.md`,
+`scripts/check-theme.sh`, `tests/ThemeHarness.qml`) et les décisions
+prises (fusion documentaire, retrait de `overrides/`, `metadata.desktop`,
+pont temporaire `theme.conf`→`NebulaThemeConfig`) sont détaillés dans
+[`Roadmap.md`](Roadmap.md) et
+[`Decisions-Techniques.md`](Decisions-Techniques.md) (DT-0014 à DT-0017)
+plutôt que répétés ici, puisqu'ils ne concernent pas `core/`. Deux bugs
+réels trouvés et corrigés en testant sous `sddm-greeter --test-mode`
+réel : voir [`Development-Journal.md`](Development-Journal.md).
+
 ## 2. Composants en cours / pas commencés
 
 Reste du périmètre du Core MVP (voir `Core-MVP.md`) : `NebulaThemeLoader`,
@@ -647,3 +662,19 @@ fonctionne sur un `QtObject` QML, voir `Development-Journal.md`) et
   `QT_LOGGING_TO_CONSOLE` comme alternative directe à `journalctl`,
   limite de `xdotool`/`wmctrl` sur des fenêtres Wayland natives.
 - [`Roadmap.md`](Roadmap.md) — Phase 1.6 marquée terminée.
+- [`Theme-SDK.md`](Theme-SDK.md) — anciennement `Theme-Development.md`,
+  renommé et étendu (Phase 2.0) : structure du Template, conventions de
+  nommage, dossiers réservés, tokens attendus, rôles distincts des trois
+  outils de validation. Toutes les références croisées vers l'ancien nom
+  mises à jour (`README.md`, `CONTRIBUTING.md`, `Nord-Theme-Specification.md`,
+  `Development-Environment.md`, `Decisions-Techniques.md`,
+  `Prototype-Results.md`, `tests/LoginScreenHarness.qml`).
+- [`Creating-A-Theme.md`](Creating-A-Theme.md) — nouveau document (Phase
+  2.0) : tutoriel pas-à-pas, renvoie vers `Theme-SDK.md` pour les règles.
+- [`Decisions-Techniques.md`](Decisions-Techniques.md) — DT-0014 (fusion
+  documentaire), DT-0015 (pas de `overrides/`), DT-0016
+  (`metadata.desktop` réel), DT-0017 (pont `theme.conf` temporaire).
+- [`themes/README.md`](../themes/README.md) — `template/` mentionné comme
+  base neutre, distincte des thèmes visuels listés.
+- [`Roadmap.md`](Roadmap.md) — Phase 2.0 marquée terminée, item 3
+  (`ThemeLoader`) annoté avec le point de départ validé (DT-0017).

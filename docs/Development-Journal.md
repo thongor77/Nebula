@@ -10,6 +10,99 @@
 
 ---
 
+## 2026-07-31 — Phase 2.0
+
+**Contexte** : `themes/template/Main.qml` doit peupler son propre
+`NebulaThemeConfig` avec les valeurs de `theme.conf`, en l'absence de
+`NebulaThemeLoader` (toujours non implémenté, voir `Roadmap.md`, Phase 1,
+item 3). Tentative naturelle : surcharger les tokens un par un à
+l'instanciation, comme le permet la syntaxe QML de propriété groupée
+(`anchors.top: ...`).
+
+**Découverte** : ça ne fonctionne pas. `NebulaThemeConfig { colors.primaryColor:
+"red" }` échoue à la compilation (`Cannot assign to non-existent property
+"primaryColor"`) — testé réellement avant d'écrire le vrai code. La
+syntaxe de propriété groupée exige que le compilateur QML connaisse le
+type exact de la propriété groupée (comme `anchors`, un type QtQuick
+dédié) ; un `readonly property QtObject colors: QtObject { ... }`
+générique et anonyme ne qualifie pas. En revanche, l'assignation
+impérative après construction (`config.colors.primaryColor = "red"`)
+fonctionne parfaitement : `colors` est en lecture seule (on ne peut pas
+remplacer l'objet), mais `primaryColor` à l'intérieur ne l'est pas.
+
+**Impact** : `Main.qml` et `ThemeHarness.qml` peuplent leur config via une
+fonction `applyFlatValues()` qui fait cette assignation impérative,
+groupe par groupe, plutôt que via une syntaxe déclarative. Voir
+l'audit ci-dessous pour la suite (D22, `Core-Implementation-Status.md`).
+
+---
+
+**Contexte** : la même fonction `applyFlatValues()`, une fois testée sous
+`sddm-greeter --test-mode` réel (pas seulement `qml6` standalone) avec la
+vraie propriété de contexte `config`.
+
+**Découverte** : deux bugs réels, invisibles en test standalone parce que
+mes tests utilisaient des objets JS litéraux (`{}`) au lieu du vrai
+`config` :
+1. `flatValues.hasOwnProperty(tokenName)` lève `TypeError: ... is not a
+   function` — `config` sous `sddm-greeter` est un vrai `QObject` natif
+   (`SDDM::ThemeConfig`), pas un objet JS ; `hasOwnProperty` n'existe pas
+   dessus. Remplacé par `flatValues[tokenName] !== undefined`, qui
+   fonctionne sur les deux.
+2. Avec ce correctif seul, nouveau crash : `Cannot assign to read-only
+   property "objectNameChanged"`. `Object.keys(group)` (voir l'entrée
+   Phase 1.6 sur l'énumération des `QtObject`) renvoie aussi
+   `objectName` et chaque signal `xxxChanged` — et l'accès par crochet à
+   `config["objectNameChanged"]` renvoie bien quelque chose (le signal
+   lui-même), pas `undefined`, donc le code tentait d'assigner dessus.
+   Corrigé en filtrant `tokenNames` sur `key !== "objectName" &&
+   typeof group[key] !== "function"`.
+
+**Impact** : les deux bugs corrigés et revérifiés avec un vrai
+`sddm-greeter-qt6 --test-mode --theme themes/template` sur les 3 écrans
+réels de la machine (`primaryColor` changé temporairement en `#ff00ff`
+pour confirmer visuellement que la chaîne `theme.conf → config →
+applyFlatValues → NebulaThemeProvider → NebulaButton` fonctionne
+réellement de bout en bout). Rappel pour la suite : tester un mécanisme
+touchant une propriété de contexte SDDM réelle (`config`, `sddm`,
+`userModel`, ...) toujours sous `sddm-greeter --test-mode`, jamais
+seulement en `qml6` standalone avec des objets JS de substitution — les
+deux se comportent différemment.
+
+---
+
+**Contexte** : lire `theme.conf` depuis `tests/ThemeHarness.qml`, qui
+doit fonctionner en standalone (`qml6`, sans SDDM, donc sans la véritable
+propriété de contexte `config`).
+
+**Découverte** : `XMLHttpRequest` sur un fichier local (`file://`) est
+désactivé par défaut dans ce build Qt6 — `xhr.send()` renvoie un statut
+`0` silencieusement plutôt que de lever une erreur claire. Il faut
+`QML_XHR_ALLOW_FILE_READ=1` pour l'activer.
+
+**Impact** : `tests/ThemeHarness.qml` documente cette variable
+d'environnement dans son commentaire d'usage, et distingue explicitement
+« statut 0 avec réponse vide » (probablement la variable d'environnement
+manquante) de tout autre échec dans son message d'erreur affiché à
+l'écran, pour éviter à un futur contributeur de chercher au mauvais
+endroit.
+
+---
+
+**Contexte** : premier texte affiché par `tests/ThemeHarness.qml`
+(titre, statut de chargement, libellés de section) — écrit en blanc
+(`color: "white"`), comme les autres harnais du projet.
+
+**Découverte** : `Item` n'a pas de fond propre ; sans couleur de fond
+explicite, ce texte blanc s'affichait sur le fond blanc par défaut du
+runtime QML — totalement invisible, confirmé par capture d'écran avant
+correction.
+
+**Impact** : ajout d'un `Rectangle` de fond (`#1e1e1e`) derrière le
+contenu. Rappel pour tout futur harnais autonome (root `Item`, pas
+`Window`/thème réel qui fournit déjà un fond) : ne jamais assumer un
+fond sombre implicite.
+
 ## 2026-07-31 — Phase 1.6
 
 **Contexte** : écrire `tests/ThemeSyncCheck.qml`, qui doit détecter

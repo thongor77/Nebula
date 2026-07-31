@@ -39,7 +39,8 @@ Livrables :
 - [x] Contrat public du Core (`docs/Core-API.md`)
 - [x] Matrice de compatibilité SDDM (`docs/SDDM-Compatibility.md`)
 - [x] Environnement de développement (`docs/Development-Environment.md`)
-- [x] Guide de création de thème (`docs/Theme-Development.md`)
+- [x] Guide de création de thème (`docs/Theme-Development.md`, renommé
+      `docs/Theme-SDK.md` en Phase 2.0)
 - [x] Revue de ces quatre documents — faite en Phase 0.6
       (`docs/Architecture-Review.md`)
 
@@ -89,7 +90,7 @@ Livrables :
 - [x] Géométrie HiDPI vérifiée sur un setup à échelles mixtes (1 et 1.4)
 - [x] `docs/Prototype-Results.md` créé ; répercussions sur
       `SDDM-Compatibility.md`, `Core-API.md`, `Development-Environment.md`,
-      `Theme-Development.md` et `Architecture.md` (Inconnues critiques)
+      `Theme-SDK.md` et `Architecture.md` (Inconnues critiques)
 - [ ] Coût réel des effets GPU, rendu pixel HiDPI, mécanisme de
       configuration définitif, authentification de bout en bout —
       délibérément non couverts par ce prototype (voir
@@ -97,7 +98,7 @@ Livrables :
       Core MVP (voir `Core-MVP.md`, exclusions)
 
 Le dossier `prototype/` est jetable : il ne sera pas conservé comme base
-de code du Core (voir `Core-MVP.md` et `Theme-Development.md` pour la
+de code du Core (voir `Core-MVP.md` et `Theme-SDK.md` pour la
 structure définitive d'un thème réel).
 
 ## Phase 1 — Core MVP
@@ -193,7 +194,10 @@ composants simples avant composants interactifs — voir
        (voir `docs/Core-Implementation-Status.md`)
 2. [x] Design tokens — Phase 1.1, premiers tokens implémentés dans
        `NebulaThemeConfig` (colors, spacing, radius, typography, animation)
-3. [ ] `ThemeLoader`
+3. [ ] `ThemeLoader` — voir DT-0017 (`Decisions-Techniques.md`) pour un
+       point de départ déjà validé (`applyFlatValues()`, dupliqué dans
+       `themes/template/Main.qml`/`tests/ThemeHarness.qml` en attendant),
+       à promouvoir ici dès qu'un deuxième thème réel (Nord) en a besoin
 4. [x] `ThemeProvider` — Phase 1.1, `core/theme/NebulaThemeProvider.qml`
 5. [x] `Button` — Phase 1.1 ; [x] `Avatar` — Phase 1.2, tous deux dans
        `core/components/`
@@ -224,16 +228,48 @@ Périmètre exact et exclusions du MVP : voir
 Objectif : prouver que le Core suffit à construire un thème complet sans
 aucune duplication.
 
+**Sous-étape Phase 2.0 — Theme SDK Foundation (terminée) :** premier SDK
+officiel de thèmes, avant l'implémentation de Nord. `themes/template/`
+créé (`README.md`, `metadata.desktop`, `theme.conf`, `Main.qml`,
+`preview.png`, `assets/{wallpapers,icons,fonts}/`) — référence officielle
+de structure. `docs/Theme-Development.md` absorbé dans
+[`docs/Theme-SDK.md`](Theme-SDK.md), désormais l'unique référence
+normative (contrat, conventions de nommage, dossiers réservés, tokens
+attendus) ; [`docs/Creating-A-Theme.md`](Creating-A-Theme.md) (nouveau)
+reste un tutoriel pas-à-pas qui y renvoie plutôt que de répéter les
+règles (DT-0014). `scripts/check-theme.sh` (nouveau) valide la structure
+statique d'un thème ; `tests/ThemeHarness.qml` (nouveau) charge et
+visualise réellement les tokens d'un thème en standalone, sans SDDM. Deux
+décisions de réconciliation avec le brief : pas de dossier `overrides/`
+dans le Template (DT-0015), `metadata.desktop` réel plutôt que
+`metadata.json` inventé (DT-0016). Premier audit du SDK réalisé en
+construisant le Template lui-même — a révélé que `NebulaThemeConfig` ne
+supporte pas la surcharge déclarative de tokens groupés, et qu'aucun pont
+Core n'existe encore de `theme.conf`/`config` vers `NebulaThemeConfig` ;
+résolu par une petite fonction dupliquée (`applyFlatValues()`, assignation
+impérative) dans `Main.qml`/`ThemeHarness.qml`, documentée comme un
+pis-aller temporaire à promouvoir en `NebulaThemeLoader` dès qu'un
+deuxième thème réel (Nord) en a besoin (DT-0017) — **le Core n'a reçu
+aucune modification cette phase**, conformément à l'objectif de prouver
+qu'il est déjà suffisant. Deux bugs réels trouvés et corrigés en testant
+sous `sddm-greeter --test-mode` réel (pas seulement `qml6` standalone) :
+voir [`docs/Development-Journal.md`](Development-Journal.md).
+
+**Sous-étape Phase 2.1 — Nord :**
+
 - [ ] Thème de référence retenu : `nord`. Choix confirmé après analyse
       d'une proposition alternative (`cyberpunk`) : `nord` reste préféré
       car sa simplicité visuelle permet de valider le contrat Core/Thème
       sans dépendre des effets GPU (blur/glow/particules), encore non
       stabilisés à ce stade (voir Phase 3). `cyberpunk` sert de second
       thème pour valider justement ces effets.
-- [ ] Implémenter le thème en suivant `docs/Theme-Development.md`, en
-      composition pure sur le Core
-- [ ] Mettre à jour `docs/Theme-Development.md` avec les ajustements
-      découverts lors de cette première implémentation réelle
+- [ ] Implémenter le thème en partant de `themes/template/` et en suivant
+      [`docs/Creating-A-Theme.md`](Creating-A-Theme.md) (contrat détaillé :
+      [`docs/Theme-SDK.md`](Theme-SDK.md)), en composition pure sur le Core
+- [ ] Valider avec `scripts/check-theme.sh nord` et `tests/ThemeHarness.qml`
+      avant `sddm-greeter --test-mode`
+- [ ] Mettre à jour `docs/Theme-SDK.md` avec les ajustements découverts
+      lors de cette première implémentation réelle
 
 ## Phase 3 — Thèmes suivants et effets avancés
 

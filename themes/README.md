@@ -23,5 +23,8 @@ considered a bug — see [`docs/Architecture.md`](../docs/Architecture.md).
 | `glass`     | Frosted glass / acrylic blur, translucent surfaces      |
 | `hypr`      | Aesthetic aligned with the Hyprland/wlroots community  |
 
-No theme is implemented yet — this comes after the Core architecture is
-validated (see [`docs/Roadmap.md`](../docs/Roadmap.md)).
+No visual theme is implemented yet — this comes after the Core
+architecture is validated (see [`docs/Roadmap.md`](../docs/Roadmap.md)).
+[`template/`](template/) is not one of them: it's the neutral base every
+future theme above copies from — see
+[`../docs/Creating-A-Theme.md`](../docs/Creating-A-Theme.md).

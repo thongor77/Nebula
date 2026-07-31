@@ -212,7 +212,7 @@ Voir les fichiers modifiés dans le même lot que ce document :
 - [`Development-Environment.md`](Development-Environment.md) — ajout de
   `journalctl` pour lire les logs du greeter, la redirection stdout seule
   étant trompeuse (§3.5).
-- [`Theme-Development.md`](Theme-Development.md) — clarification sur
+- [`Theme-SDK.md`](Theme-SDK.md) — clarification sur
   `metadata.desktop` : absent de notre prototype, le chargement direct via
   `--theme <chemin>` a fonctionné sans lui (avec les noms de fichiers par
   défaut `Main.qml`/`theme.conf`), mais il reste nécessaire pour qu'un

@@ -17,7 +17,7 @@ import "mocks"
 //       NebulaSurface   (card around the functional content)
 //         Avatar / Clock / Date / Button
 //
-// Run with `qml6 tests/LoginScreenHarness.qml`. See docs/Theme-Development.md
+// Run with `qml6 tests/LoginScreenHarness.qml`. See docs/Theme-SDK.md
 // for what a real theme looks like (this harness is not one).
 Item {
     id: harness

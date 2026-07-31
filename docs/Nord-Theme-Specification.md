@@ -4,7 +4,7 @@
 > [`Core-MVP.md`](Core-MVP.md) et `Roadmap.md`, Phase 2). Aucune
 > implémentation ici — uniquement les valeurs de tokens et le layout visés,
 > à assembler en composition pure sur le Core (voir
-> [`Theme-Development.md`](Theme-Development.md)).
+> [`Theme-SDK.md`](Theme-SDK.md)).
 >
 > Palette dérivée de la palette publique
 > [Nord](https://www.nordtheme.com/) — cohérent avec l'identité déjà
@@ -103,11 +103,11 @@ exclusions du Core MVP.
 Nord est considéré comme ayant validé le Core MVP quand :
 
 - [ ] Le thème est assemblé uniquement via `theme.conf` + `Main.qml` +
-      `assets/` (voir `Theme-Development.md`), sans aucune modification de
+      `assets/` (voir `Theme-SDK.md`), sans aucune modification de
       `core/`.
 - [ ] Tous les tokens utilisés dans `theme.conf` existent déjà dans
       `Design-System.md` — aucune valeur inventée localement.
 - [ ] Testé en mode `sddm-greeter --test-mode` (voir
       `Development-Environment.md`).
 - [ ] Tout ajustement découvert pendant l'implémentation est reporté dans
-      `Theme-Development.md` (voir `Roadmap.md`, Phase 2).
+      `Theme-SDK.md` (voir `Roadmap.md`, Phase 2).

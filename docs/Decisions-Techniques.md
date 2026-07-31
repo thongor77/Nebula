@@ -366,7 +366,7 @@ Toute Pull Request Core qui modifie une propriété, un signal ou une
 dépendance déjà documentée dans `Core-API.md` doit mettre à jour ce fichier
 dans la même PR (voir `CONTRIBUTING.md`). Le Core MVP (Phase 1) ne démarre
 qu'après la revue de `Core-API.md`, `SDDM-Compatibility.md`,
-`Development-Environment.md` et `Theme-Development.md` (voir `Roadmap.md`,
+`Development-Environment.md` et `Theme-SDK.md` (voir `Roadmap.md`,
 Phase 0.5).
 
 ---
@@ -562,3 +562,179 @@ Si un thème a un jour besoin d'un rayon/padding spécifiquement différent
 pour ses surfaces (indépendamment des autres usages de `radiusLarge`/
 `spacingMd`), cette décision devra être rouverte et des tokens dédiés
 ajoutés à ce moment-là.
+
+---
+
+## DT-0014 — `Theme-Development.md` absorbé dans `Theme-SDK.md`, `Creating-A-Theme.md` séparé
+
+Date : 2026-07-31
+État : accepté
+
+### Contexte
+
+Le brief de la Phase 2.0 (voir `Roadmap.md`) demandait deux nouveaux
+documents : `docs/Theme-SDK.md` (le contrat) et `docs/Creating-A-Theme.md`
+(le tutoriel). Or `docs/Theme-Development.md` existait déjà et couvrait
+les deux à la fois (structure, ce qu'un thème peut/ne doit jamais faire,
+checklist) — le brief a été rédigé sans en tenir compte.
+
+### Décision
+
+`Theme-Development.md` est renommé `Theme-SDK.md` (historique git
+préservé via `git mv`) et devient la référence normative unique.
+`Creating-A-Theme.md` est un document séparé, strictement un tutoriel
+pas-à-pas, qui renvoie vers `Theme-SDK.md` pour toute règle plutôt que de
+la répéter.
+
+### Alternatives étudiées
+
+- Garder `Theme-Development.md` inchangé et ajouter les deux nouveaux
+  documents à côté : rejeté — trois documents qui se chevauchent
+  largement, à maintenir en triple à chaque évolution du contrat.
+- Supprimer `Theme-Development.md` et migrer son contenu directement dans
+  `Theme-SDK.md` sans renommage (recréer le fichier) : rejeté sans
+  raison de perdre l'historique git pour un renommage de pur contenu.
+
+### Raisons
+
+Décision utilisateur explicite (2026-07-31), cohérente avec le principe
+déjà appliqué au projet : une seule source de vérité par sujet (précédent
+`Decisions-Techniques.md` lui-même, préféré à plusieurs fichiers d'ADR).
+
+### Conséquences
+
+Toute référence à `Theme-Development.md` dans le reste du dépôt a été mise
+à jour vers `Theme-SDK.md` (voir `Core-Implementation-Status.md`, Phase
+2.0, pour la liste). Toute future doc thème doit se demander : contrat
+(→ `Theme-SDK.md`) ou tutoriel (→ `Creating-A-Theme.md`) — jamais un
+troisième document.
+
+---
+
+## DT-0015 — Pas de dossier `overrides/` dans le Template de thème
+
+Date : 2026-07-31
+État : accepté
+
+### Contexte
+
+Le brief de la Phase 2.0 proposait un dossier `themes/template/overrides/`
+sans en définir le contenu. Un mécanisme d'override de composant
+contredirait directement l'interdiction déjà établie d'un thème copiant
+ou modifiant un composant Core (`Theme-SDK.md` §4, `Nebula-Principles.md`).
+
+### Décision
+
+Ne pas inclure `overrides/` dans le Template. Un thème ne personnalise
+que : assets, Design Tokens, animations, configuration.
+
+### Alternatives étudiées
+
+- Overrides d'assets uniquement (remplacer une icône/police de repli
+  fournie par le Core) : resterait dans les limites déjà posées, mais
+  aucun besoin réel ne le justifie encore.
+- Overrides QML par composant : rejeté — contredit directement
+  l'interdiction déjà documentée de copier/modifier un composant Core.
+
+### Raisons
+
+Décision utilisateur explicite (2026-07-31) : principe du workspace, pas
+d'outillage avant besoin observé. Si un cas concret apparaît lors de
+l'implémentation de Nord ou d'un thème suivant, il fera l'objet d'une
+nouvelle décision documentée ici avant toute implémentation.
+
+### Conséquences
+
+`scripts/check-theme.sh` échoue explicitement si un thème contient un
+dossier `overrides/`, pour empêcher qu'il réapparaisse silencieusement.
+
+---
+
+## DT-0016 — `metadata.desktop` dans le Template, pas `metadata.json`
+
+Date : 2026-07-31
+État : accepté
+
+### Contexte
+
+Le brief de la Phase 2.0 listait `metadata.json` dans la structure du
+Template. Or `metadata.desktop` (format `[SddmGreeterTheme]`) est le
+format réel exigé par SDDM pour qu'un thème soit sélectionnable
+normalement, déjà établi et vérifié contre une installation SDDM réelle
+en Phase 1.0 (voir `Prototype-Results.md` §6). SDDM ne lit aucun
+`metadata.json`.
+
+### Décision
+
+Le Template fournit `metadata.desktop`, pas `metadata.json`. Contenu
+vérifié contre plusieurs thèmes SDDM réellement installés sur la machine
+de développement (`Ant-Dark-Plasma-6`, `Breeze`, ...).
+
+### Alternatives étudiées
+
+- Fournir les deux fichiers : rejeté — `metadata.json` n'aurait aucun
+  consommateur réel tant qu'aucun outil (Nebula Designer, sélecteur de
+  thème) n'existe pour le lire ; ajouter un fichier sans lecteur revient
+  à de la donnée morte.
+
+### Raisons
+
+Fait technique, pas une préférence — vérifiable directement contre le
+comportement réel de SDDM.
+
+### Conséquences
+
+Si un futur outil (Nebula Designer, Phase 4) a besoin de métadonnées
+structurées que `metadata.desktop` (format ini) ne peut pas exprimer
+proprement, cette décision devra être rouverte à ce moment-là, motivée
+par ce besoin réel.
+
+---
+
+## DT-0017 — Pont `theme.conf` → `NebulaThemeConfig` : assignation impérative dupliquée, pas `NebulaThemeLoader` maintenant
+
+Date : 2026-07-31
+État : accepté
+
+### Contexte
+
+`themes/template/Main.qml` et `tests/ThemeHarness.qml` doivent tous deux
+peupler un `NebulaThemeConfig` à partir de valeurs plates (`config.*` sous
+SDDM réel, ou un `theme.conf` parsé manuellement en standalone). Aucun
+`NebulaThemeLoader` n'existe encore pour faire ce pont (voir `Roadmap.md`,
+Phase 1, item 3). Testé réellement : la syntaxe déclarative de
+surcharge groupée (`NebulaThemeConfig { colors.primaryColor: "..." }`)
+échoue à la compilation — voir `Development-Journal.md`, Phase 2.0.
+
+### Décision
+
+Dupliquer une petite fonction `applyFlatValues()` (assignation impérative,
+générique via `Object.keys()`) dans `Main.qml` et `ThemeHarness.qml`,
+documentée explicitement comme un pis-aller temporaire en attendant
+`NebulaThemeLoader`.
+
+### Alternatives étudiées
+
+- Construire `NebulaThemeLoader` dès maintenant dans `core/` : rejeté
+  pour cette phase — le brief demande explicitement de ne pas modifier le
+  Core sans besoin réel documenté, et un seul thème (le Template) ne
+  suffit pas à valider la bonne API d'un composant aussi central.
+- Rendre les groupes de `NebulaThemeConfig` non `readonly` ou ajouter une
+  méthode publique `applyValues()` sur `NebulaThemeConfig` : rejeté pour
+  la même raison — modification du Core sans un second cas d'usage réel
+  pour valider la forme de l'API.
+
+### Raisons
+
+Cohérent avec le principe du workspace (pas d'abstraction avant besoin
+observé) : avec un seul consommateur (le Template), la duplication reste
+petite (~15 lignes) et honnêtement documentée ; la promotion vers
+`core/theme/NebulaThemeLoader.qml` devient justifiée dès qu'un deuxième
+thème réel (Nord, Phase 2.1) en a besoin.
+
+### Conséquences
+
+Quand Nord (Phase 2.1) sera implémenté, si son `Main.qml` a besoin de la
+même logique, c'est le signal explicite de promouvoir `applyFlatValues()`
+en composant Core réel — voir `Roadmap.md`, Phase 1, item 3. Ne pas
+dupliquer une troisième fois sans rouvrir cette décision.

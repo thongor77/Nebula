@@ -63,7 +63,8 @@ Themes never redefine what already exists in Core — see
 | [`docs/Core-API.md`](docs/Core-API.md)                          | Public API contract of every Core component            |
 | [`docs/SDDM-Compatibility.md`](docs/SDDM-Compatibility.md)     | Compatibility matrix with real SDDM/Qt6/Wayland constraints |
 | [`docs/Development-Environment.md`](docs/Development-Environment.md) | Local dev/test setup without touching the active SDDM greeter |
-| [`docs/Theme-Development.md`](docs/Theme-Development.md)       | How to create a new theme on top of Core                |
+| [`docs/Theme-SDK.md`](docs/Theme-SDK.md)                        | Normative contract: what a theme may/must never do, structure, reserved folders |
+| [`docs/Creating-A-Theme.md`](docs/Creating-A-Theme.md)          | Step-by-step tutorial: create a new theme from the Template |
 | [`docs/Architecture-Review.md`](docs/Architecture-Review.md)   | Phase 0.6 consistency review: what was fixed, risks, Core/Theme boundary |
 | [`docs/Core-MVP.md`](docs/Core-MVP.md)                          | Exact scope and exclusions of the Core MVP (Phase 1)     |
 | [`docs/Nord-Theme-Specification.md`](docs/Nord-Theme-Specification.md) | Palette, typography, layout for the pilot theme (Nord) |

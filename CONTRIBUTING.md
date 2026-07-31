@@ -12,7 +12,8 @@ exists yet. Before writing code, read:
 7. [`docs/Core-API.md`](docs/Core-API.md)
 8. [`docs/SDDM-Compatibility.md`](docs/SDDM-Compatibility.md)
 9. [`docs/Development-Environment.md`](docs/Development-Environment.md)
-10. [`docs/Theme-Development.md`](docs/Theme-Development.md) (if you are
+10. [`docs/Theme-SDK.md`](docs/Theme-SDK.md) and
+    [`docs/Creating-A-Theme.md`](docs/Creating-A-Theme.md) (if you are
     creating a theme rather than a Core component)
 11. [`docs/Roadmap.md`](docs/Roadmap.md)
 
