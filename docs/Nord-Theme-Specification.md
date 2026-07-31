@@ -9,6 +9,17 @@
 > Palette dérivée de la palette publique
 > [Nord](https://www.nordtheme.com/) — cohérent avec l'identité déjà
 > annoncée dans `themes/nord/README.md` ("calme et sobre").
+>
+> **Note (Phase 2.1)** : ce document a été écrit pendant la phase
+> d'architecture, avant que le Core n'existe réellement. §2 (palette) a
+> été implémenté fidèlement. §5 (composants utilisés) reste une cible à
+> long terme — `NebulaUserList`/`NebulaPasswordField`/
+> `NebulaSessionSelector`/`NebulaKeyboardSelector`/`NebulaPowerButtons`/
+> `NebulaNotification`/`NebulaAnimationManager` n'existent pas encore
+> dans `core/` (voir `Roadmap.md`, Phase 1). Nord a été implémenté avec
+> uniquement les composants Core réellement disponibles aujourd'hui —
+> décision explicite, voir
+> [`Nord-Validation-Report.md`](Nord-Validation-Report.md).
 
 ---
 

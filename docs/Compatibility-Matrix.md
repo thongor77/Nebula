@@ -131,6 +131,24 @@
   machine multi-écran fait apparaître une fenêtre par écran — normal, pas
   un bug (vérifié à nouveau en Phase 2.0/2.0.5 avec 3 écrans réels).
 
+## 7. Thème installé séparément du dépôt : le Core ne suit pas
+
+- **Symptôme** : `"../../core/theme": no such directory`, SDDM bascule
+  sur son thème de secours intégré.
+- **Cause** : `Main.qml` d'un thème importe le Core par chemin relatif
+  (`../../core/...`), valide uniquement quand le thème reste à
+  l'intérieur du dépôt Git — pas quand il est copié seul vers
+  `/usr/share/sddm/themes/<nom>/`, son vrai emplacement d'installation
+  (testé réellement avec Nord, Phase 2.1).
+- **Solution** : aucune pour l'instant — nécessite une stratégie de
+  distribution/packaging du Core (voir
+  [`Nord-Validation-Report.md`](Nord-Validation-Report.md), Constat #1,
+  pour les options envisagées).
+- **Impact** : tout thème conforme au SDK échoue de la même façon une
+  fois installé séparément — pas spécifique à Nord. `sddm-greeter
+  --test-mode` **depuis le dépôt** (`--theme themes/<nom>`) reste le
+  seul mode de test valide tant que ce n'est pas résolu.
+
 ---
 
 ## Recommandation

@@ -179,6 +179,19 @@ réel : voir [`Development-Journal.md`](Development-Journal.md).
   fichier vide/manquant/lectures désactivées (DT-0018).
 - `qmllint` : aucun avertissement.
 
+### Phase 2.1 — Nord Validation Theme
+
+**Aucun fichier sous `core/` modifié cette phase** — objectif de la
+phase : valider que le SDK/ThemeLoader/Design Tokens suffisent à
+construire un thème réel sans faire évoluer le Core. `themes/nord/`
+(nouveau) et les outils de diagnostic (`tests/ThemeInspector.qml`,
+nouveau) sont détaillés dans [`Roadmap.md`](Roadmap.md) et
+[`docs/Nord-Validation-Report.md`](Nord-Validation-Report.md) plutôt que
+répétés ici. Constat majeur (non lié à `core/` mais à la distribution
+d'un thème installé séparément du dépôt) : voir
+`Nord-Validation-Report.md`, Constat #1, et
+[`Compatibility-Matrix.md`](Compatibility-Matrix.md) §7.
+
 ## 2. Composants en cours / pas commencés
 
 Reste du périmètre du Core MVP (voir `Core-MVP.md`) :
@@ -767,3 +780,14 @@ en affichant `themeName` (stable) plutôt que `configPath`. Voir
   traité comme un échec).
 - [`Roadmap.md`](Roadmap.md) — item 3 (`ThemeLoader`) coché, Phase 2.0.5
   marquée terminée.
+- [`Nord-Validation-Report.md`](Nord-Validation-Report.md) — nouveau
+  document (Phase 2.1) : réponse à la question de validation du SDK,
+  3 constats détaillés (distribution/packaging critique, composants
+  manquants connus, limitation mineure de `ThemeInspector`).
+- [`Theme-SDK.md`](Theme-SDK.md), [`Creating-A-Theme.md`](Creating-A-Theme.md),
+  [`Compatibility-Matrix.md`](Compatibility-Matrix.md) — limitation de
+  distribution documentée dans les trois (révélée par Nord, voir brief
+  Phase 2.1 §8 : mise à jour uniquement si un besoin réel apparaît).
+- [`Roadmap.md`](Roadmap.md) — Phase 2.1 marquée terminée ; nouvelle
+  sous-étape Phase 2.2 (Distribution/Packaging, à faire) ajoutée pour
+  tracer le Constat #1.

@@ -279,21 +279,47 @@ corrigés et re-vérifiés. Revalidé sous `sddm-greeter --test-mode` réel
 sur les 3 écrans de la machine : voir
 [`docs/Development-Journal.md`](Development-Journal.md).
 
-**Sous-étape Phase 2.1 — Nord :**
+**Sous-étape Phase 2.1 — Nord (terminée) :**
 
-- [ ] Thème de référence retenu : `nord`. Choix confirmé après analyse
+- [x] Thème de référence retenu : `nord`. Choix confirmé après analyse
       d'une proposition alternative (`cyberpunk`) : `nord` reste préféré
       car sa simplicité visuelle permet de valider le contrat Core/Thème
       sans dépendre des effets GPU (blur/glow/particules), encore non
       stabilisés à ce stade (voir Phase 3). `cyberpunk` sert de second
       thème pour valider justement ces effets.
-- [ ] Implémenter le thème en partant de `themes/template/` et en suivant
+- [x] Implémenté en partant de `themes/template/` en suivant
       [`docs/Creating-A-Theme.md`](Creating-A-Theme.md) (contrat détaillé :
-      [`docs/Theme-SDK.md`](Theme-SDK.md)), en composition pure sur le Core
-- [ ] Valider avec `scripts/check-theme.sh nord` et `tests/ThemeHarness.qml`
-      avant `sddm-greeter --test-mode`
-- [ ] Mettre à jour `docs/Theme-SDK.md` avec les ajustements découverts
-      lors de cette première implémentation réelle
+      [`docs/Theme-SDK.md`](Theme-SDK.md)), composition pure sur le Core —
+      palette officielle Nord (9 tokens couleur, voir
+      `Nord-Theme-Specification.md` §2), typographie/espacement/rayon/
+      animation laissés aux défauts du Core. Portée décidée avec
+      l'utilisateur (2026-07-31) : uniquement les composants Core
+      existants aujourd'hui (pas `NebulaPasswordField`/`NebulaUserList`/
+      etc., toujours non implémentés) — un écran cohérent visuellement,
+      volontairement incomplet fonctionnellement. Wallpaper original
+      généré pour le projet (dégradé Nord, sans dépendance externe).
+- [x] Validé avec `scripts/check-theme.sh nord`, `tests/ThemeHarness.qml`,
+      `tests/ThemeInspector.qml` (nouveau, optionnel — origine
+      thème/défaut de chaque token) et `sddm-greeter --test-mode` (3
+      écrans réels + `QT_SCALE_FACTOR=2`).
+- [x] Rapport de validation créé :
+      [`docs/Nord-Validation-Report.md`](Nord-Validation-Report.md).
+      Constat majeur : un thème copié seul vers son vrai emplacement
+      d'installation (`/usr/share/sddm/themes/<nom>/`) ne peut pas
+      charger le Core (imports relatifs `../../core/...` invalides hors
+      du dépôt) — SDDM bascule proprement sur son thème de secours,
+      aucun risque pour la session réelle, mais aucun thème Nebula n'est
+      aujourd'hui installable hors du dépôt. Documenté dans
+      `Theme-SDK.md`, `Creating-A-Theme.md`, `Compatibility-Matrix.md`
+      §7 — non résolu cette phase (voir Phase 2.2 ci-dessous).
+
+**Sous-étape Phase 2.2 — Distribution / Packaging (à faire) :** résoudre
+le Constat #1 de `Nord-Validation-Report.md` — rendre `core/`/`platform/`
+disponibles à un thème installé séparément du dépôt (options déjà
+identifiées : module QML partagé via `QML2_IMPORT_PATH`, Core embarqué
+par thème, lien symbolique d'installation). À trancher une fois qu'un
+second thème réel confirme le besoin exact, pas uniquement sur la base de
+Nord.
 
 ## Phase 3 — Thèmes suivants et effets avancés
 

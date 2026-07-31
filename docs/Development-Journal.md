@@ -10,6 +10,47 @@
 
 ---
 
+## 2026-07-31 — Phase 2.1
+
+**Contexte** : tester Nord au-delà de `sddm-greeter --test-mode` depuis
+le dépôt — copier `themes/nord/` vers son vrai emplacement d'installation
+système, `/usr/share/sddm/themes/nord/`, puis le charger de là.
+
+**Découverte** : `import "../../core/theme"` (et les imports similaires
+vers `core/`/`platform/`) échoue — `"../../core/theme": no such
+directory`. Ces chemins relatifs supposent que `core/`/`platform/`
+existent deux niveaux au-dessus du thème, vrai uniquement à l'intérieur
+du dépôt Git, jamais pour un thème installé séparément. SDDM lui-même
+reste stable : bascule proprement sur son thème de secours intégré avec
+un message d'erreur visible à l'écran, confirmé sur les 3 écrans réels de
+la machine — aucun crash, aucun risque pour la session graphique réelle.
+
+**Impact** : découverte majeure, voir
+[`Nord-Validation-Report.md`](Nord-Validation-Report.md), Constat #1,
+pour le détail complet et les options envisagées (module QML partagé via
+`QML2_IMPORT_PATH`, Core embarqué par thème, lien symbolique
+d'installation). Aucune implémentée cette phase — nécessite une phase de
+packaging/distribution dédiée. Concerne tout futur thème de la même
+façon, pas seulement Nord.
+
+---
+
+**Contexte** : `tests/ThemeInspector.qml` déclare `property
+NebulaThemeConfig baseline: NebulaThemeConfig {}` pour comparer les
+valeurs chargées aux valeurs par défaut du Core.
+
+**Découverte** : `Cannot override FINAL property` — `baseline` est un
+nom de propriété réservé (déjà déclaré `FINAL` plus haut dans la
+hiérarchie de types QML/`Item`), impossible à redéclarer. Le message
+d'erreur de compilation était clair et explicite, trouvé immédiatement
+en testant.
+
+**Impact** : renommé en `defaultsConfig`. Rappel pour la suite : un nom
+de propriété générique et court (`baseline`, `value`, `data`, `state`,
+...) risque de collisionner avec une propriété déjà définie sur `Item`/
+`QtObject` ou un type Qt Quick de base — préférer un nom plus spécifique
+dès le départ pour les nouveaux fichiers QML.
+
 ## 2026-07-31 — Phase 2.0.5
 
 **Contexte** : `NebulaThemeLoader.reload()` restaure la valeur

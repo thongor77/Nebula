@@ -86,6 +86,14 @@ This is the only way to confirm the full composition, the real
 `Development-Environment.md` §3). On a multi-monitor machine, expect one
 window per physical screen.
 
+**Known limitation**: run this only against `themes/mytheme/` from
+inside the Nebula repo — a theme copied on its own to a real install
+location (`/usr/share/sddm/themes/mytheme/`) currently fails to load
+(relative imports to `core/`/`platform/` don't resolve there). See
+[`Nord-Validation-Report.md`](Nord-Validation-Report.md), Constat #1.
+Not something your theme can fix — a distribution-level gap tracked
+separately.
+
 ## 8. Before opening a Pull Request
 
 Go through the checklist in [`Theme-SDK.md`](Theme-SDK.md) §7, then see
