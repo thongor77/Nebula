@@ -928,3 +928,55 @@ La Phase 2.2 reste ouverte et non affectée par ce choix — voir
 `Roadmap.md`. La limitation déjà connue (adapters SDDM réels toujours
 des squelettes) s'applique de la même façon qu'avant à ces nouveaux
 composants — voir `Login-Architecture.md` §8.
+
+---
+
+## DT-0022 — Distribution de Nebula : Core installé comme module QML (résout le Constat #1 de Nord)
+
+Date : 2026-07-31
+État : accepté
+
+### Contexte
+
+Voir [`Deployment-Decision.md`](Deployment-Decision.md) pour la
+comparaison complète et les résultats de test — non dupliqués ici.
+Trois architectures candidates prototypées et testées réellement en
+Phase 2.2 pour résoudre le Constat #1 de `Nord-Validation-Report.md`
+(un thème installé séparément du dépôt ne peut pas charger le Core).
+
+### Décision
+
+`core/`/`platform/` s'installent comme un module QML nommé `Nebula`, au
+chemin QML par défaut de Qt (`/usr/lib/qt6/qml/Nebula/` sur cette
+distribution). Les thèmes utilisent `import Nebula` au lieu d'imports
+relatifs. Voir `scripts/install-nebula.sh` pour l'implémentation.
+
+### Alternatives étudiées
+
+- **Thème autonome** (Core embarqué de façon permanente, committé par
+  thème) : rejeté — recrée exactement la duplication que Nebula existe
+  pour éliminer (`Architecture.md`, section Problème).
+- **Génération à l'installation** (script qui embarque le Core dans
+  chaque thème au moment de l'installation, dépôt source resté propre) :
+  rejeté — le résultat installé duplique quand même sur disque, et
+  chaque mise à jour du Core exige de régénérer tous les thèmes
+  installés individuellement.
+
+### Raisons
+
+Seule solution sans aucune duplication (source ou installée) et sans
+configuration système supplémentaire — installer directement dans le
+chemin QML par défaut de Qt élimine le besoin de `QML2_IMPORT_PATH`,
+potentiellement absent de l'environnement du service SDDM réel (crainte
+initiale du Constat #1, testée et confirmée non-problématique avec ce
+choix précis — voir `Deployment-Decision.md` §4).
+
+### Conséquences
+
+Tous les thèmes installés partagent le même Core — un Core cassé ou
+incompatible affecte tous les thèmes simultanément (inconvénient assumé,
+voir `Deployment-Decision.md` §3). `scripts/install-nebula.sh`/
+`uninstall-nebula.sh`/`check-installation.sh` implémentent cette
+architecture. `Theme-SDK.md`/`Creating-A-Theme.md`/
+`Compatibility-Matrix.md` mis à jour pour refléter la limitation
+résolue.

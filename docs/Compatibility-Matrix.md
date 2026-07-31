@@ -131,7 +131,7 @@
   machine multi-écran fait apparaître une fenêtre par écran — normal, pas
   un bug (vérifié à nouveau en Phase 2.0/2.0.5 avec 3 écrans réels).
 
-## 7. Thème installé séparément du dépôt : le Core ne suit pas
+## 7. Thème installé séparément du dépôt : le Core ne suit pas (résolu en Phase 2.2)
 
 - **Symptôme** : `"../../core/theme": no such directory`, SDDM bascule
   sur son thème de secours intégré.
@@ -140,14 +140,40 @@
   l'intérieur du dépôt Git — pas quand il est copié seul vers
   `/usr/share/sddm/themes/<nom>/`, son vrai emplacement d'installation
   (testé réellement avec Nord, Phase 2.1).
-- **Solution** : aucune pour l'instant — nécessite une stratégie de
-  distribution/packaging du Core (voir
-  [`Nord-Validation-Report.md`](Nord-Validation-Report.md), Constat #1,
-  pour les options envisagées).
-- **Impact** : tout thème conforme au SDK échoue de la même façon une
-  fois installé séparément — pas spécifique à Nord. `sddm-greeter
-  --test-mode` **depuis le dépôt** (`--theme themes/<nom>`) reste le
-  seul mode de test valide tant que ce n'est pas résolu.
+- **Solution** : `core/`/`platform/sddm/` s'installent comme module QML
+  (`import Nebula`/`import Nebula.Platform.Sddm`) via
+  `scripts/install-nebula.sh` — voir
+  [`Deployment-Decision.md`](Deployment-Decision.md) et DT-0022. Résolu
+  en Phase 2.2, testé réellement (installation système complète,
+  chargement confirmé sans aucune variable d'environnement).
+- **Impact** : `sddm-greeter --test-mode --theme themes/<nom>` **depuis
+  le dépôt** reste la méthode de test pendant le développement (imports
+  relatifs inchangés dans le dépôt, voir `Deployment-Decision.md` §3) ;
+  `scripts/install-nebula.sh` est la méthode pour tester/déployer un
+  thème réellement installé, hors dépôt.
+
+## 8. `QML2_IMPORT_PATH` vs chemin QML par défaut de Qt
+
+- **Symptôme** : `import Nebula` échoue (`module "Nebula" is not
+  installed`) même quand le module existe sur disque, à moins de définir
+  `QML2_IMPORT_PATH` pointant dessus.
+- **Cause** : un chemin de module QML n'est recherché automatiquement
+  que s'il fait partie des chemins d'import par défaut de Qt
+  (`qmake6 -query QT_INSTALL_QML`, ex. `/usr/lib/qt6/qml/` sur cette
+  distribution) — sinon `QML2_IMPORT_PATH` doit être défini
+  explicitement dans l'environnement du processus qui charge le QML, ce
+  que le vrai service systemd de SDDM ne fait pas par défaut.
+- **Solution** : installer le module directement dans le chemin QML par
+  défaut de Qt (ce que fait `scripts/install-nebula.sh`) élimine le
+  besoin de `QML2_IMPORT_PATH` entièrement — vérifié réellement dans les
+  trois configurations (aucune variable : échec ; `QML2_IMPORT_PATH`
+  défini : succès ; chemin par défaut sans variable : succès), voir
+  `Development-Journal.md`, Phase 2.2.
+- **Impact** : a directement determiné le choix de la Solution B dans
+  `Deployment-Decision.md` — sans ce chemin par défaut, la crainte
+  initiale (variable d'environnement absente de l'environnement
+  systemd du service SDDM réel) aurait rendu cette architecture
+  beaucoup plus fragile à déployer.
 
 ---
 

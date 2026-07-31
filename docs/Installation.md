@@ -1,0 +1,120 @@
+# Installation — Nebula
+
+> Comment installer, mettre à jour et désinstaller Nebula. Pour
+> l'architecture de distribution retenue (pourquoi ces scripts existent
+> sous cette forme), voir [`Packaging.md`](Packaging.md) et
+> [`Deployment-Decision.md`](Deployment-Decision.md). Pour développer un
+> thème sans installation système, voir
+> [`Development-Environment.md`](Development-Environment.md) et
+> [`Creating-A-Theme.md`](Creating-A-Theme.md) — ce document ne couvre
+> que l'installation système réelle.
+
+---
+
+## 1. Installation depuis le dépôt (développement)
+
+Aucune installation nécessaire — tester directement depuis un clone du
+dépôt :
+
+```bash
+sddm-greeter-qt6 --test-mode --theme themes/nord
+```
+
+Voir [`Development-Environment.md`](Development-Environment.md) pour le
+détail complet (variables d'environnement requises, lecture des logs).
+
+## 2. Installation système
+
+Nécessite les droits root (écrit dans le chemin QML de Qt et
+`/usr/share/sddm/themes/`) :
+
+```bash
+sudo scripts/install-nebula.sh nord
+```
+
+Ceci installe :
+
+- le Core Nebula comme module QML (`import Nebula`), au chemin retourné
+  par `qmake6 -query QT_INSTALL_QML` (généralement
+  `/usr/lib/qt6/qml/Nebula/`) ;
+- les adapters `platform/sddm/` comme sous-module
+  (`import Nebula.Platform.Sddm`) ;
+- le thème demandé (`nord` dans l'exemple) dans
+  `/usr/share/sddm/themes/nord/`, avec ses imports réécrits pour
+  consommer les modules installés plutôt que des chemins relatifs vers
+  le dépôt.
+
+Le script est idempotent — le relancer (même thème ou un autre) ne
+casse rien d'existant, il régénère simplement le module Core et le
+thème demandé.
+
+Pour installer un second thème sans toucher au premier :
+
+```bash
+sudo scripts/install-nebula.sh template
+```
+
+### Activer le thème installé
+
+`install-nebula.sh` installe le thème mais ne modifie jamais la
+configuration active de SDDM. Pour l'utiliser réellement, éditez la
+configuration SDDM de votre distribution (ex.
+`/etc/sddm.conf.d/*.conf`, section `[Theme]`, `Current=nord`) —
+volontairement laissé hors de ce script : changer l'écran de connexion
+actif est une action à part, jamais silencieuse.
+
+## 3. Vérifier une installation
+
+```bash
+scripts/check-installation.sh nord
+```
+
+Ne modifie jamais le système — vérifie uniquement : présence du module
+Core, présence du sous-module `Nebula.Platform.Sddm`, chargement réel
+via `qml6` (`import Nebula` fonctionne vraiment, pas seulement présence
+de fichiers), thèmes installés et leur intégrité, version installée
+(commit Git au moment de l'installation, quand disponible — voir §5).
+
+## 4. Désinstallation
+
+```bash
+sudo scripts/uninstall-nebula.sh nord     # un seul thème
+sudo scripts/uninstall-nebula.sh --core   # uniquement le module Core
+sudo scripts/uninstall-nebula.sh --all    # tout ce que Nebula a installé
+```
+
+Ne supprime jamais un dossier sous `/usr/share/sddm/themes/` sans le
+marqueur `.nebula-managed` qu'`install-nebula.sh` y écrit — un thème
+portant le même nom mais installé autrement n'est jamais touché.
+
+## 5. Mise à jour
+
+Récupérer la nouvelle version du dépôt (`git pull`), puis relancer
+l'installation :
+
+```bash
+sudo scripts/install-nebula.sh nord
+```
+
+Comme une seule copie du Core est partagée par tous les thèmes installés
+(voir `Deployment-Decision.md`), une mise à jour du Core profite à tous
+les thèmes déjà installés sans avoir à les réinstaller individuellement
+— seul un thème réellement modifié a besoin d'être réinstallé lui-même.
+
+## 6. Résolution des problèmes courants
+
+- **`module "Nebula" is not installed`** (visible dans les logs
+  `journalctl`, voir `Development-Environment.md` §3.1) : le module n'est
+  pas installé au chemin QML par défaut de Qt, ou l'installation a
+  échoué. Lancer `scripts/check-installation.sh` pour diagnostiquer.
+- **`installed_from=unknown` dans `check-installation.sh`** : normal si
+  `install-nebula.sh` a été lancé via `sudo`/`su` depuis un dépôt Git
+  appartenant à un autre utilisateur — Git refuse de lire les métadonnées
+  d'un dépôt qu'il ne possède pas (protection `safe.directory`). Sans
+  conséquence sur l'installation elle-même, uniquement sur cette ligne
+  d'information.
+- **Écran de connexion normal réapparu après un thème cassé** : SDDM
+  bascule automatiquement sur son thème de secours intégré si le thème
+  configuré échoue à charger — comportement de SDDM lui-même, pas de
+  Nebula (vérifié réellement, voir `Nord-Validation-Report.md` et
+  `Development-Journal.md`).

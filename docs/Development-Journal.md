@@ -10,6 +10,81 @@
 
 ---
 
+## 2026-07-31 — Phase 2.2
+
+**Contexte** : trouver comment un thème installé séparément du dépôt
+(`/usr/share/sddm/themes/<nom>/`) peut charger le Core sans copie locale
+(Constat #1 de `Nord-Validation-Report.md`) — Solution B envisagée
+(module QML `Nebula`), crainte principale : le service SDDM réel,
+lancé par systemd, n'a aucune raison d'avoir `QML2_IMPORT_PATH` défini
+dans son environnement.
+
+**Découverte** : `qmake6 -query QT_INSTALL_QML` renvoie un chemin
+(`/usr/lib/qt6/qml` sur cette distribution) qui est recherché par
+**défaut** par tout moteur QML — aucune variable d'environnement
+requise. Confirmé réellement en comparant trois configurations :
+`import Nebula` sans aucune variable QML dans l'environnement → échec
+(`module "Nebula" is not installed`, SDDM bascule sur son thème de
+secours) ; avec `QML2_IMPORT_PATH` pointant vers un chemin arbitraire →
+succès ; module installé directement dans le chemin retourné par
+`qmake6 -query QT_INSTALL_QML`, **sans aucune variable** (`env | grep
+-i QML` vide, confirmé) → succès, sur les 3 écrans réels de la machine.
+
+**Impact** : décide la Solution B (`Deployment-Decision.md`, DT-0022) —
+installer directement dans ce chemin élimine le risque identifié au
+départ. `scripts/install-nebula.sh` résout ce chemin dynamiquement à
+chaque exécution plutôt que de le coder en dur, pour rester correct si
+une distribution différente le place ailleurs (non vérifié — une seule
+distribution testée réellement à ce jour).
+
+---
+
+**Contexte** : aplatir tous les fichiers `core/**/*.qml` dans un seul
+dossier de module QML (`Nebula/`) pour le prototype de la Solution B.
+
+**Découverte** : les imports internes relatifs (`import "../theme"`,
+`import "../services"`, etc.) doivent être retirés, pas seulement rendus
+inoffensifs — une fois aplatis dans un seul dossier, les types d'un même
+module QML se résolvent automatiquement entre eux sans import explicite
+(confirmé réellement) ; laisser `import "../theme"` provoquerait une
+erreur de dossier introuvable puisque `../theme` n'existe plus dans la
+structure aplatie.
+
+**Impact** : `scripts/install-nebula.sh` retire systématiquement ces
+lignes (`sed`) à la copie de chaque fichier vers le module installé.
+
+---
+
+**Contexte** : un second module QML pour les adapters
+(`platform/sddm/`), nommé `Nebula.Platform.Sddm` (espace de noms à
+points) plutôt que `Nebula` directement, pour rester distinct du Core.
+
+**Découverte** : un module à espace de noms à points fonctionne sans
+qu'aucun dossier intermédiaire (`Nebula/`, `Nebula/Platform/`) n'ait
+besoin de son propre `qmldir` — seul le dossier final
+(`Nebula/Platform/Sddm/`) en a besoin. Confirmé réellement avec un
+module de test minimal avant de l'utiliser dans le vrai script
+d'installation.
+
+---
+
+**Contexte** : `scripts/install-nebula.sh` lit le commit Git du dépôt
+(`git rev-parse HEAD`) pour écrire un marqueur de version, lancé via
+`sudo`/`su` (dépôt appartenant à l'utilisateur normal, pas à root).
+
+**Découverte** : `git rev-parse HEAD` échoue silencieusement (capturé
+par le script, pas une erreur visible) quand il tourne en `root` sur un
+dépôt appartenant à un autre utilisateur — protection Git
+`safe.directory` (post CVE-2022-24765). Le marqueur de version affiche
+alors `installed_from=unknown` plutôt que le commit réel.
+
+**Impact** : comportement dégradé gracieusement (pas de crash, juste une
+information manquante), documenté comme cas normal dans
+`Installation.md` plutôt que corrigé — corriger nécessiterait soit de
+changer le propriétaire du dépôt, soit d'ajouter une exception
+`safe.directory`, deux actions hors du périmètre d'un script
+d'installation.
+
 ## 2026-07-31 — Phase 2.3
 
 **Contexte** : tester `NebulaUserList`/`NebulaSessionSelector`/

@@ -192,6 +192,23 @@ d'un thème installé séparément du dépôt) : voir
 `Nord-Validation-Report.md`, Constat #1, et
 [`Compatibility-Matrix.md`](Compatibility-Matrix.md) §7.
 
+### Phase 2.2 — Deployment & Installation Architecture
+
+**Aucun fichier sous `core/` modifié cette phase** — objectif : résoudre
+le Constat #1 de Nord (distribution) sans toucher au comportement des
+composants (contrainte explicite du brief). Trois architectures
+prototypées et testées réellement ; Solution B retenue (Core comme
+module QML, chemin QML par défaut de Qt — aucune configuration système
+requise). Détail complet dans
+[`Deployment-Decision.md`](Deployment-Decision.md), DT-0022 dans
+`Decisions-Techniques.md`, et [`Roadmap.md`](Roadmap.md) plutôt que
+répété ici. Nouveaux scripts `scripts/install-nebula.sh`/
+`uninstall-nebula.sh`/`check-installation.sh`, tous testés en conditions
+réelles (installation, vérification, désinstallation complète). Vraies
+découvertes techniques (chemin QML par défaut, modules à espace de noms
+à points, `git safe.directory` sous root) : voir
+[`Development-Journal.md`](Development-Journal.md).
+
 ### NebulaUserList / NebulaPasswordField / NebulaSessionSelector / NebulaPowerButtons (`core/components/`) — Phase 2.3
 
 - Quatre nouveaux composants interactifs, tous dépendants uniquement de
@@ -868,3 +885,18 @@ en affichant `themeName` (stable) plutôt que `configPath`. Voir
   Phase 2.2 non résolue).
 - [`Roadmap.md`](Roadmap.md) — items 9/11/12 de l'ordre de construction
   Phase 1 cochés ; Phase 2.3 marquée terminée.
+- [`Deployment-Decision.md`](Deployment-Decision.md) — nouveau document
+  (Phase 2.2) : comparaison objective des trois architectures de
+  distribution prototypées et testées réellement, choix motivé.
+- [`Installation.md`](Installation.md), [`Packaging.md`](Packaging.md) —
+  nouveaux documents (Phase 2.2) : installation/désinstallation/mise à
+  jour côté utilisateur, architecture de distribution côté packager.
+- [`Compatibility-Matrix.md`](Compatibility-Matrix.md) — §7 mis à jour
+  (limitation résolue), nouveau §8 (`QML2_IMPORT_PATH` vs chemin QML par
+  défaut).
+- [`Theme-SDK.md`](Theme-SDK.md), [`Creating-A-Theme.md`](Creating-A-Theme.md)
+  — notes de limitation (Phase 2.1) mises à jour pour refléter la
+  résolution.
+- [`Decisions-Techniques.md`](Decisions-Techniques.md) — DT-0022
+  (Core installé comme module QML).
+- [`Roadmap.md`](Roadmap.md) — Phase 2.2 marquée terminée.

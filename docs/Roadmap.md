@@ -319,13 +319,30 @@ sur les 3 écrans de la machine : voir
       `Theme-SDK.md`, `Creating-A-Theme.md`, `Compatibility-Matrix.md`
       §7 — non résolu cette phase (voir Phase 2.2 ci-dessous).
 
-**Sous-étape Phase 2.2 — Distribution / Packaging (à faire) :** résoudre
-le Constat #1 de `Nord-Validation-Report.md` — rendre `core/`/`platform/`
-disponibles à un thème installé séparément du dépôt (options déjà
-identifiées : module QML partagé via `QML2_IMPORT_PATH`, Core embarqué
-par thème, lien symbolique d'installation). À trancher une fois qu'un
-second thème réel confirme le besoin exact, pas uniquement sur la base de
-Nord.
+**Sous-étape Phase 2.2 — Distribution / Packaging (terminée) :** résout
+le Constat #1 de `Nord-Validation-Report.md`. Trois architectures
+prototypées et testées réellement (thème autonome, module QML, génération
+à l'installation) — voir
+[`docs/Deployment-Decision.md`](Deployment-Decision.md) pour la
+comparaison complète. Solution retenue : `core/`/`platform/sddm/`
+installés comme module QML (`import Nebula`/
+`import Nebula.Platform.Sddm`) au chemin QML par défaut de Qt
+(`qmake6 -query QT_INSTALL_QML`) — **aucune** variable d'environnement
+requise, contrairement à la crainte initiale (`QML2_IMPORT_PATH`),
+vérifié réellement (DT-0022 dans `Decisions-Techniques.md`). Nouveaux
+scripts `scripts/install-nebula.sh` (idempotent), `uninstall-nebula.sh`
+(ne supprime que ce que Nebula a installé, marqueur `.nebula-managed`),
+`check-installation.sh` (vérifie sans jamais modifier le système,
+y compris un vrai test de chargement `qml6`) — tous testés en conditions
+réelles (installation, vérification, désinstallation complète sur le
+système de développement). Nouveaux documents
+[`docs/Deployment-Decision.md`](Deployment-Decision.md) et
+[`docs/Installation.md`](Installation.md)/[`docs/Packaging.md`](Packaging.md).
+`Theme-SDK.md`/`Creating-A-Theme.md`/`Compatibility-Matrix.md` mis à
+jour pour refléter la limitation résolue. Voir
+[`docs/Development-Journal.md`](Development-Journal.md) pour les
+découvertes réelles (chemin QML par défaut, modules à espace de noms à
+points, protection Git `safe.directory` sous root).
 
 **Sous-étape Phase 2.3 — Interactive Login Components (terminée) :**
 démarrée malgré la Phase 2.2 non terminée — décision utilisateur

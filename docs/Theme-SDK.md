@@ -14,15 +14,15 @@
 > réussite du Core dans
 > [`Architecture.md`](Architecture.md#6-critère-de-réussite-du-core).
 >
-> **Limitation connue (Phase 2.1)** : un thème conforme à ce SDK ne
-> fonctionne aujourd'hui que depuis l'intérieur du dépôt Nebula
-> (`sddm-greeter --test-mode` sur `themes/<nom>/`) — les imports relatifs
-> vers `core/`/`platform/` échouent une fois le thème copié seul vers son
-> emplacement d'installation réel (`/usr/share/sddm/themes/<nom>/`).
-> Trouvé en testant Nord dans cet environnement réel — voir
-> [`Nord-Validation-Report.md`](Nord-Validation-Report.md), Constat #1.
-> Pas encore résolu : nécessite une stratégie de distribution/packaging
-> du Core, hors périmètre de ce document pour l'instant.
+> **Distribution (résolu en Phase 2.2)** : un thème conforme à ce SDK
+> utilise des imports relatifs vers `core/`/`platform/` dans le dépôt
+> (`sddm-greeter --test-mode` sur `themes/<nom>/`, voir
+> `Creating-A-Theme.md`). Une installation système réelle
+> (`scripts/install-nebula.sh`) réécrit ces imports vers le module QML
+> `Nebula` installé séparément — voir
+> [`Deployment-Decision.md`](Deployment-Decision.md) et
+> [`Packaging.md`](Packaging.md). Le dépôt lui-même ne change jamais ses
+> propres imports relatifs ; seule la copie installée est transformée.
 
 ---
 
