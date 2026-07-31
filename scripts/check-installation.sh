@@ -72,10 +72,22 @@ QtObject {
     Component.onCompleted: Qt.quit()
 }
 EOF
+    # Capture output AND exit code separately — a crashed/aborted
+    # process (e.g. no display available, see Development-Environment.md
+    # §headless testing) can print nothing to stdout/stderr at all
+    # (the "Aborted (core dumped)" notice comes from the invoking
+    # shell, not the process itself), which previously made this check
+    # report a false PASS purely because $smoke_output was empty,
+    # regardless of the real exit code (found testing on a genuinely
+    # clean machine, Milestone 0.1 Beta — see Development-Journal.md).
     smoke_output="$("$QML_BIN" "$smoke_test_file" 2>&1)"
+    smoke_exit=$?
     if echo "$smoke_output" | grep -q "is not installed"; then
         fail "import Nebula / Nebula.Platform.Sddm failed — module not resolvable by the QML engine:"
         echo "$smoke_output" | sed 's/^/  /' >&2
+    elif [ "$smoke_exit" -ne 0 ]; then
+        fail "the load test process exited abnormally (exit $smoke_exit) — possibly no display available (try QT_QPA_PLATFORM=offscreen) or a real crash:"
+        [ -n "$smoke_output" ] && echo "$smoke_output" | sed 's/^/  /' >&2
     elif [ -n "$smoke_output" ]; then
         fail "unexpected output while loading the module:"
         echo "$smoke_output" | sed 's/^/  /' >&2

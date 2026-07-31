@@ -1,13 +1,36 @@
 # API Stability Review — Nebula
 
-> Rapport de la Phase 3.1 (voir `Roadmap.md` et `Core-Refinement-Review.md`).
-> Ce document ne redéfinit aucune API — il classe l'état de stabilité de
-> celles déjà documentées dans [`Core-API.md`](Core-API.md), à l'usage
-> des futurs auteurs de thèmes et de Core. Établi après trois thèmes
-> réels (Nord, Glass Dark, Glass Light) et un thème de référence
-> (Template) ont exercé le Core en conditions réelles.
+> Rapport initial de la Phase 3.1 (voir `Roadmap.md` et
+> `Core-Refinement-Review.md`), formalisé en gel d'API à la Milestone
+> 0.1 Beta (voir §0 ci-dessous). Ce document ne redéfinit aucune API —
+> il classe l'état de stabilité de celles déjà documentées dans
+> [`Core-API.md`](Core-API.md), à l'usage des futurs auteurs de thèmes
+> et de Core. Établi après trois thèmes réels (Nord, Glass Dark, Glass
+> Light) et un thème de référence (Template) ont exercé le Core en
+> conditions réelles.
 
 ---
+
+## 0. Gel formel — Milestone 0.1 Beta
+
+À partir de cette milestone (voir brief §8), **les API publiques du
+Core listées au §1 sont considérées gelées.** Toute modification devra
+désormais être justifiée par au moins un des trois critères suivants
+(reprise exacte du brief) :
+
+1. un bug réel (comme le correctif de focus clavier de
+   `NebulaPasswordField`, Phase 3.1) ;
+2. une découverte expérimentale (comme la mesure de contraste WCAG,
+   Phase 3.1, ou la découverte `GreeterEnvironment`, Phase 3.0) ;
+3. un besoin démontré par plusieurs thèmes — pas un seul (voir le
+   principe déjà appliqué en Phase 3.1 §5 pour la réutilisation
+   d'animations, reconduit ici comme règle générale).
+
+Les points du §2 (support d'icônes, libellés localisables, éventuel
+futur token de contraste, `NebulaKeyboardSelector`, réutilisation
+d'animations) restent explicitement **hors gel** — pas encore exercés
+par un nombre de thèmes suffisant pour être considérés stables, comme
+indiqué dans chaque entrée.
 
 ## 1. APIs considérées comme stables
 

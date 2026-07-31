@@ -21,8 +21,26 @@ for arg in "$@"; do
 done
 
 echo "== qmllint (core/, tests/) =="
+# Not always on PATH — Arch's qt6-declarative package installs it under
+# Qt's own bin directory (`/usr/lib/qt6/bin/qmllint`) rather than
+# /usr/bin, unlike some other distros. Found testing a genuinely clean
+# install (Milestone 0.1 Beta) — qmake6 -query gives a portable way to
+# locate it without hardcoding a distro-specific path.
+QMLLINT="$(command -v qmllint || true)"
+if [ -z "$QMLLINT" ]; then
+    QMAKE="$(command -v qmake6 || command -v qmake || true)"
+    if [ -n "$QMAKE" ]; then
+        candidate="$("$QMAKE" -query QT_INSTALL_BINS)/qmllint"
+        [ -x "$candidate" ] && QMLLINT="$candidate"
+    fi
+fi
+if [ -z "$QMLLINT" ]; then
+    echo "qmllint not found on PATH or under Qt's own bin directory." >&2
+    echo "Install qt6-declarative (or your distribution's equivalent)." >&2
+    exit 1
+fi
 qml_files=$(find core tests -name "*.qml")
-qmllint $qml_files
+"$QMLLINT" $qml_files
 echo "qmllint: PASS"
 
 echo

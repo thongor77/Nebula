@@ -22,18 +22,28 @@ de composants entre thèmes est considérée comme un bug.
 
 ## État actuel
 
-**Core MVP en cours.** L'architecture, les contrats et un prototype
-technique réel sont terminés (Phases 0 à 1.0). Composants Core réels déjà
-implémentés et testés : `NebulaThemeConfig`, `NebulaThemeProvider`,
-`NebulaButton`, `NebulaAvatar`, `NebulaClock`, `NebulaDate`,
-`NebulaLoginLayout`, `NebulaAuthService`/`UserService`/`SessionService`/
-`PowerService` (voir Roadmap ci-dessous). Aucun thème n'existe encore.
+**Milestone 0.1 Beta.** Le Core est stable, son API publique est
+considérée gelée (voir
+[`docs/API-Stability-Review.md`](docs/API-Stability-Review.md) — toute
+évolution doit désormais être justifiée par un bug réel, une découverte
+expérimentale, ou un besoin démontré par plusieurs thèmes). Quatre
+thèmes officiels livrés : `template` (thème de référence/départ),
+`nord`, `glass-dark`, `glass-light`. Installation système réelle
+fonctionnelle (`scripts/install-nebula.sh`). Voir
+[`CHANGELOG.md`](CHANGELOG.md) pour le résumé complet des
+fonctionnalités et les limitations connues de cette version.
 
 ## Lancer le projet
 
-Rien à lancer pour l'instant — pas de code. Une fois un premier thème
-livré, les instructions d'installation seront ajoutées ici et dans le
-`README.md`.
+```bash
+sudo scripts/install-nebula.sh nord
+```
+
+Voir [`docs/Installation.md`](docs/Installation.md) pour le détail
+complet (vérification, changement de thème actif, désinstallation,
+mise à jour) et
+[`docs/Development-Environment.md`](docs/Development-Environment.md)
+pour tester sans toucher au greeter SDDM actif de la machine.
 
 ## Architecture
 
@@ -68,26 +78,24 @@ technique réel (voir [`docs/Architecture-Review.md`](docs/Architecture-Review.m
 [`docs/Prototype-Results.md`](docs/Prototype-Results.md) — API SDDM
 réelle et comportement multi-écran vérifiés sur une installation SDDM
 0.21 réelle).
-Phase 1 (Core MVP) en cours, **visuellement complète depuis la
-Phase 1.5** : `NebulaThemeConfig`, `NebulaThemeProvider`, `NebulaButton`
-(Phase 1.1), `NebulaAvatar`, `NebulaClock`, `NebulaDate` (Phase 1.2),
-`NebulaLoginLayout` (Phase 1.3, squelette à 4 zones),
-`NebulaAuthService`/`NebulaUserService`/`NebulaSessionService`/
-`NebulaPowerService` + squelettes `platform/sddm/` (Phase 1.4, voir
-[`docs/Services-Architecture.md`](docs/Services-Architecture.md)),
-`NebulaBackground`/`NebulaWallpaper`/`NebulaOverlay`/`NebulaSurface`
-(Phase 1.5, voir
-[`docs/Rendering-Guidelines.md`](docs/Rendering-Guidelines.md)) —
-implémentés et testés, voir
+Phase 1 (Core MVP) et Phase 2 (premier thème de référence, SDK,
+distribution) terminées — Core visuellement et fonctionnellement
+complet : `NebulaThemeConfig`/`NebulaThemeProvider`/`NebulaThemeLoader`,
+`NebulaButton`, `NebulaAvatar`, `NebulaClock`, `NebulaDate`,
+`NebulaUserList`, `NebulaPasswordField`, `NebulaSessionSelector`,
+`NebulaPowerButtons`, `NebulaLoginLayout`,
+`NebulaBackground`/`NebulaWallpaper`/`NebulaOverlay`/`NebulaSurface`,
+Services/Adapters (`core/services/`, `platform/sddm/`). Phase 3 en
+cours : Glass (deuxième thème officiel, deux variantes) et
+consolidation du Core (Phase 3.1) livrées ; Milestone 0.1 Beta en cours
+de finalisation (revue documentaire complète, audit des licences,
+gel formel de l'API publique — voir
+[`docs/API-Stability-Review.md`](docs/API-Stability-Review.md)).
+`prototype/` reste jetable, distinct de `core/`. Détail complet et
+statut vivant : [`docs/Roadmap.md`](docs/Roadmap.md) et
 [`docs/Core-Implementation-Status.md`](docs/Core-Implementation-Status.md)
-et le journal des découvertes techniques
-[`docs/Development-Journal.md`](docs/Development-Journal.md). Écran de
-connexion complet en couches (sans thème, sans SDDM) démontrable via
-`tests/LoginScreenHarness.qml` ; tous les composants visibles d'un coup
-via `tests/VisualHarness.qml`. Reste pour la suite du Core MVP :
-`NebulaPasswordField`, `NebulaUserList`, `NebulaSessionSelector`,
-intégration SDDM réelle, premier thème (Nord). `prototype/` reste
-jetable, distinct de `core/`.
+plutôt que répété ici — ce résumé se périme vite, ne pas le supposer à
+jour sans vérifier `Roadmap.md`.
 
 ## Règle avant toute nouvelle fonctionnalité
 

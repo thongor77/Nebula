@@ -19,26 +19,33 @@
 
 ## Colors
 
+> **Colonnes « Utilisé par » vérifiées par recherche réelle dans
+> `core/`** (pas recopiées de la version Phase 1.6) lors de la Milestone
+> 0.1 Beta — plusieurs tokens listés « aucun pour l'instant » à l'origine
+> ont de vrais consommateurs depuis (Phases 2.3/3.0/3.1). Voir
+> `Core-Refinement-Review.md`/`Glass-Theme-Report.md` pour le détail de
+> ces phases.
+
 | Token | Type | Défaut | Description | Utilisé par |
 | --- | --- | --- | --- | --- |
-| `primaryColor` | color | `#4a90d9` | Couleur d'accent principale (bouton `primary`) | `NebulaButton` |
+| `primaryColor` | color | `#4a90d9` | Couleur d'accent principale (bouton `primary`) | `NebulaButton`, `NebulaSessionSelector` (pastille de session active) |
 | `secondaryColor` | color | `#6c7a89` | Couleur d'accent secondaire (bouton `secondary`) | `NebulaButton` |
-| `accentColor` | color | `#f0a030` | Mise en avant ponctuelle — focus, sélection. Délibérément distinct de `primaryColor` en teinte pour rester visible en anneau de focus (bug trouvé Phase 1.1, voir `Core-Implementation-Status.md`) | `NebulaButton` |
+| `accentColor` | color | `#f0a030` | Mise en avant ponctuelle — focus, sélection. Délibérément distinct de `primaryColor` en teinte pour rester visible en anneau de focus (bug trouvé Phase 1.1, voir `Core-Implementation-Status.md`) | `NebulaButton`, `NebulaPasswordField` (bordure de focus), `NebulaUserList` (anneau de sélection) |
 | `backgroundColor` | color | `#1e1e1e` | Fond général de l'écran, repli si aucune image de fond | `NebulaWallpaper`, `NebulaOverlay` (défaut de `color1`) |
-| `surfaceColor` | color | `#2a2a2a` | Fond des panneaux/cartes | `NebulaSurface`, `NebulaAvatar` (fond du cadre de découpe) |
-| `textPrimary` | color | `#f0f0f0` | Texte principal | `NebulaButton`, `NebulaClock` |
-| `textSecondary` | color | `#a0a0a0` | Texte atténué (labels, aide) | `NebulaAvatar` (silhouette de repli), `NebulaSurface` (défaut de `borderColor`), `NebulaButton` (défaut de `border.color`), `NebulaDate` |
-| `errorColor` | color | `#d9534f` | Erreur d'authentification, état invalide | aucun (prévu pour `NebulaPasswordField`, `NebulaNotification`) |
-| `successColor` | color | `#5cb85c` | Confirmation, état valide | aucun (prévu pour `NebulaNotification`) |
+| `surfaceColor` | color | `#2a2a2a` | Fond des panneaux/cartes | `NebulaSurface`, `NebulaAvatar` (fond du cadre de découpe), `NebulaPasswordField` |
+| `textPrimary` | color | `#f0f0f0` | Texte principal | `NebulaButton`, `NebulaClock`, `NebulaPasswordField`, `NebulaSessionSelector`, `NebulaUserList` |
+| `textSecondary` | color | `#a0a0a0` | Texte atténué (labels, aide) | `NebulaAvatar` (silhouette de repli), `NebulaSurface` (défaut de `borderColor`), `NebulaButton` (défaut de `border.color`), `NebulaDate`, `NebulaPasswordField`, `NebulaSessionSelector`, `NebulaUserList` |
+| `errorColor` | color | `#d9534f` | Erreur d'authentification, état invalide | `NebulaPasswordField` (bordure quand `hasError`) — prévu aussi pour `NebulaNotification` (n'existe pas encore) |
+| `successColor` | color | `#5cb85c` | Confirmation, état valide | aucun pour l'instant (prévu pour `NebulaNotification`) |
 
 ## Spacing
 
 | Token | Type | Défaut | Description | Utilisé par |
 | --- | --- | --- | --- | --- |
-| `spacingXs` | real | `4` | Espacement minimal (icône ↔ texte) | aucun pour l'instant |
-| `spacingSm` | real | `8` | Espacement entre éléments proches | `NebulaButton` (espacement icône/texte) |
-| `spacingMd` | real | `16` | Espacement par défaut entre sections | `NebulaButton` (padding vertical), `NebulaSurface` (défaut de `padding`) |
-| `spacingLg` | real | `24` | Séparation entre blocs majeurs | `NebulaButton` (padding horizontal), `NebulaLoginLayout` (marges des zones statut/pied de page) |
+| `spacingXs` | real | `4` | Espacement minimal (icône ↔ texte) | `NebulaUserList` (espacement interne d'un délégué) |
+| `spacingSm` | real | `8` | Espacement entre éléments proches | `NebulaButton` (espacement icône/texte), `NebulaPasswordField`, `NebulaPowerButtons`, `NebulaSessionSelector` |
+| `spacingMd` | real | `16` | Espacement par défaut entre sections | `NebulaButton` (padding vertical), `NebulaSurface` (défaut de `padding`), `NebulaPasswordField`, `NebulaSessionSelector` |
+| `spacingLg` | real | `24` | Séparation entre blocs majeurs | `NebulaButton` (padding horizontal), `NebulaLoginLayout` (marges des zones statut/pied de page), `NebulaUserList` |
 | `spacingXl` | real | `32` | Marges d'écran | aucun pour l'instant |
 
 ## Radius
@@ -46,18 +53,18 @@
 | Token | Type | Défaut | Description | Utilisé par |
 | --- | --- | --- | --- | --- |
 | `radiusSmall` | real | `4` | Petits éléments (icônes, badges) | aucun pour l'instant |
-| `radiusMedium` | real | `8` | Champs de saisie, boutons | `NebulaButton` |
+| `radiusMedium` | real | `8` | Champs de saisie, boutons | `NebulaButton`, `NebulaPasswordField` |
 | `radiusLarge` | real | `16` | Cartes, panneaux | `NebulaSurface` (défaut de `radius`) |
-| `radiusPill` | real | `9999` | Éléments totalement arrondis — valeur volontairement supérieure à toute demi-hauteur réaliste, pour que le clamp interne de Qt Quick produise toujours une pilule/cercle complet | `NebulaAvatar` (défaut de `radius`) |
+| `radiusPill` | real | `9999` | Éléments totalement arrondis — valeur volontairement supérieure à toute demi-hauteur réaliste, pour que le clamp interne de Qt Quick produise toujours une pilule/cercle complet | `NebulaAvatar` (défaut de `radius`), `NebulaSessionSelector` (pastilles), `NebulaUserList` (anneau de sélection) |
 
 ## Typography
 
 | Token | Type | Défaut | Description | Utilisé par |
 | --- | --- | --- | --- | --- |
-| `fontFamilyPrimary` | string | `"sans-serif"` | Police principale (titres, horloge, boutons) | `NebulaButton`, `NebulaClock`, `NebulaDate` |
+| `fontFamilyPrimary` | string | `"sans-serif"` | Police principale (titres, horloge, boutons) | `NebulaButton`, `NebulaClock`, `NebulaDate`, `NebulaPasswordField`, `NebulaSessionSelector`, `NebulaUserList` |
 | `fontFamilySecondary` | string | `"sans-serif"` | Police secondaire (texte courant) | aucun pour l'instant |
 | `fontSizeTitle` | real | `24` | Taille des titres | aucun pour l'instant |
-| `fontSizeBody` | real | `14` | Taille du texte courant | `NebulaButton` (texte + taille d'icône), `NebulaDate` |
+| `fontSizeBody` | real | `14` | Taille du texte courant | `NebulaButton` (texte + taille d'icône par défaut), `NebulaDate`, `NebulaPasswordField`, `NebulaPowerButtons` (taille d'icône par défaut), `NebulaSessionSelector`, `NebulaUserList` |
 | `fontSizeClock` | real | `32` | Taille de l'horloge | `NebulaClock` |
 | `fontWeightNormal` | int (`Font.Normal`) | — | Graisse normale — valuée directement avec l'énumération Qt plutôt qu'une échelle de noms (D4, Phase 1.1) | `NebulaButton`, `NebulaClock`, `NebulaDate` |
 | `fontWeightBold` | int (`Font.Bold`) | — | Graisse grasse | aucun pour l'instant |
@@ -66,8 +73,8 @@
 
 | Token | Type | Défaut | Description | Utilisé par |
 | --- | --- | --- | --- | --- |
-| `durationFast` | int (ms) | `120` | Micro-interactions (focus, hover, pression) | `NebulaButton` (`Behavior` sur `scale`/`color`) |
-| `durationNormal` | int (ms) | `250` | Transitions standards | aucun pour l'instant |
+| `durationFast` | int (ms) | `120` | Micro-interactions (focus, hover, pression) | `NebulaButton` (`Behavior` sur `scale`/`color`), `NebulaPasswordField` (`Behavior` sur `border.color`) |
+| `durationNormal` | int (ms) | `250` | Transitions standards | aucun composant Core (utilisé directement par les animations propres du thème Glass — fondu/zoom d'apparition — voir `Glass-Theme-Report.md`) |
 | `durationSlow` | int (ms) | `500` | Transitions d'écran, apparitions | aucun pour l'instant |
 
 Courbes d'easing volontairement non figées — voir `Design-System.md` §5.
@@ -100,11 +107,11 @@ retour — voir `Roadmap.md`, Phase 1.6.
 
 | Token | Type | Défaut | Description | Utilisé par |
 | --- | --- | --- | --- | --- |
-| `opacityDisabled` | real | `0.5` | Opacité d'un composant désactivé | `NebulaButton` |
+| `opacityDisabled` | real | `0.5` | Opacité d'un composant désactivé | `NebulaButton`, `NebulaPasswordField` (quand `isBusy`) |
 | `scalePressed` | real | `0.97` | Facteur d'échelle pendant la pression | `NebulaButton` |
 | `pressedDarkenFactor` | real | `1.3` | Facteur d'assombrissement (`Qt.darker`) de la couleur de base pendant la pression | `NebulaButton` |
-| `borderWidthThin` | real | `1` | Épaisseur de bordure fine (ex. variante `ghost` au repos) | `NebulaButton` |
-| `borderWidthFocus` | real | `2` | Épaisseur de bordure d'un composant focus | `NebulaButton` |
+| `borderWidthThin` | real | `1` | Épaisseur de bordure fine (ex. variante `ghost` au repos) | `NebulaButton`, `NebulaPasswordField`, `NebulaSessionSelector` |
+| `borderWidthFocus` | real | `2` | Épaisseur de bordure d'un composant focus | `NebulaButton`, `NebulaPasswordField`, `NebulaUserList` |
 
 ---
 

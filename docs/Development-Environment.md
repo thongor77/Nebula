@@ -13,14 +13,32 @@ session courante, sans redémarrer ni modifier la configuration système.
 
 ## 2. Outils nécessaires
 
-- SDDM installé avec son binaire de test (`sddm-greeter` ou
-  `sddm-greeter-qt6` selon la distribution).
+- **SDDM** installé avec son binaire de test (`sddm-greeter` ou
+  `sddm-greeter-qt6` selon la distribution) — pas n'importe quel
+  gestionnaire de connexion : Nebula thème spécifiquement SDDM. Certaines
+  distributions KDE récentes (ex. KDE Linux) utilisent un autre gestionnaire
+  par défaut (`plasmalogin`) — vérifier avec
+  `systemctl status display-manager.service` avant de commencer (trouvé
+  réellement en testant sur une machine propre, Milestone 0.1 Beta).
 - Qt6 (paquets de développement QML : `qml6-module-qtquick`,
   `qml6-module-qtquick-controls`, etc. selon la distribution).
 - `qmllint` (fourni par les outils de développement Qt6) pour le lint
-  local avant de pousser (voir `.github/workflows/qml-lint.yml`).
+  local avant de pousser (voir `.github/workflows/qml-lint.yml`). **Pas
+  toujours sur le `PATH`** : le paquet `qt6-declarative` d'Arch Linux
+  l'installe sous `/usr/lib/qt6/bin/qmllint`, pas `/usr/bin` — si
+  `qmllint: command not found`, chercher avec
+  `$(qmake6 -query QT_INSTALL_BINS)/qmllint` (vérifié réellement sur une
+  installation Arch propre, Milestone 0.1 Beta ; `scripts/check-design-system.sh`
+  gère déjà cette recherche automatiquement).
 - Un environnement graphique Wayland ou X11 actif (le mode test s'exécute
   dans une fenêtre de la session courante, pas besoin d'un second TTY).
+  **Sans aucun environnement graphique** (ex. session SSH pure, headless) :
+  toute commande `qml6`/`sddm-greeter-qt6` échoue silencieusement (le
+  processus s'arrête sans message clair, parfois avec un core dump) —
+  ajouter `QT_QPA_PLATFORM=offscreen` permet de vérifier qu'un fichier QML
+  se charge et se compile sans erreur, mais ne remplace pas une vérification
+  visuelle réelle (vérifié réellement en testant depuis une session SSH
+  sans affichage, Milestone 0.1 Beta).
 
 ## 3. Mode test du greeter
 
