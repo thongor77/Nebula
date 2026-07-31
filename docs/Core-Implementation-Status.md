@@ -270,6 +270,47 @@ animations, HiDPI, performances) dans
   les deux variantes), et installation système réelle
   (`scripts/install-nebula.sh glass-dark` + `check-installation.sh`).
 
+### Phase 3.1 — Core Refinement & API Stabilization
+
+Revue complète dans [`Core-Refinement-Review.md`](Core-Refinement-Review.md)
+et [`API-Stability-Review.md`](API-Stability-Review.md) plutôt que
+répétée ici. Modifications réelles apportées à `core/` cette phase,
+toutes additives (aucune rupture d'API) :
+
+- **`NebulaButton`** (`core/components/NebulaButton.qml`) : nouvelle
+  propriété `iconSize` (real, défaut = taille du texte du label).
+  `icon` existait déjà depuis la Phase 1.1.
+- **`NebulaPasswordField`** (`core/components/NebulaPasswordField.qml`) :
+  nouvelles propriétés `showIcon`/`hideIcon` (url), `iconSize`,
+  `showLabel`/`hideLabel` (string, défauts `"Show"`/`"Hide"` —
+  remplacent un texte jusque-là codé en dur). **Bug corrigé** :
+  `activeFocusOnTab: true` + redirection explicite du focus vers le
+  `TextInput` interne (`onActiveFocusChanged`) — un `KeyNavigation.tab`
+  ciblant ce composant laissait auparavant le focus sur le `Rectangle`
+  racine, jamais sur le champ réellement saisissable (trouvé et
+  vérifié réellement cette phase, voir `Development-Journal.md`).
+- **`NebulaPowerButtons`** (`core/components/NebulaPowerButtons.qml`) :
+  nouvelles propriétés `shutdownIcon`/`rebootIcon`/`suspendIcon`/
+  `hibernateIcon` (url), `iconSize`, `shutdownLabel`/`rebootLabel`/
+  `suspendLabel`/`hibernateLabel`/`confirmLabel` (string, remplacent du
+  texte jusque-là codé en dur).
+- `iconColor` (suggéré par le brief) délibérément non implémenté sur
+  les trois composants — teinter une image sans shader est impossible
+  en QtQuick pur, `ShaderEffect`/`MultiEffect`/
+  `Qt5Compat.GraphicalEffects` explicitement interdits dans le Core
+  (`Rendering-Guidelines.md` §2).
+- Aucune animation déplacée vers le Core (réutilisation non démontrée
+  entre thèmes indépendants — voir `Core-Refinement-Review.md` §5).
+  Aucun nouveau Design Token ajouté (le besoin réel identifié —
+  contraste texte/couleur primaire, voir §6 — nécessite un token dédié
+  mais reste hors périmètre de cette phase).
+- Testé réellement après changement : `qmllint`, `qml6`,
+  `sddm-greeter --test-mode` et installation système réelle
+  réinstallée/revérifiée pour Nord, Glass Dark, Glass Light et
+  Template — aucune régression, toutes les nouvelles propriétés sont
+  optionnelles avec des valeurs par défaut reproduisant exactement le
+  comportement précédent.
+
 ## 2. Composants en cours / pas commencés
 
 Reste du périmètre du Core MVP (voir `Core-MVP.md`) :

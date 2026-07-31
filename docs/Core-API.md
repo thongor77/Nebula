@@ -183,13 +183,25 @@ pour rester cohérent avec le reste de la documentation.
   réutilisable pour toute action.
 - **Inputs** : interaction utilisateur (clic, activation clavier).
 - **Outputs** : déclenchement d'une action.
-- **Properties** : `label` (string), `icon` (url), `enabled` (bool),
-  `variant` (enum : `primary` / `secondary` / `ghost`, liée aux tokens de
-  couleur du Design System).
+- **Properties** : `label` (string), `icon` (url), `iconSize` (real, par
+  défaut `theme.typography.fontSizeBody` — même taille que le texte du
+  label, cohérent avec le comportement déjà en place avant que
+  `iconSize` existe ; ajouté en Phase 3.1, voir
+  `Core-Refinement-Review.md` §2), `enabled` (bool), `variant` (enum :
+  `primary` / `secondary` / `ghost`, liée aux tokens de couleur du
+  Design System).
+  **Pas de `iconColor`** : teinter une image arbitraire sans shader
+  n'est pas possible en QtQuick pur, et `ShaderEffect`/`MultiEffect`/
+  `Qt5Compat.GraphicalEffects` sont explicitement interdits dans le Core
+  (`Rendering-Guidelines.md` §2) — une icône doit être fournie
+  pré-colorée par le thème (déjà le choix fait pour le jeu d'icônes
+  Glass, voir `Core-Refinement-Review.md` §2).
 - **Signals** : `clicked()`.
 - **Dependencies** : `NebulaThemeProvider` (colors, spacing, radius,
   typography, animation, et depuis la Phase 1.6 le groupe `interaction` —
   voir `Design-Tokens-Reference.md`).
+- Aucune icône n'est requise : `icon` vide (défaut) masque entièrement
+  l'`Image` interne, comportement inchangé depuis la Phase 1.1.
 
 ### NebulaAvatar
 
@@ -245,10 +257,24 @@ pour rester cohérent avec le reste de la documentation.
 - **Properties** : `placeholderText` (string), `hasError` (bool, reflète
   `authService.errorMessage.length > 0` par défaut), `isBusy` (bool,
   reflète `authService.authenticating`), `showToggleEnabled` (bool,
-  affiche un bouton Show/Hide).
+  affiche un bouton Show/Hide), `showLabel`/`hideLabel` (string, défaut
+  `"Show"`/`"Hide"` — ajoutés en Phase 3.1 pour permettre à un thème de
+  localiser ce texte, jusque-là codé en dur, voir
+  `Core-Refinement-Review.md` §6), `showIcon`/`hideIcon` (url, vide par
+  défaut — si l'un des deux est défini, une icône remplace le texte du
+  bouton bascule plutôt que de s'y ajouter ; ajoutés en Phase 3.1, voir
+  `Core-Refinement-Review.md` §2), `iconSize` (même sémantique que
+  `NebulaButton`, appliquée à `showIcon`/`hideIcon` — pas de
+  `iconColor`, même raison que `NebulaButton`).
 - **Methods** : `submit()`, `clear()`.
 - **Signals** : `submitted(password: string)`, `cleared()`.
 - **Dependencies** : `NebulaThemeProvider`, `NebulaAuthService`.
+- Accessibilité : depuis la Phase 3.1, `activeFocusOnTab: true` +
+  redirection explicite du focus vers le `TextInput` interne — un
+  `KeyNavigation.tab` ciblant ce composant laissait auparavant le focus
+  sur le `Rectangle` racine plutôt que sur le champ réellement saisissable
+  (bug réel trouvé et corrigé, voir `Core-Refinement-Review.md` §6 et
+  `Development-Journal.md`).
 
 ### NebulaSessionSelector (implémenté en Phase 2.3)
 
@@ -304,7 +330,16 @@ pour rester cohérent avec le reste de la documentation.
 - **Outputs** : déclenchement d'une action système.
 - **Properties** : `confirmBeforeAction` (bool) — `canShutdown`/
   `canReboot`/`canSuspend`/`canHibernate` lus directement sur
-  `powerService`, pas dupliqués en propriétés locales.
+  `powerService`, pas dupliqués en propriétés locales. Depuis la
+  Phase 3.1 (voir `Core-Refinement-Review.md` §2/§6) :
+  `shutdownIcon`/`rebootIcon`/`suspendIcon`/`hibernateIcon` (url, vide
+  par défaut, transmis tel quel au `icon` du `NebulaButton` interne
+  correspondant) ; `shutdownLabel`/`rebootLabel`/`suspendLabel`/
+  `hibernateLabel`/`confirmLabel` (string, défauts `"Shut Down"`/
+  `"Restart"`/`"Sleep"`/`"Hibernate"`/`"Confirm?"` — jusque-là codés en
+  dur, désormais surchageables par un thème) ; `iconSize` (même
+  sémantique que `NebulaButton`, appliquée aux quatre icônes — pas de
+  `iconColor`, même raison que `NebulaButton`).
 - **Signals** : `shutdownRequested()`, `rebootRequested()`,
   `suspendRequested()`, `hibernateRequested()`.
 - **Dependencies** : `NebulaButton` (chaque action est un `NebulaButton`

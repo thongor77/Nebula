@@ -23,6 +23,17 @@ Rectangle {
     property bool hasError: authService.errorMessage.length > 0
     property bool isBusy: authService.authenticating
     property bool showToggleEnabled: true
+    // Text fallback, always available — a theme isn't required to
+    // provide icons. Overridable for localization (Phase 3.1, see
+    // docs/Core-Refinement-Review.md §6 — this text was previously
+    // hardcoded and untranslatable).
+    property string showLabel: "Show"
+    property string hideLabel: "Hide"
+    // If either is set, the toggle shows an icon instead of text (Phase
+    // 3.1, see docs/Core-Refinement-Review.md §2).
+    property url showIcon: ""
+    property url hideIcon: ""
+    property real iconSize: theme.typography.fontSizeBody
 
     signal submitted(string password)
     signal cleared()
@@ -53,6 +64,14 @@ Rectangle {
     Behavior on border.color {
         ColorAnimation { duration: root.theme.animation.durationFast }
     }
+
+    // Without this, KeyNavigation.tab targeting this component (a plain
+    // Rectangle, not a FocusScope) leaves activeFocus on the Rectangle
+    // itself instead of the actual TextInput — tabbing in wouldn't let
+    // you type until a separate click (found in the Phase 3.1
+    // accessibility review, see Development-Journal.md).
+    activeFocusOnTab: true
+    onActiveFocusChanged: if (root.activeFocus) input.forceActiveFocus()
 
     TextInput {
         id: input
@@ -87,14 +106,24 @@ Rectangle {
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         anchors.rightMargin: root.theme.spacing.spacingMd
-        width: toggleLabel.implicitWidth
-        height: toggleLabel.implicitHeight
+        width: toggleIcon.visible ? toggleIcon.width : toggleLabel.implicitWidth
+        height: toggleIcon.visible ? toggleIcon.height : toggleLabel.implicitHeight
 
         property bool revealed: false
+        readonly property url _icon: revealed ? root.hideIcon : root.showIcon
+
+        Image {
+            id: toggleIcon
+            source: toggle._icon
+            visible: toggle._icon.toString().length > 0
+            width: root.iconSize
+            height: width
+        }
 
         Text {
             id: toggleLabel
-            text: toggle.revealed ? "Hide" : "Show"
+            visible: !toggleIcon.visible
+            text: toggle.revealed ? root.hideLabel : root.showLabel
             color: root.theme.colors.textSecondary
             font.family: root.theme.typography.fontFamilyPrimary
             font.pixelSize: root.theme.typography.fontSizeBody

@@ -10,6 +10,66 @@
 
 ---
 
+## 2026-07-31 — Phase 3.1
+
+**Contexte** : revue de consolidation du Core (Phase 3.1, voir
+`Core-Refinement-Review.md`) — vérifier si `KeyNavigation.tab` ciblant
+`NebulaPasswordField` amène réellement le focus clavier sur le champ
+saisissable, pas seulement sur le composant lui-même.
+
+**Découverte** : `NebulaPasswordField` est un `Rectangle` simple, pas un
+`FocusScope`. `KeyNavigation.tab: passwordField` appelle
+`passwordField.forceActiveFocus()`, qui donne `activeFocus` au
+`Rectangle` racine — pas au `TextInput` interne. Vérifié avec un
+harnais jetable : `Window.activeFocusItem === passwordField` (`true`)
+avant correctif, `.echoMode` de cet item `undefined` (confirme que ce
+n'est pas le `TextInput`, qui seul possède cette propriété). Après
+ajout de `activeFocusOnTab: true` +
+`onActiveFocusChanged: if (activeFocus) input.forceActiveFocus()` sur
+la racine : `activeFocusItem === passwordField` devient `false`, et son
+`.echoMode` vaut `2` (`TextInput.Password`, une vraie valeur numérique)
+— confirme que le focus réel est bien redirigé vers le `TextInput`.
+
+**Méthode de vérification sans clavier réel** : `xdotool` ne fonctionne
+pas du tout sur cette session Wayland native (déjà noté en Phase 3.0,
+reconfirmé : même la recherche de fenêtre échoue, pas seulement
+l'injection de touches). `forceActiveFocus()` appelé directement en QML
+reproduit fidèlement ce que `KeyNavigation.tab` déclenche en interne
+(même appel), donc un harnais jetable qui l'appelle puis inspecte
+`Window.activeFocusItem` vérifie le comportement réel sans avoir besoin
+d'une vraie frappe clavier.
+
+**Impact** : bug réel, présent depuis la Phase 2.3, touchant tout thème
+utilisant `NebulaPasswordField` (Glass, Template) — jamais remarqué
+avant car aucun test précédent n'avait vérifié l'identité de
+`activeFocusItem` après un `Tab`, seulement l'apparence visuelle de la
+bordure de focus (qui, elle, restait correcte car liée à
+`input.activeFocus` dans le binding de couleur de bordure — la
+bordure semblait donc juste, masquant que le focus clavier réel n'était
+pas là où il semblait être).
+
+**Découverte n°2** : tenter d'ajouter `iconColor` (property color) à
+`NebulaButton`/`NebulaPasswordField`/`NebulaPowerButtons`, comme
+suggéré en exemple par le brief de la Phase 3.1 — impossible en QtQuick
+pur : teinter une `Image` arbitraire nécessite un `ShaderEffect` ou
+`MultiEffect`/`Qt5Compat.GraphicalEffects`, tous deux explicitement
+interdits dans `core/` (`Rendering-Guidelines.md` §2). Propriété non
+implémentée plutôt que contournée avec un effet interdit — documenté
+dans `Core-API.md`/`Core-Refinement-Review.md` §2.
+
+**Découverte n°3** (mesure, pas une hypothèse) : calcul réel des ratios
+de contraste WCAG (luminance relative sRGB, formule standard) sur les
+couleurs effectivement utilisées par chaque `theme.conf`. Le libellé du
+bouton Unlock de Nord (`textPrimary` sur `primaryColor`) mesure
+**1.74:1** — largement sous le seuil WCAG AA (4.5:1) — visible à l'œil
+sur une capture d'écran réelle (bouton et texte au contraste très
+faible, tous deux clairs). Glass Dark/Light mesurent ~3.6:1, conformes
+seulement pour du texte large. Cause structurelle : `NebulaButton`
+utilise `theme.colors.textPrimary` pour tout `variant`, sans token dédié
+« texte sur couleur primaire ». Documenté comme besoin réel pour une
+future phase Design Tokens plutôt que corrigé cette phase (voir
+`Core-Refinement-Review.md` §6).
+
 ## 2026-07-31 — Phase 3.0
 
 **Contexte** : valider Glass (HiDPI + multi-écran) sous

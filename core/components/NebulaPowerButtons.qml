@@ -20,6 +20,24 @@ Item {
     // stays a self-contained, minimal confirmation rather than a dialog.
     property bool confirmBeforeAction: false
 
+    // Text fallbacks, always available — a theme isn't required to
+    // provide icons. Overridable for localization (Phase 3.1, see
+    // docs/Core-Refinement-Review.md §6 — these were previously
+    // hardcoded and untranslatable).
+    property string shutdownLabel: "Shut Down"
+    property string rebootLabel: "Restart"
+    property string suspendLabel: "Sleep"
+    property string hibernateLabel: "Hibernate"
+    property string confirmLabel: "Confirm?"
+    // Passed straight through to each action's NebulaButton.icon — a
+    // theme isn't required to provide any (Phase 3.1, see
+    // docs/Core-Refinement-Review.md §2).
+    property url shutdownIcon: ""
+    property url rebootIcon: ""
+    property url suspendIcon: ""
+    property url hibernateIcon: ""
+    property real iconSize: theme.typography.fontSizeBody
+
     signal shutdownRequested()
     signal rebootRequested()
     signal suspendRequested()
@@ -57,7 +75,9 @@ Item {
             theme: root.theme
             visible: root.powerService.canShutdown
             variant: "secondary"
-            label: root._pendingAction === "shutdown" ? "Confirm?" : "Shut Down"
+            label: root._pendingAction === "shutdown" ? root.confirmLabel : root.shutdownLabel
+            icon: root.shutdownIcon
+            iconSize: root.iconSize
             onClicked: root._trigger("shutdown",
                 () => root.powerService.shutdown(),
                 () => root.shutdownRequested())
@@ -67,7 +87,9 @@ Item {
             theme: root.theme
             visible: root.powerService.canReboot
             variant: "secondary"
-            label: root._pendingAction === "reboot" ? "Confirm?" : "Restart"
+            label: root._pendingAction === "reboot" ? root.confirmLabel : root.rebootLabel
+            icon: root.rebootIcon
+            iconSize: root.iconSize
             onClicked: root._trigger("reboot",
                 () => root.powerService.reboot(),
                 () => root.rebootRequested())
@@ -77,7 +99,9 @@ Item {
             theme: root.theme
             visible: root.powerService.canSuspend
             variant: "ghost"
-            label: root._pendingAction === "suspend" ? "Confirm?" : "Sleep"
+            label: root._pendingAction === "suspend" ? root.confirmLabel : root.suspendLabel
+            icon: root.suspendIcon
+            iconSize: root.iconSize
             onClicked: root._trigger("suspend",
                 () => root.powerService.suspend(),
                 () => root.suspendRequested())
@@ -87,7 +111,9 @@ Item {
             theme: root.theme
             visible: root.powerService.canHibernate
             variant: "ghost"
-            label: root._pendingAction === "hibernate" ? "Confirm?" : "Hibernate"
+            label: root._pendingAction === "hibernate" ? root.confirmLabel : root.hibernateLabel
+            icon: root.hibernateIcon
+            iconSize: root.iconSize
             onClicked: root._trigger("hibernate",
                 () => root.powerService.hibernate(),
                 () => root.hibernateRequested())

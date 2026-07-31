@@ -408,6 +408,37 @@ existent mais ne sont câblées nulle part dans l'interface réelle (voir
 validée (`scripts/install-nebula.sh glass-dark` +
 `check-installation.sh`).
 
+**Sous-étape Phase 3.1 — Core Refinement & API Stabilization
+(terminée) :** consolidation du Core à partir des seuls besoins
+observés dans Nord/Glass, sans anticipation — voir
+[`docs/Core-Refinement-Review.md`](Core-Refinement-Review.md) (revue
+complète des 8 sections du brief) et
+[`docs/API-Stability-Review.md`](API-Stability-Review.md) (statut de
+stabilité de chaque API publique). Support d'icônes ajouté à
+`NebulaButton` (`iconSize`, `icon` existait déjà depuis la Phase 1.1),
+`NebulaPasswordField` (`showIcon`/`hideIcon`/`iconSize`) et
+`NebulaPowerButtons` (`shutdownIcon`/`rebootIcon`/`suspendIcon`/
+`hibernateIcon`/`iconSize`) — `iconColor` du brief délibérément non
+implémenté (teinter une image sans shader est impossible en QtQuick pur,
+`ShaderEffect`/`MultiEffect` interdits dans le Core). Six chaînes
+codées en dur (`"Show"`/`"Hide"`/`"Shut Down"`/...) rendues
+surchargeables (`showLabel`/`hideLabel`/`shutdownLabel`/.../
+`confirmLabel`) pour la localisation. Bug réel trouvé et corrigé :
+`KeyNavigation.tab` ciblant `NebulaPasswordField` laissait le focus
+clavier sur le `Rectangle` racine plutôt que sur le `TextInput` interne
+— touchait Glass et Template depuis la Phase 2.3, jamais remarqué avant
+(voir `Development-Journal.md`). Contraste WCAG mesuré réellement :
+libellé du bouton Unlock de Nord à 1.74:1 (non conforme), Glass à
+~3.6:1 (limite) — cause structurelle documentée (`NebulaButton` sans
+token « texte sur couleur primaire ») mais non corrigée cette phase
+(portée trop large). Aucune animation déplacée vers le Core (réutilisation
+non démontrée entre thèmes indépendants — Nord/Template n'en ont aucune,
+seul Glass, dont les deux variantes partagent déjà le même `Main.qml`).
+Nord, Glass Dark, Glass Light et Template revalidés sans aucune
+modification après les changements Core (`qmllint`, `qml6`,
+`sddm-greeter --test-mode`, installation système réelle réinstallée et
+revérifiée) — aucune régression.
+
 - [ ] `BlurEffect`, `GlowEffect`, `Particles` dans `core/effects/`
 - [ ] Thèmes `cyberpunk`, `hacker`, `amoled`, `hypr`
 - [x] Thème `glass` (voir sous-étape Phase 3.0 ci-dessus)

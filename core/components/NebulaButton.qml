@@ -11,6 +11,10 @@ Rectangle {
 
     property string label: ""
     property url icon: ""
+    // Matches the label's own font size by default — deliberately not a
+    // Design Token: a per-button size override, not a themeable scale
+    // (see docs/Core-Refinement-Review.md §2).
+    property real iconSize: theme.typography.fontSizeBody
     // "primary" | "secondary" | "ghost" — see docs/Core-API.md.
     property string variant: "primary"
 
@@ -59,7 +63,7 @@ Rectangle {
         Image {
             source: root.icon
             visible: root.icon.toString().length > 0
-            width: theme.typography.fontSizeBody
+            width: root.iconSize
             height: width
             anchors.verticalCenter: parent.verticalCenter
         }
