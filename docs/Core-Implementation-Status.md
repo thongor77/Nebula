@@ -160,9 +160,28 @@ plutôt que répétés ici, puisqu'ils ne concernent pas `core/`. Deux bugs
 réels trouvés et corrigés en testant sous `sddm-greeter --test-mode`
 réel : voir [`Development-Journal.md`](Development-Journal.md).
 
+### NebulaThemeLoader (`core/theme/NebulaThemeLoader.qml`) — Phase 2.0.5
+
+- Résout DT-0017 (voir `Decisions-Techniques.md`) : unique responsable de
+  la lecture de `theme.conf`, remplace `applyFlatValues()` dupliquée dans
+  `themes/template/Main.qml`/`tests/ThemeHarness.qml` (retirée des deux).
+- Lit `theme.conf` directement (jamais la propriété de contexte SDDM
+  `config`) — voir `docs/ThemeLoader.md` §3 pour la justification
+  architecturale (Core jamais dépendant de SDDM).
+- Tolérant par construction : token inconnu journalisé et ignoré, token
+  absent laisse la valeur par défaut du Core, valeur invalide détectée
+  après assignation (`isNaN`, `color.valid`) et la valeur par défaut
+  restaurée — jamais de crash, testé sur les 5 scénarios requis via
+  `tests/ThemeLoaderHarness.qml` (voir §4).
+- Deux bugs réels trouvés et corrigés pendant le développement (voir
+  `Development-Journal.md`) : référence vivante au lieu d'une copie en
+  capturant une propriété `color` dans une variable JS ; indistinction
+  fichier vide/manquant/lectures désactivées (DT-0018).
+- `qmllint` : aucun avertissement.
+
 ## 2. Composants en cours / pas commencés
 
-Reste du périmètre du Core MVP (voir `Core-MVP.md`) : `NebulaThemeLoader`,
+Reste du périmètre du Core MVP (voir `Core-MVP.md`) :
 `NebulaUserList`, `NebulaPasswordField`, `NebulaSessionSelector`,
 `NebulaKeyboardSelector`, `NebulaPowerButtons`, `NebulaNotification`,
 `NebulaAnimationManager`, `NebulaWallpaperEngine`,
@@ -209,6 +228,15 @@ automatiquement par `tests/ThemeSyncCheck.qml` ; `VisualHarness.qml`/
 `LoginScreenHarness.qml` confirment l'absence de régression visuelle
 (capture d'écran, taille par défaut et `QT_SCALE_FACTOR=2`). Le Core est
 considéré stable pour démarrer le premier thème (Nord).
+
+**Critère de fin de la Phase 2.0.5 atteint** : une seule implémentation
+de la logique de chargement de token existe dans tout le projet
+(`NebulaThemeLoader`) ; seul ce composant connaît le format `theme.conf` ;
+les composants Core restent totalement indépendants des thèmes (aucun
+changement à `NebulaButton`, `NebulaSurface`, etc.) ; `themes/template/`
+et `tests/ThemeHarness.qml` utilisent tous deux le Loader ; DT-0017 est
+résolu sans modification de l'API publique du Core. Le projet est prêt
+pour Nord (Phase 2.1).
 
 ## 3. Décisions prises pendant cette phase
 
@@ -485,6 +513,29 @@ automatiquement les groupes de tokens des deux objets (`Object.keys()`
 fonctionne sur un `QtObject` QML, voir `Development-Journal.md`) et
 échoue si l'un manque. Intégré à `scripts/check-design-system.sh`.
 
+### D22 — `NebulaThemeLoader` lit `theme.conf` directement, jamais `config` (SDDM)
+
+Voir `ThemeLoader.md` §3 : lire la propriété de contexte `config`
+directement depuis `core/` romprait `Nebula-Principles.md` §2. Le Loader
+fait sa propre lecture de fichier, fonctionnant à l'identique sous
+`qml6`, `sddm-greeter --test-mode`, et SDDM réel.
+
+### D23 — Bug réel : référence vivante en capturant une propriété `color` dans une variable JS
+
+`var previous = group[tokenName]` avant une réassignation ne crée pas de
+copie pour un type objet (`color`) — `previous` reflète aussi la nouvelle
+valeur après coup. Corrigé avec `var previous = "" + group[tokenName]`
+(force une vraie copie via conversion en chaîne). Voir
+`Development-Journal.md`, Phase 2.0.5.
+
+### D24 — Bug réel : ré-entrance de binding en affichant une propriété et son propre effet dérivé
+
+Un `Text` affichant à la fois `loader.configPath` et une valeur dérivée
+de `reload()` (déclenché par le changement de `configPath` lui-même)
+provoquait un vrai `Binding loop detected`, pas un faux positif. Corrigé
+en affichant `themeName` (stable) plutôt que `configPath`. Voir
+`Development-Journal.md`, Phase 2.0.5.
+
 ## 4. Vérifications réelles effectuées
 
 - `qmllint` sur les 3 nouveaux fichiers + le harnais de test : aucun
@@ -599,6 +650,27 @@ fonctionne sur un `QtObject` QML, voir `Development-Journal.md`) et
   leur code de sortie (voir D21 et `Development-Journal.md` pour la
   limite trouvée en testant la fermeture des fenêtres Wayland).
 
+### Phase 2.0.5
+
+- `qmllint` sur `NebulaThemeLoader.qml`, `themes/template/Main.qml`,
+  `tests/ThemeHarness.qml`, `tests/ThemeLoaderHarness.qml` : aucun
+  avertissement.
+- `tests/ThemeLoaderHarness.qml` exécuté réellement : les 5 scénarios
+  requis (thème valide, token inconnu, token absent, fichier vide, valeur
+  invalide) passent tous, aucun crash — 2 bugs réels trouvés et corrigés
+  pendant cette validation (D23, D24).
+- `themes/template/Main.qml` (rebranché sur le Loader) revalidé sous
+  `sddm-greeter-qt6 --test-mode` réel sur les 3 écrans de la machine —
+  aucune erreur, aucun avertissement QML. Confirmé une deuxième fois avec
+  `primaryColor` changé temporairement en magenta dans `theme.conf`
+  (round-trip complet re-vérifié après le passage au Loader).
+- `tests/ThemeHarness.qml` (rebranché sur le Loader) exécuté en
+  standalone (`qml6`) : charge, applique et visualise les tokens
+  correctement pour un thème valide, et pour un thème inexistant affiche
+  une erreur claire sans crash.
+- `scripts/check-theme.sh template` et `scripts/check-design-system.sh`
+  ré-exécutés : toujours au vert, aucune régression.
+
 ## 5. Documentation à synchroniser (fait dans ce lot)
 
 - [`Design-System.md`](Design-System.md) — `fontWeight` → 
@@ -678,3 +750,20 @@ fonctionne sur un `QtObject` QML, voir `Development-Journal.md`) et
   base neutre, distincte des thèmes visuels listés.
 - [`Roadmap.md`](Roadmap.md) — Phase 2.0 marquée terminée, item 3
   (`ThemeLoader`) annoté avec le point de départ validé (DT-0017).
+- [`ThemeLoader.md`](ThemeLoader.md) — nouveau document (Phase 2.0.5) :
+  responsabilités, cycle de chargement, stratégie de validation, piège
+  des signaux au premier chargement.
+- [`Compatibility-Matrix.md`](Compatibility-Matrix.md) — nouveau document
+  (Phase 2.0.5) : différences factuelles `qml6`/`sddm-greeter
+  --test-mode`/SDDM réel.
+- [`Core-API.md`](Core-API.md) — entrée `NebulaThemeLoader` révisée pour
+  refléter le design réellement implémenté (lecture directe de fichier,
+  pas de nom de thème résolu via SDDM).
+- [`Development-Environment.md`](Development-Environment.md) — mention de
+  `QT_LOGGING_TO_CONSOLE=1` comme alternative à `journalctl` pour
+  `sddm-greeter`, avec renvoi vers `Compatibility-Matrix.md`.
+- [`Decisions-Techniques.md`](Decisions-Techniques.md) — résolution de
+  DT-0017 documentée, DT-0018 (fichier vide/manquant/lectures désactivées
+  traité comme un échec).
+- [`Roadmap.md`](Roadmap.md) — item 3 (`ThemeLoader`) coché, Phase 2.0.5
+  marquée terminée.

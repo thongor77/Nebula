@@ -1,5 +1,4 @@
 import QtQuick
-import "../../core/config"
 import "../../core/theme"
 import "../../core/components"
 import "../../core/layouts"
@@ -22,63 +21,15 @@ Item {
     id: root
     anchors.fill: parent
 
-    // NebulaThemeLoader doesn't exist yet (docs/Roadmap.md, Phase 1 build
-    // order, item 3), so there is no Core-owned bridge from theme.conf's
-    // flat keys to NebulaThemeConfig's grouped tokens. SDDM itself already
-    // exposes theme.conf as the flat `config.<key>` context property
-    // (confirmed real behavior, docs/Prototype-Results.md §3.2) — this
-    // Main.qml applies those flat values onto its own NebulaThemeConfig
-    // imperatively, since NebulaThemeConfig's groups are readonly and
-    // don't support declarative per-token overrides (verified while
-    // building this template — see docs/Development-Journal.md, Phase
-    // 2.0). This is a temporary, per-theme stand-in for what
-    // NebulaThemeLoader should eventually own; `config` is undefined
-    // outside real SDDM (e.g. a quick standalone `qml6` preview), in
-    // which case NebulaThemeConfig's own neutral defaults apply.
-    property NebulaThemeConfig themeConfig: NebulaThemeConfig {}
+    // NebulaThemeLoader (Phase 2.0.5, see docs/ThemeLoader.md) is now the
+    // sole owner of reading theme.conf — it reads the file directly, not
+    // via SDDM's `config` context property, so this works identically
+    // under real SDDM, `sddm-greeter --test-mode`, and standalone `qml6`.
+    property NebulaThemeLoader themeLoader: NebulaThemeLoader {
+        configPath: Qt.resolvedUrl("theme.conf")
+    }
     property NebulaThemeProvider theme: NebulaThemeProvider {
-        config: root.themeConfig
-    }
-
-    function applyFlatValues(target, flatValues) {
-        var groupNames = Object.keys(target).filter((key) => {
-            return typeof target[key] === "object" && target[key] !== null
-        })
-        for (var i = 0; i < groupNames.length; i++) {
-            var group = target[groupNames[i]]
-            // `objectName` and every `xxxChanged` signal are also own
-            // keys of a QtObject (see docs/Development-Journal.md, Phase
-            // 1.6) — excluded here, not just real tokens. Skipping this
-            // filter let a lookup of "objectNameChanged" reach the real
-            // SDDM `config` object, which does return something
-            // non-undefined for it (its own signal), which then failed
-            // to assign back onto `group` (a read-only auto-generated
-            // signal) — found by testing under real sddm-greeter, see
-            // Phase 2.0 entry.
-            var tokenNames = Object.keys(group).filter((key) => {
-                return key !== "objectName" && typeof group[key] !== "function"
-            })
-            for (var j = 0; j < tokenNames.length; j++) {
-                var tokenName = tokenNames[j]
-                // Not `flatValues.hasOwnProperty(tokenName)`: when
-                // `flatValues` is the real SDDM `config` context property,
-                // it's a native QObject (SDDM::ThemeConfig), not a plain
-                // JS object — hasOwnProperty doesn't exist on it (found by
-                // testing under real sddm-greeter, see
-                // docs/Development-Journal.md, Phase 2.0). Bracket access
-                // returning undefined works on both a QObject and a plain
-                // JS object.
-                if (flatValues[tokenName] !== undefined) {
-                    group[tokenName] = flatValues[tokenName]
-                }
-            }
-        }
-    }
-
-    Component.onCompleted: {
-        if (typeof config !== "undefined") {
-            applyFlatValues(root.themeConfig, config)
-        }
+        config: root.themeLoader.config
     }
 
     NebulaUserService {

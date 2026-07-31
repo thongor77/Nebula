@@ -69,15 +69,26 @@ pour rester cohérent avec le reste de la documentation.
   `Architecture.md`, Inconnues critiques).
 - **Dependencies** : aucune.
 
-### NebulaThemeLoader
+### NebulaThemeLoader (implémenté en Phase 2.0.5)
 
-- **Responsabilité** : détecte et charge le thème actif au démarrage.
-- **Inputs** : nom du thème actif (fourni par la configuration SDDM).
-- **Outputs** : une instance de `NebulaThemeConfig` peuplée, ou un thème de
-  repli en cas d'échec.
-- **Properties** : `themeName` (string, lecture seule), `loaded` (bool),
-  `loadError` (string, vide si aucune erreur).
-- **Signals** : `themeLoaded()`, `themeLoadFailed(reason: string)`.
+- **Responsabilité** : seul composant autorisé à lire `theme.conf` et à
+  peupler un `NebulaThemeConfig` — voir
+  [`ThemeLoader.md`](ThemeLoader.md) pour le détail complet (cycle de
+  chargement, stratégie de validation, piège des signaux au premier
+  chargement).
+- **Inputs** : `configPath` (url) — chemin direct vers un `theme.conf`,
+  résolu par le thème lui-même (`Qt.resolvedUrl("theme.conf")`), **pas**
+  un nom de thème résolu via SDDM (contrat initial, pré-implémentation,
+  révisé : lire la propriété de contexte SDDM `config` directement
+  romprait `Nebula-Principles.md` §2 — voir `ThemeLoader.md` §3).
+- **Outputs** : une instance de `NebulaThemeConfig` peuplée (`config`),
+  ou ses valeurs par défaut inchangées en cas d'échec.
+- **Properties** : `configPath` (url), `config` (`NebulaThemeConfig`,
+  lecture seule), `themeName` (string, lecture seule, informatif), `loaded`
+  (bool, lecture seule), `loadError` (string, lecture seule).
+- **Methods** : `reload()`.
+- **Signals** : `themeLoaded()`, `themeLoadFailed(reason: string)` — ne
+  pas s'y fier pour le tout premier chargement, voir `ThemeLoader.md` §6.
 - **Dependencies** : `NebulaThemeConfig`.
 
 ### NebulaThemeProvider

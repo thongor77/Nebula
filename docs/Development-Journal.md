@@ -10,6 +10,98 @@
 
 ---
 
+## 2026-07-31 — Phase 2.0.5
+
+**Contexte** : `NebulaThemeLoader.reload()` restaure la valeur
+précédente d'un token quand la nouvelle s'avère invalide
+(`group[tokenName] = previous`), après avoir capturé `var previous =
+group[tokenName]` avant l'assignation.
+
+**Découverte** : la restauration échouait silencieusement — le message
+de log affichait la valeur qu'on venait de rejeter (`#000000`, une
+couleur invalide résolue en noir) au lieu de la vraie valeur par défaut
+(`#4a90d9`). Cause : pour une propriété de type `color` (un objet, pas un
+type primitif JS), `var previous = group[tokenName]` capture une
+référence vivante vers la propriété, pas une copie — modifier
+`group[tokenName]` ensuite modifie aussi ce que `previous` rapporte.
+Confirmé isolément : `var previous = colorProp; colorProp = "invalide"`
+fait que `previous` affiche également la nouvelle valeur. Les types
+primitifs (`real`, `int`, `string`) n'ont pas ce problème (copiés par
+valeur en JS).
+
+**Impact** : corrigé par `var previous = "" + group[tokenName]` (force
+une conversion en chaîne, donc une vraie copie) avant toute assignation.
+Règle générale pour la suite : ne jamais faire confiance à `var x =
+uneProprieteObjet` comme snapshot en QML/JS — toujours forcer une copie
+(`"" + x`, ou équivalent) si la propriété source va être modifiée avant
+que `x` soit relu.
+
+---
+
+**Contexte** : `Text { text: root.tokenLines.length + "..." + root.loader.configPath }`
+dans `tests/ThemeHarness.qml`, affichant à la fois le nombre de tokens
+chargés et le chemin source du thème.
+
+**Découverte** : `QML Text: Binding loop detected for property "text"`.
+Isolé par bissection (plusieurs reproductions minimales) : la cause
+n'était ni `wrapMode`, ni `visible`, ni la conversion `.toString()` sur
+l'`url` — c'était le fait de lire `loader.configPath` dans le même
+binding qu'une valeur dérivée de `reload()` (`tokenLines`, qui dépend de
+`loader.loaded`). Or `reload()` est justement déclenché par
+`onConfigPathChanged` — donc ce `Text` dépend à la fois de la cause
+(`configPath`) et de l'effet (`tokenLines`, mis à jour de façon
+synchrone par le handler que ce changement déclenche), une vraie
+ré-entrance dans le graphe de bindings, pas un faux positif de Qt.
+
+**Impact** : corrigé en affichant `root.themeName` (une propriété stable,
+non liée causalement au rechargement) plutôt que `loader.configPath`
+dans ce texte. Règle pour la suite : ne jamais afficher, dans un même
+binding, une propriété *et* une valeur dérivée d'un effet que cette
+propriété déclenche elle-même via `onXChanged`.
+
+---
+
+**Contexte** : `NebulaThemeLoader` déclare `signal themeLoaded()` /
+`themeLoadFailed(reason)`, émis depuis `reload()`, lui-même appelé par
+`onConfigPathChanged` — donc dès que `configPath` reçoit sa valeur
+initiale à la construction (cas courant : fourni comme littéral dans le
+même bloc que l'instanciation du Loader).
+
+**Découverte** : un handler `onThemeLoaded: ...` déclaré dans ce même
+bloc d'objet ne reçoit jamais ce tout premier signal — reproduit
+minimalement (un objet enfant qui change une propriété littérale à la
+construction et émet un signal personnalisé depuis son propre
+`onXChanged`, un objet parent avec un handler pour ce signal déclaré
+dans le même bloc que l'instanciation de l'enfant). Le changement de
+propriété ET l'émission ont bien lieu, mais le handler du parent n'est
+pas encore connecté à ce stade de la construction — QML termine de
+câbler les handlers déclarés dans un bloc après avoir résolu les
+bindings de ce même bloc, pas avant.
+
+**Impact** : `NebulaThemeLoader` documente ce piège explicitement (voir
+`docs/ThemeLoader.md` §6) — les consommateurs doivent lire
+`loaded`/`loadError`/`config` directement (fiables et synchrones dès que
+leur propre code s'exécute), pas se fier aux signaux pour le tout premier
+chargement. Les signaux restent utiles pour un changement de
+`configPath` survenant après la construction initiale.
+
+---
+
+**Contexte** : distinguer, dans `NebulaThemeLoader._readIniGeneral()`, un
+`theme.conf` manquant, un `theme.conf` réellement vide, et
+`QML_XHR_ALLOW_FILE_READ` non défini.
+
+**Découverte** : les trois cas produisent exactement le même résultat
+via `XMLHttpRequest` sur `file://` — `status: 0`, `responseText.length:
+0`, `readyState: 4`, `statusText: ""` — aucune différenciation possible
+depuis QML. Vérifié en comparant les trois scénarios réels côte à côte.
+
+**Impact** : voir [`Compatibility-Matrix.md`](Compatibility-Matrix.md)
+§5 pour la décision prise (traiter les trois comme un échec de
+chargement) et sa justification.
+
+---
+
 ## 2026-07-31 — Phase 2.0
 
 **Contexte** : `themes/template/Main.qml` doit peupler son propre

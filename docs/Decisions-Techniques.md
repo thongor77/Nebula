@@ -738,3 +738,67 @@ Quand Nord (Phase 2.1) sera implémenté, si son `Main.qml` a besoin de la
 même logique, c'est le signal explicite de promouvoir `applyFlatValues()`
 en composant Core réel — voir `Roadmap.md`, Phase 1, item 3. Ne pas
 dupliquer une troisième fois sans rouvrir cette décision.
+
+### Résolution (Phase 2.0.5)
+
+Résolu par anticipation, avant Nord plutôt qu'au moment où Nord en
+aurait eu besoin : avec deux consommateurs réels déjà présents (le
+Template et `tests/ThemeHarness.qml`) et Nord en approche immédiate, le
+critère de duplication de cette décision était sur le point d'être
+atteint de toute façon. `core/theme/NebulaThemeLoader.qml` créé,
+absorbant `applyFlatValues()` — voir
+[`ThemeLoader.md`](ThemeLoader.md). Aucune modification de l'API
+publique du Core existante (`NebulaThemeConfig`/`NebulaThemeProvider`
+inchangés) : seul un nouveau composant a été ajouté — l'alternative
+rejetée ci-dessus (« rendre les groupes non `readonly` ») n'a pas été
+nécessaire.
+
+---
+
+## DT-0018 — `NebulaThemeLoader` : fichier manquant/vide/lectures désactivées traité comme un échec
+
+Date : 2026-07-31
+État : accepté
+
+### Contexte
+
+`XMLHttpRequest` sur un `theme.conf` local ne permet pas de distinguer
+un fichier introuvable, un fichier réellement vide, et
+`QML_XHR_ALLOW_FILE_READ` non défini — les trois renvoient `status: 0`,
+`responseText` vide (vérifié réellement, voir
+[`Compatibility-Matrix.md`](Compatibility-Matrix.md) §5). Un choix devait
+être fait sur le comportement de `NebulaThemeLoader` dans ce cas.
+
+### Décision
+
+Traiter les trois cas comme un échec de chargement (`loadError`
+renseigné, `loaded: false`, `NebulaThemeConfig` garde entièrement ses
+valeurs par défaut) plutôt que comme un thème valide à zéro token
+personnalisé.
+
+### Alternatives étudiées
+
+- Traiter un résultat vide comme un succès silencieux (« thème sans
+  aucune personnalisation ») : rejeté — masquerait un chemin mal
+  orthographié ou un oubli de `QML_XHR_ALLOW_FILE_READ`, deux erreurs de
+  configuration bien plus probables en pratique qu'un `theme.conf`
+  intentionnellement vide.
+- Ajouter une dépendance hors QML pur pour vérifier l'existence réelle du
+  fichier avant la lecture : rejeté — disproportionné pour ce que ça
+  résoudrait, et introduirait une dépendance système non justifiée par
+  un besoin observé.
+
+### Raisons
+
+Un message d'erreur visible aide activement un auteur de thème à
+diagnostiquer une faute de configuration ; un échec silencieux ne le
+ferait pas (voir le principe « les messages doivent être utiles au
+développeur d'un thème », `ThemeLoader.md` §4/brief Phase 2.0.5).
+
+### Conséquences
+
+Un thème avec un `theme.conf` volontairement vide (aucune
+personnalisation) sera signalé comme en échec de chargement plutôt que
+comme valide — limitation assumée et documentée
+(`Nebula-Principles.md` §9), à revisiter seulement si ce cas d'usage
+réel se présente.

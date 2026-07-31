@@ -194,10 +194,9 @@ composants simples avant composants interactifs — voir
        (voir `docs/Core-Implementation-Status.md`)
 2. [x] Design tokens — Phase 1.1, premiers tokens implémentés dans
        `NebulaThemeConfig` (colors, spacing, radius, typography, animation)
-3. [ ] `ThemeLoader` — voir DT-0017 (`Decisions-Techniques.md`) pour un
-       point de départ déjà validé (`applyFlatValues()`, dupliqué dans
-       `themes/template/Main.qml`/`tests/ThemeHarness.qml` en attendant),
-       à promouvoir ici dès qu'un deuxième thème réel (Nord) en a besoin
+3. [x] `ThemeLoader` — Phase 2.0.5, `core/theme/NebulaThemeLoader.qml`
+       (voir `docs/ThemeLoader.md` et DT-0017/DT-0018 dans
+       `Decisions-Techniques.md`)
 4. [x] `ThemeProvider` — Phase 1.1, `core/theme/NebulaThemeProvider.qml`
 5. [x] `Button` — Phase 1.1 ; [x] `Avatar` — Phase 1.2, tous deux dans
        `core/components/`
@@ -254,6 +253,31 @@ aucune modification cette phase**, conformément à l'objectif de prouver
 qu'il est déjà suffisant. Deux bugs réels trouvés et corrigés en testant
 sous `sddm-greeter --test-mode` réel (pas seulement `qml6` standalone) :
 voir [`docs/Development-Journal.md`](Development-Journal.md).
+
+**Sous-étape Phase 2.0.5 — Theme Loading Architecture (terminée) :**
+`core/theme/NebulaThemeLoader.qml` (nouveau) devient l'unique
+responsable du chargement de `theme.conf` — lit le fichier directement
+(jamais la propriété de contexte SDDM `config`, pour ne jamais faire
+dépendre le Core de SDDM, voir
+[`docs/ThemeLoader.md`](ThemeLoader.md) §3), valide chaque token de façon
+tolérante (token inconnu ignoré et journalisé, token absent laisse la
+valeur par défaut, valeur invalide détectée après coup et la valeur par
+défaut restaurée), ne plante jamais. `applyFlatValues()` retirée de
+`themes/template/Main.qml` et `tests/ThemeHarness.qml`, qui consomment
+désormais exclusivement le Loader — DT-0017 résolu par anticipation,
+sans modification de l'API publique du Core existante. Nouveaux
+documents [`docs/ThemeLoader.md`](ThemeLoader.md) (contrat, cycle de
+chargement, piège des signaux au premier chargement) et
+[`docs/Compatibility-Matrix.md`](Compatibility-Matrix.md) (différences
+factuelles `qml6`/`sddm-greeter --test-mode`/SDDM réel). Nouveau
+`tests/ThemeLoaderHarness.qml` couvrant les 5 scénarios requis (thème
+valide, token inconnu, token absent, fichier vide, valeur invalide) — les
+deux derniers ont révélé deux bugs réels (indistinction fichier vide/
+manquant/lectures désactivées, DT-0018 ; référence vivante au lieu d'une
+copie en capturant une propriété `color` dans une variable JS), tous deux
+corrigés et re-vérifiés. Revalidé sous `sddm-greeter --test-mode` réel
+sur les 3 écrans de la machine : voir
+[`docs/Development-Journal.md`](Development-Journal.md).
 
 **Sous-étape Phase 2.1 — Nord :**
 

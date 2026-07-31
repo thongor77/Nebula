@@ -66,6 +66,12 @@ journalctl --no-pager -n 100 | grep -iE "sddm-greeter|votre-theme"
 Découverte empiriquement pendant le prototype de Phase 1.0 — voir
 [`Prototype-Results.md`](Prototype-Results.md) §3.5.
 
+Alternative plus directe si vous lancez la commande vous-même (pas besoin
+de `journalctl`) : passer `QT_LOGGING_TO_CONSOLE=1` (ou
+`QT_ASSUME_STDERR_HAS_CONSOLE=1`/`QT_FORCE_STDERR_LOGGING=1`) à
+l'invocation — fonctionne aussi bien sur `sddm-greeter-qt6` que sur
+`qml6`, voir [`Compatibility-Matrix.md`](Compatibility-Matrix.md) §1.
+
 ## 4. Commande future : `scripts/test-theme.sh`
 
 **Non implémentée à ce jour** — décrite ici pour fixer le comportement
