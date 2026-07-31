@@ -802,3 +802,129 @@ personnalisation) sera signalé comme en échec de chargement plutôt que
 comme valide — limitation assumée et documentée
 (`Nebula-Principles.md` §9), à revisiter seulement si ce cas d'usage
 réel se présente.
+
+---
+
+## DT-0019 — `NebulaPowerService` étendu avec `canHibernate`/`hibernate()`
+
+Date : 2026-07-31
+État : accepté
+
+### Contexte
+
+Le brief de la Phase 2.3 demande à `NebulaPowerButtons` d'exposer une
+action « veille prolongée » (hibernate). `NebulaPowerService` et
+`SDDMPowerAdapter` (Phase 1.4) n'exposaient que
+`canShutdown`/`canReboot`/`canSuspend` — aucune capacité hibernate.
+
+### Décision
+
+Ajouter `canHibernate` (bool, lecture seule) et `hibernate()` à
+`NebulaPowerService`, `platform/sddm/SDDMPowerAdapter.qml` et
+`tests/mocks/MockPowerAdapter.qml`, suivant exactement le même schéma
+que les trois capacités existantes.
+
+### Alternatives étudiées
+
+- Ne pas exposer l'hibernation dans `NebulaPowerButtons` cette phase :
+  rejeté — c'est une exigence explicite du brief, et
+  `docs/Core-API.md` anticipait déjà `sddm.canHibernate`/
+  `sddm.hibernate()` comme API SDDM réelle (confirmée par
+  `Prototype-Results.md` §3.2) avant même que `NebulaPowerButtons`
+  n'existe.
+
+### Raisons
+
+Extension additive, symétrique aux trois capacités déjà présentes —
+ne remet en cause ni l'API publique existante ni l'architecture
+Service/Adapter (cohérent avec le principe fondamental du brief Phase
+2.3 : compléter le Core sans remettre en cause son architecture).
+
+### Conséquences
+
+`SDDMPowerAdapter.hibernate()` reste un squelette (`console.warn`), comme
+les trois autres actions — le câblage réel vers `sddm.hibernate()` reste
+un besoin futur déjà tracé (Phase 1.4 originale).
+
+---
+
+## DT-0020 — Pas de type Core dédié pour l'état d'authentification
+
+Date : 2026-07-31
+État : accepté
+
+### Contexte
+
+Le brief de la Phase 2.3 §6 demande un « modèle commun » d'états
+Idle/Authenticating/Succeeded/Failed pour les composants d'authentification.
+
+### Décision
+
+Ne pas créer de nouveau type/enum Core. `NebulaPasswordField` reflète
+directement l'état déjà exposé par `NebulaAuthService`
+(`authenticating`, `errorMessage`) via ses propriétés `isBusy`/`hasError`
+— pas de représentation d'état dupliquée.
+
+### Alternatives étudiées
+
+- Créer un type `NebulaAuthState` (enum ou objet) partagé : rejeté pour
+  cette phase — un seul composant consomme cet état
+  (`NebulaPasswordField`), aucun besoin réel d'abstraction partagée
+  observé.
+
+### Raisons
+
+Cohérent avec le principe du workspace (pas d'abstraction avant besoin
+observé). `NebulaAuthService` expose déjà tout l'état nécessaire ; le
+« modèle commun » demandé par le brief est satisfait par convention
+(chaque composant futur reflète l'état de son Service de la même façon),
+pas par un nouveau type.
+
+### Conséquences
+
+Si un second composant a un jour besoin de représenter le même état
+(ex. un futur indicateur de statut global), ce sera le signal
+d'extraire un type partagé — cette décision devra alors être rouverte.
+
+---
+
+## DT-0021 — Phase 2.3 démarrée malgré la Phase 2.2 (Distribution) non terminée
+
+Date : 2026-07-31
+État : accepté
+
+### Contexte
+
+Le brief de la Phase 2.3 affirmait dans son contexte que « la
+distribution de Nebula est désormais résolue (Phase 2.2) » — inexact :
+Phase 2.2 (voir `Roadmap.md`) restait une sous-étape planifiée, jamais
+commencée, après le Constat #1 de `Nord-Validation-Report.md` (un thème
+installé séparément du dépôt ne peut pas charger le Core).
+
+### Décision
+
+Décision utilisateur explicite (2026-07-31) : démarrer la Phase 2.3
+quand même. Le travail réel de cette phase (nouveaux composants Core,
+testés via `qml6`/`LoginWorkflowHarness`/`sddm-greeter --test-mode`
+depuis le dépôt) ne dépend pas techniquement de la distribution étant
+résolue.
+
+### Alternatives étudiées
+
+- Traiter la Phase 2.2 d'abord : rejeté — aurait retardé sans raison
+  technique un travail (nouveaux composants interactifs) totalement
+  indépendant du problème de distribution.
+
+### Raisons
+
+Le problème de distribution affecte uniquement l'installation d'un
+thème hors du dépôt — sans rapport avec l'ajout de composants au Core
+lui-même, testables entièrement depuis le dépôt comme toutes les phases
+précédentes.
+
+### Conséquences
+
+La Phase 2.2 reste ouverte et non affectée par ce choix — voir
+`Roadmap.md`. La limitation déjà connue (adapters SDDM réels toujours
+des squelettes) s'applique de la même façon qu'avant à ces nouveaux
+composants — voir `Login-Architecture.md` §8.

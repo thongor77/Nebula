@@ -6,6 +6,7 @@ QtObject {
     property bool canShutdown: true
     property bool canReboot: true
     property bool canSuspend: true
+    property bool canHibernate: true
 
     function shutdown() {
         console.log("MockPowerAdapter: shutdown() called (no-op, test harness)")
@@ -17,5 +18,9 @@ QtObject {
 
     function suspend() {
         console.log("MockPowerAdapter: suspend() called (no-op, test harness)")
+    }
+
+    function hibernate() {
+        console.log("MockPowerAdapter: hibernate() called (no-op, test harness)")
     }
 }

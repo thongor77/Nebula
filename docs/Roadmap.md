@@ -206,13 +206,19 @@ composants simples avant composants interactifs — voir
        squelettes `platform/sddm/` — pas de câblage SDDM réel)
 8. [x] `Background` — Phase 1.5, `NebulaBackground` + `NebulaWallpaper` +
        `NebulaOverlay` + `NebulaSurface` (`core/components/`)
-9. [ ] `UserList`, `PasswordField` (dépendent désormais de
+9. [x] `UserList`, `PasswordField` — Phase 2.3,
+       `core/components/NebulaUserList.qml`,
+       `core/components/NebulaPasswordField.qml` (dépendent de
        `UserService`/`AuthService`, voir `Core-API.md`)
 10. [x] `Clock`, `Date` — Phase 1.2, `core/components/NebulaClock.qml`,
        `core/components/NebulaDate.qml`
-11. [ ] `PowerButtons` (shutdown / reboot / sleep — composé sur `Button`
-       et `PowerService`)
-12. [ ] `SessionSelector` (dépend de `SessionService`), `KeyboardSelector`
+11. [x] `PowerButtons` — Phase 2.3, `core/components/NebulaPowerButtons.qml`
+       (shutdown / reboot / sleep / hibernate — composé sur `Button` et
+       `PowerService`, étendu avec `canHibernate`/`hibernate()` — DT-0019)
+12. [x] `SessionSelector` — Phase 2.3,
+       `core/components/NebulaSessionSelector.qml` (dépend de
+       `SessionService`) ; [ ] `KeyboardSelector` reste à faire (aucun
+       Service dédié, voir `Core-API.md`)
 13. [ ] `Notification`
 14. [ ] `AnimationManager` (version minimale)
 15. [ ] Mettre en place `tests/` avec une première suite de tests pour
@@ -320,6 +326,29 @@ identifiées : module QML partagé via `QML2_IMPORT_PATH`, Core embarqué
 par thème, lien symbolique d'installation). À trancher une fois qu'un
 second thème réel confirme le besoin exact, pas uniquement sur la base de
 Nord.
+
+**Sous-étape Phase 2.3 — Interactive Login Components (terminée) :**
+démarrée malgré la Phase 2.2 non terminée — décision utilisateur
+explicite, le brief affirmait à tort que la distribution était résolue,
+voir DT-0021 (`Decisions-Techniques.md`). Quatre nouveaux composants
+Core : `NebulaUserList`, `NebulaPasswordField`, `NebulaSessionSelector`,
+`NebulaPowerButtons` (`core/components/`) — tous parlent uniquement aux
+Services existants, jamais à SDDM directement. `NebulaPowerService`
+étendu avec `canHibernate`/`hibernate()` (DT-0019). Pas de nouveau type
+d'état d'authentification créé — chaque composant reflète directement
+l'état de son Service (DT-0020). Nouveau
+[`docs/Login-Architecture.md`](Login-Architecture.md) (responsabilités,
+flux complet d'authentification) et `tests/LoginWorkflowHarness.qml`
+(écran de connexion complet et interactif, Mock adapters). Confirmé
+réellement : chaque composant se dégrade proprement (aucune entrée,
+aucun bouton) quand son adapter SDDM reste un squelette (Phase 1.4) —
+navigation clavier/souris et flux complet d'authentification exercés
+uniquement via les Mock adapters tant que le câblage SDDM réel n'est pas
+fait. `themes/template/Main.qml` mis à jour pour utiliser les quatre
+nouveaux composants (référence SDK à jour) ; Nord n'a reçu aucun
+traitement particulier, conformément au brief. Validé sous `qml6`,
+`sddm-greeter --test-mode` (3 écrans réels) et `QT_SCALE_FACTOR=2` — voir
+[`docs/Development-Journal.md`](Development-Journal.md).
 
 ## Phase 3 — Thèmes suivants et effets avancés
 

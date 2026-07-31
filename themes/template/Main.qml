@@ -10,13 +10,14 @@ import "../../platform/sddm"
 // docs/Theme-SDK.md.
 //
 // This file demonstrates the real production wiring: Services backed by
-// the actual (Phase 1.4 skeleton) platform/sddm/ adapters, not the mock
-// adapters used by tests/LoginScreenHarness.qml. It only assembles Core
-// components that exist today (Background/Wallpaper/Overlay/LoginLayout/
-// Surface/Avatar/Clock/Date/Button) — NebulaUserList/NebulaPasswordField/
-// NebulaSessionSelector/NebulaPowerButtons don't exist yet (see
-// docs/Roadmap.md, Phase 1 build order), so there is no real username
-// input or password field here yet, same limitation as the harness.
+// the actual platform/sddm/ adapters, not the mock adapters used by
+// tests/LoginWorkflowHarness.qml. Since those adapters are still Phase
+// 1.4 skeletons (empty users/sessions, every power capability false),
+// this Main.qml gracefully shows an empty user list / no session
+// selector / no power buttons when run for real — multi-user/
+// multi-session interaction is only exercisable today via
+// tests/LoginWorkflowHarness.qml's Mock adapters (see
+// docs/Login-Architecture.md).
 Item {
     id: root
     anchors.fill: parent
@@ -40,6 +41,16 @@ Item {
     NebulaAuthService {
         id: authService
         adapter: SDDMAuthAdapter {}
+    }
+
+    NebulaSessionService {
+        id: sessionService
+        adapter: SDDMSessionAdapter {}
+    }
+
+    NebulaPowerService {
+        id: powerService
+        adapter: SDDMPowerAdapter {}
     }
 
     NebulaBackground {
@@ -77,37 +88,55 @@ Item {
                         anchors.horizontalCenter: parent.horizontalCenter
                     }
 
-                    NebulaAvatar {
+                    NebulaUserList {
+                        id: userList
                         theme: root.theme
+                        userService: userService
                         anchors.horizontalCenter: parent.horizontalCenter
-                        size: 96
+                        KeyNavigation.tab: passwordField
                     }
 
-                    Text {
+                    NebulaPasswordField {
+                        id: passwordField
+                        theme: root.theme
+                        authService: authService
+                        username: userList.currentUser ? userList.currentUser.name : ""
+                        placeholderText: "Password"
                         anchors.horizontalCenter: parent.horizontalCenter
-                        text: userService.currentUser ? userService.currentUser.displayName : "Nebula"
-                        color: root.theme.colors.textPrimary
-                        font.family: root.theme.typography.fontFamilyPrimary
-                        font.pixelSize: root.theme.typography.fontSizeBody
+                        KeyNavigation.tab: unlockButton
                     }
 
                     NebulaButton {
+                        id: unlockButton
                         theme: root.theme
                         anchors.horizontalCenter: parent.horizontalCenter
                         label: authService.authenticating ? "Authenticating…" : "Unlock"
                         enabled: !authService.authenticating
                         variant: "primary"
-                        onClicked: authService.authenticate(
-                            userService.currentUser ? userService.currentUser.name : "",
-                            "")
+                        onClicked: passwordField.submit()
                     }
                 }
             }
 
-            // statusContent and footerContent stay unused here — nothing
-            // to put in them yet (NebulaNotification, NebulaPowerButtons,
-            // ... don't exist until later phases). See
-            // docs/Core-Implementation-Status.md.
+            // statusContent unused — no NebulaNotification yet (see
+            // docs/Roadmap.md).
+            footerContent: Column {
+                width: parent.width
+                spacing: root.theme.spacing.spacingMd
+
+                NebulaSessionSelector {
+                    theme: root.theme
+                    sessionService: sessionService
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+
+                NebulaPowerButtons {
+                    theme: root.theme
+                    powerService: powerService
+                    confirmBeforeAction: true
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+            }
         }
     }
 }

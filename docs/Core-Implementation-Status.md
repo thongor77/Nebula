@@ -192,15 +192,39 @@ d'un thème installé séparément du dépôt) : voir
 `Nord-Validation-Report.md`, Constat #1, et
 [`Compatibility-Matrix.md`](Compatibility-Matrix.md) §7.
 
+### NebulaUserList / NebulaPasswordField / NebulaSessionSelector / NebulaPowerButtons (`core/components/`) — Phase 2.3
+
+- Quatre nouveaux composants interactifs, tous dépendants uniquement de
+  `NebulaThemeProvider` et d'un Service (jamais SDDM directement) — voir
+  [`Login-Architecture.md`](Login-Architecture.md) pour le détail complet
+  et le flux d'authentification.
+- `NebulaPowerService` étendu avec `canHibernate`/`hibernate()` (DT-0019
+  dans `Decisions-Techniques.md`), propagé à `SDDMPowerAdapter` (toujours
+  un squelette) et `MockPowerAdapter`.
+- Pas de nouveau type Core pour l'état d'authentification
+  (Idle/Authenticating/Succeeded/Failed) — chaque composant reflète
+  directement l'état déjà exposé par son Service (DT-0020).
+- `NebulaPowerButtons.confirmBeforeAction` : confirmation en deux clics
+  auto-contenue (pas de dialogue modal, `NebulaNotification` n'existe pas
+  encore) — testée réellement (armement, exécution, expiration).
+- Testés réellement en isolation puis ensemble via
+  `tests/LoginWorkflowHarness.qml` (nouveau) : navigation clavier,
+  sélection souris, soumission de mot de passe, changement de session,
+  confirmation d'action d'alimentation — tous avec des Mock adapters.
+- `themes/template/Main.qml` mis à jour pour les utiliser (référence SDK
+  à jour) ; testé sous `sddm-greeter --test-mode` réel avec les vrais
+  adapters `platform/sddm/` (toujours des squelettes) — dégradation
+  propre confirmée (aucune entrée, aucun bouton, aucun crash).
+- `qmllint` : aucun avertissement.
+
 ## 2. Composants en cours / pas commencés
 
 Reste du périmètre du Core MVP (voir `Core-MVP.md`) :
-`NebulaUserList`, `NebulaPasswordField`, `NebulaSessionSelector`,
-`NebulaKeyboardSelector`, `NebulaPowerButtons`, `NebulaNotification`,
-`NebulaAnimationManager`, `NebulaWallpaperEngine`,
-`NebulaBlurEffect`/`NebulaGlowEffect`/`NebulaParticles` (Phase 3) — non
-commencés. Leur contrat `Core-API.md` a cependant déjà été mis à jour pour
-dépendre des Services (Phase 1.4) plutôt que de SDDM directement.
+`NebulaKeyboardSelector`, `NebulaNotification`, `NebulaAnimationManager`,
+`NebulaWallpaperEngine`, `NebulaBlurEffect`/`NebulaGlowEffect`/
+`NebulaParticles` (Phase 3) — non commencés. Leur contrat `Core-API.md`
+a cependant déjà été mis à jour pour dépendre des Services (Phase 1.4)
+plutôt que de SDDM directement.
 
 **Critère de fin de la Phase 1.2 atteint** : un écran de login statique
 (avatar + heure + date + bouton) est démontré dans
@@ -250,6 +274,16 @@ changement à `NebulaButton`, `NebulaSurface`, etc.) ; `themes/template/`
 et `tests/ThemeHarness.qml` utilisent tous deux le Loader ; DT-0017 est
 résolu sans modification de l'API publique du Core. Le projet est prêt
 pour Nord (Phase 2.1).
+
+**Critère de fin de la Phase 2.3 atteint** : un écran de connexion
+complet peut être assemblé uniquement avec des composants Core
+(`tests/LoginWorkflowHarness.qml`) ; tous les nouveaux composants
+communiquent exclusivement avec les Services ; aucun ne dépend
+directement de SDDM ; le harnais valide le flux complet d'interaction
+(sélection utilisateur, mot de passe, session, actions d'alimentation).
+Le Core dispose désormais de tous les éléments Phase 1 nécessaires à un
+écran de connexion complet, à l'exception de `NebulaKeyboardSelector` et
+`NebulaNotification`.
 
 ## 3. Décisions prises pendant cette phase
 
@@ -684,6 +718,35 @@ en affichant `themeName` (stable) plutôt que `configPath`. Voir
 - `scripts/check-theme.sh template` et `scripts/check-design-system.sh`
   ré-exécutés : toujours au vert, aucune régression.
 
+### Phase 2.3
+
+- `qmllint` sur les 4 nouveaux composants, `NebulaPowerService.qml`,
+  `SDDMPowerAdapter.qml`, `MockPowerAdapter.qml`, `MockUserAdapter.qml`,
+  `themes/template/Main.qml`, `tests/LoginWorkflowHarness.qml` : aucun
+  avertissement.
+- Chaque composant testé réellement en isolation avant assemblage
+  (fichiers `qml6` jetables, un par composant) : `NebulaPasswordField`
+  (focus automatique, `submit()` no-op si vide, `hasError`/`isBusy`
+  initiaux) ; `NebulaUserList` (3 utilisateurs mock, `selectIndex()`,
+  hors-limites sans effet, surbrillance visuelle confirmée par capture
+  d'écran) ; `NebulaSessionSelector` (changement de session, pastille
+  active confirmée par capture d'écran) ; `NebulaPowerButtons`
+  (mécanisme de confirmation en deux clics vérifié directement via
+  `_trigger()` : armé puis exécuté).
+- `tests/LoginWorkflowHarness.qml` exécuté réellement : écran de
+  connexion complet (horloge, date, 3 utilisateurs, mot de passe,
+  session, 4 boutons d'alimentation) rendu correctement, confirmé par
+  capture d'écran.
+- `themes/template/Main.qml` mis à jour et retesté : standalone (`qml6`,
+  dégradation propre à vide) et `sddm-greeter-qt6 --test-mode` réel sur
+  les 3 écrans de la machine (adapters SDDM réels, toujours des
+  squelettes — aucune erreur, aucun avertissement).
+- `QT_SCALE_FACTOR=2` sur `tests/LoginWorkflowHarness.qml` : rendu net,
+  aucun artefact, confirmé par capture d'écran.
+- Installation système réelle non retentée cette phase (Phase 2.2 non
+  résolue, voir `Nord-Validation-Report.md`) — limitation déjà connue et
+  documentée, pas une nouvelle découverte.
+
 ## 5. Documentation à synchroniser (fait dans ce lot)
 
 - [`Design-System.md`](Design-System.md) — `fontWeight` → 
@@ -791,3 +854,17 @@ en affichant `themeName` (stable) plutôt que `configPath`. Voir
 - [`Roadmap.md`](Roadmap.md) — Phase 2.1 marquée terminée ; nouvelle
   sous-étape Phase 2.2 (Distribution/Packaging, à faire) ajoutée pour
   tracer le Constat #1.
+- [`Login-Architecture.md`](Login-Architecture.md) — nouveau document
+  (Phase 2.3) : responsabilités des 4 nouveaux composants, modèle d'état
+  d'authentification (DT-0020), flux complet, limite des adapters
+  squelettes.
+- [`Core-API.md`](Core-API.md) — entrées `NebulaUserList`,
+  `NebulaPasswordField`, `NebulaSessionSelector`, `NebulaPowerButtons`
+  révisées pour refléter l'implémentation réelle (propriétés/méthodes
+  exactes, `canHibernate`/`hibernateRequested()`).
+- [`Decisions-Techniques.md`](Decisions-Techniques.md) — DT-0019
+  (`canHibernate`/`hibernate()`), DT-0020 (pas de type d'état
+  d'authentification dédié), DT-0021 (Phase 2.3 démarrée malgré la
+  Phase 2.2 non résolue).
+- [`Roadmap.md`](Roadmap.md) — items 9/11/12 de l'ordre de construction
+  Phase 1 cochés ; Phase 2.3 marquée terminée.

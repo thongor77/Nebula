@@ -10,6 +10,31 @@
 
 ---
 
+## 2026-07-31 — Phase 2.3
+
+**Contexte** : tester `NebulaUserList`/`NebulaSessionSelector`/
+`NebulaPowerButtons` sous `sddm-greeter --test-mode` réel, avec
+`themes/template/Main.qml` câblé sur les vrais adapters
+`platform/sddm/` (toujours des squelettes Phase 1.4 — listes vides,
+capacités à `false`), pas les Mock adapters.
+
+**Découverte** : aucune erreur, aucun avertissement. `NebulaUserList`
+avec `userService.users` vide se réduit simplement à une largeur nulle
+(aucune entrée à répéter) ; `NebulaSessionSelector` de même ;
+`NebulaPowerButtons` n'affiche aucun bouton (tous les `can*` à `false`).
+`NebulaLoginLayout` absorbe cette taille nulle sans erreur de layout.
+Confirmé sur les 3 écrans réels de la machine.
+
+**Impact** : valide empiriquement une propriété de conception déjà
+supposée mais jamais vérifiée avec de vrais composants interactifs
+(seuls des `console.log`/`Text` la sollicitaient auparavant, voir
+`ServicesHarness.qml`) — un composant Core dépendant d'un Service dont
+l'adapter est encore un squelette doit rester silencieux et fonctionnel,
+jamais crasher. La navigation clavier/souris et le flux complet
+d'authentification restent uniquement exercés via les Mock adapters
+(`tests/LoginWorkflowHarness.qml`) tant que les adapters SDDM réels ne
+sont pas câblés (voir `Login-Architecture.md` §8).
+
 ## 2026-07-31 — Phase 2.1
 
 **Contexte** : tester Nord au-delà de `sddm-greeter --test-mode` depuis
