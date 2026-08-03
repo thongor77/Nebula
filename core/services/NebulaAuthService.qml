@@ -3,12 +3,11 @@ import QtQuick
 // Public contract for authentication — components depend on this, never
 // on SDDM directly (see docs/Nebula-Principles.md, docs/Core-API.md §1).
 // Delegates to a swappable `adapter` (duck-typed: must expose
-// `login(username, password)`, `cancel()`, and signal
+// `login(username, password, sessionIndex)`, `cancel()`, and signal
 // `loginResult(bool success, string reason)`) — a mock adapter in tests,
 // a real SDDMAuthAdapter later (see docs/Services-Architecture.md).
 //
-// No real connection logic yet — only the public contract (see
-// docs/Roadmap.md, Phase 1.4).
+// Real `sddm.login()` wired in Phase 3.2.4 (see docs/Roadmap.md).
 QtObject {
     id: root
 
@@ -23,6 +22,15 @@ QtObject {
             adapter.loginResult.connect(_handleLoginResult)
         }
     }
+
+    // Optional reference to a NebulaSessionService — when set, its
+    // `currentIndex` is read at call time and forwarded to the adapter
+    // so the real `sddm.login(username, password, sessionIndex)` call
+    // launches the session the user actually selected, not just
+    // whatever `sessionModel.lastIndex` defaulted to. Added in Phase
+    // 3.2 without changing `authenticate()`'s public signature — see
+    // DT-0024 in docs/Decisions-Techniques.md.
+    property var sessionService: null
 
     readonly property bool authenticating: _authenticating
     readonly property string errorMessage: _errorMessage
@@ -41,7 +49,8 @@ QtObject {
         }
         _authenticating = true
         _errorMessage = ""
-        adapter.login(username, password)
+        var sessionIndex = sessionService ? sessionService.currentIndex : -1
+        adapter.login(username, password, sessionIndex)
     }
 
     function cancel() {

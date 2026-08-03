@@ -1077,3 +1077,77 @@ utilisateur ayant besoin d'autres `GreeterEnvironment=` doit les fusionner
 manuellement dans `/etc/sddm.conf.d/nebula.conf` (comportement de fusion
 de SDDM lui-même entre fichiers `sddm.conf.d/*.conf`, pas géré par
 Nebula).
+
+## DT-0024 — `NebulaAuthService` gagne une référence optionnelle `sessionService`
+
+Date : 2026-08-02
+État : accepté
+
+### Contexte
+
+En préparant l'implémentation réelle de `SDDMAuthAdapter` (Phase 3.2),
+lecture du thème `breeze` réellement installé sur la machine
+(`Development-Journal.md`, 2026-08-02 — Phase 3.2) : le vrai appel est
+`sddm.login(username, password, sessionIndex)`, 3 arguments positionnels.
+Or `NebulaAuthService.authenticate(username, password)` n'a que 2
+paramètres, et rien dans le flux Core actuel ne relie
+`NebulaAuthService` à `NebulaSessionService` — les deux sont instanciés
+comme deux `QtObject` frères indépendants (voir `themes/glass-dark/Main.qml`,
+seul thème actuel avec les deux services). Sans ce lien, un
+`SDDMAuthAdapter` réel n'aurait comme seule source possible pour
+`sessionIndex` que `sessionModel.lastIndex` — qui reflète la dernière
+session utilisée au démarrage du greeter, pas la sélection courante de
+l'utilisateur dans `NebulaSessionSelector` (Glass expose ce sélecteur ;
+Nord n'en a pas). Une machine avec plusieurs sessions installées
+lancerait alors systématiquement la mauvaise session dès que
+l'utilisateur change sa sélection à l'écran.
+
+### Décision
+
+`NebulaAuthService` gagne une property `sessionService: null` (référence
+optionnelle vers une instance de `NebulaSessionService`). La signature
+publique de `authenticate(username, password)` ne change pas. En
+interne, `authenticate()` lit `sessionService.currentIndex` au moment de
+l'appel si `sessionService` est défini, et le transmet en 3e argument à
+`adapter.login(username, password, sessionIndex)` — sinon `sessionIndex`
+vaut `-1`. `SDDMAuthAdapter.login(username, password, sessionIndex = -1)`
+accepte ce 3e paramètre optionnel ; si `sessionIndex < 0`, il retombe en
+interne sur `sessionModel.lastIndex`.
+
+### Alternatives étudiées
+
+- **Changer la signature publique en `authenticate(username, password,
+  sessionIndex)`** : rejeté — obligerait aussi à modifier le contrat de
+  `NebulaPasswordField` documenté dans `Core-API.md` (composant, pas
+  service, donc couvert par le gel API de `API-Stability-Review.md`)
+  pour un besoin qui ne concerne en réalité que le couple
+  Service/Adapter. `NebulaPasswordField` n'a et ne doit avoir aucune
+  notion de session.
+- **Lire `sessionModel.lastIndex` directement dans `SDDMAuthAdapter`,
+  sans passer par un Service** : gardé uniquement comme repli
+  (`sessionIndex < 0`), pas comme solution unique — voir le scénario
+  Glass ci-dessus (mauvaise session lancée après changement de
+  sélection). Aurait aussi été un couplage adapter-à-adapter implicite,
+  plus difficile à suivre qu'une référence explicite au niveau Service.
+- **Ne rien faire, accepter que seule la session par défaut soit
+  lançable** : rejeté — dégraderait silencieusement une fonctionnalité
+  déjà livrée (`NebulaSessionSelector`, Phase 2.3) sur tout thème qui
+  l'utilise, sans qu'aucune erreur ne le signale.
+
+### Raisons
+
+Rétrocompatible : `nord` (pas de `sessionService`) continue de
+fonctionner sans aucune modification. Respecte le gel API des
+composants Core — seul un Service (déjà moins strictement gelé, Phase
+1.4) gagne une property optionnelle. Corrige un vrai risque de
+correction (mauvaise session lancée) plutôt que de le documenter comme
+limitation connue sans y remédier, alors qu'un correctif simple et
+localisé existe.
+
+### Conséquences
+
+Un thème avec sélecteur de session (`glass-dark`, `glass-light`) devra
+ajouter `authService.sessionService: sessionService` dans son `Main.qml`
+pour bénéficier du comportement correct une fois `SDDMAuthAdapter`
+réellement câblé (Phase 3.2.4) — pas automatique, à faire explicitement
+lors de cette étape, documenté dans `Services-Architecture.md`.

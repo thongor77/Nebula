@@ -80,6 +80,7 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         anchors.leftMargin: root.theme.spacing.spacingMd
         anchors.rightMargin: root.theme.spacing.spacingSm
+        clip: true
 
         echoMode: toggle.revealed ? TextInput.Normal : TextInput.Password
         enabled: !root.isBusy

@@ -1,31 +1,35 @@
 import QtQuick
 
-// Future contact point between NebulaPowerService and the real SDDM
-// `sddm` context property (`sddm.canPowerOff`/`canReboot`/`canSuspend`/
-// `canHibernate`, `sddm.powerOff()`/`reboot()`/`suspend()`/`hibernate()`
-// — confirmed real API, see docs/Prototype-Results.md §3.2). Skeleton
-// only: capabilities default to false and actions are no-ops, so nothing
-// can accidentally trigger a real system action before this is wired for
-// real — see docs/Services-Architecture.md.
+// Real binding between NebulaPowerService and the SDDM `sddm` context
+// property — confirmed real API, see docs/Prototype-Results.md §3.2 and
+// docs/Development-Journal.md, 2026-08-02 — Phase 3.2 (Phase 3.2.1).
+// Note the name mismatch: our own `canShutdown` maps to SDDM's
+// `canPowerOff` / `powerOff()`, not `canShutdown`/`shutdown()` — SDDM has
+// no such property, only `powerOff`.
+//
+// `sddm` only exists as a context property when this file is loaded by
+// sddm-greeter (real service or --test-mode) — always true here, since
+// platform/sddm/ adapters are only ever instantiated by a theme's
+// Main.qml, itself only ever run through sddm-greeter, never standalone.
 QtObject {
-    property bool canShutdown: false
-    property bool canReboot: false
-    property bool canSuspend: false
-    property bool canHibernate: false
+    readonly property bool canShutdown: sddm.canPowerOff
+    readonly property bool canReboot: sddm.canReboot
+    readonly property bool canSuspend: sddm.canSuspend
+    readonly property bool canHibernate: sddm.canHibernate
 
     function shutdown() {
-        console.warn("SDDMPowerAdapter.shutdown: not implemented yet (Phase 1.4 skeleton)")
+        sddm.powerOff()
     }
 
     function reboot() {
-        console.warn("SDDMPowerAdapter.reboot: not implemented yet (Phase 1.4 skeleton)")
+        sddm.reboot()
     }
 
     function suspend() {
-        console.warn("SDDMPowerAdapter.suspend: not implemented yet (Phase 1.4 skeleton)")
+        sddm.suspend()
     }
 
     function hibernate() {
-        console.warn("SDDMPowerAdapter.hibernate: not implemented yet (Phase 1.4 skeleton)")
+        sddm.hibernate()
     }
 }

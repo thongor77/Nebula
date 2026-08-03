@@ -227,6 +227,55 @@
   — un problème d'architecture de déploiement (Phase 2.2), pas un défaut
   du thème testé au moment de sa découverte (Glass, Phase 3.0).
 
+## 10. Clavier virtuel (`InputMethod=qtvirtualkeyboard`) démesuré sur écran multi-moniteur à tailles physiques mixtes
+
+- **Contexte de vérification** : contrairement à toutes les entrées
+  précédentes de ce document, celle-ci a été observée sous le **vrai
+  service `sddm.service`** (pas `--test-mode`) — premier cas où l'écart
+  de portée signalé en tête de document (aucune vérification directe
+  sous SDDM réel) est levé, pour ce point précis.
+- **Symptôme** : au focus du champ mot de passe, le clavier virtuel Qt
+  (`qtvirtualkeyboard`) s'affiche sur l'écran "actif" (celui qui a le
+  focus/priorité KWin le plus haut, ici un moniteur 4K) à une échelle
+  démesurée — une dizaine de touches remplissent presque toute la
+  largeur de l'écran — pendant que la fenêtre de connexion du thème
+  elle-même reste correctement dimensionnée sur un autre écran (ici le
+  panneau interne du laptop). Constaté avec `glass-dark` actif, mais le
+  déclencheur est la présence d'un champ mot de passe recevant le focus,
+  indépendant du thème.
+- **Cause** : le greeter SDDM tourne sous un **serveur X11 classique**
+  (`journalctl -u sddm` : `Running: /usr/bin/X -nolisten tcp ...`), même
+  sur une session utilisateur Wayland/KWin par ailleurs — X11 n'a pas de
+  notion native de scale-factor par écran. `kscreen-doctor -o` confirme
+  que KWin applique bien des scales différents et cohérents par sortie
+  sous Wayland (1.4 sur le panneau laptop et le 4K, 1 sur le troisième
+  écran), mais le serveur X du greeter ne voit aucune de ces valeurs : il
+  fait sa propre auto-détection de DPI par écran X11, à partir de la
+  taille physique déclarée par l'EDID — notoirement peu fiable, en
+  particulier avec des écrans de tailles physiques très différentes
+  (petit panneau laptop très dense vs grand moniteur 4K). Le clavier
+  virtuel construit ses touches avec des tailles en unités logiques
+  dérivées de cette DPI mal détectée, d'où la démesure sur l'écran
+  concerné.
+- **Confirmation que ce n'est pas un bug Nebula** : aucun fichier de
+  `core/`, `themes/`, ou `platform/` ne référence `VirtualKeyboard`,
+  `InputPanel`, `InputMethod`, ni `Screen.*` (seul `prototype/Main.qml`,
+  jetable, y touche vaguement) — le clavier virtuel est entièrement géré
+  par SDDM/Qt en dehors du QML du thème, Nebula n'a aucune prise dessus.
+- **Solution** : aucune côté Nebula — c'est une limitation de
+  l'interaction SDDM (greeter X11) + Qt (auto-DPI par écran) +
+  configuration matérielle (multi-écran à tailles physiques mixtes),
+  hors du périmètre du Core. Un contournement système existe
+  (désactiver `InputMethod=qtvirtualkeyboard`, ex. via
+  `/etc/sddm.conf.d/`) mais reste un choix utilisateur/machine, pas une
+  modification du projet — voir [[nebula-virtual-keyboard-scaling]] côté
+  mémoire pour le détail de la décision de ne pas l'appliquer par défaut
+  dans `install-nebula.sh`.
+- **Impact** : concerne toute installation Nebula sur une machine qui a
+  `InputMethod=qtvirtualkeyboard` actif (par défaut sur EndeavourOS via
+  `10-endeavouros.conf`) **et** un multi-écran à tailles physiques très
+  différentes — indépendant du thème utilisé.
+
 ---
 
 ## Recommandation

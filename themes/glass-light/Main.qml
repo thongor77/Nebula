@@ -41,6 +41,7 @@ Item {
     NebulaAuthService {
         id: authService
         adapter: SDDMAuthAdapter {}
+        sessionService: sessionService
         onSucceeded: card.opacity = 0
     }
 

@@ -439,6 +439,93 @@ modification après les changements Core (`qmllint`, `qml6`,
 `sddm-greeter --test-mode`, installation système réelle réinstallée et
 revérifiée) — aucune régression.
 
+**Sous-étape Phase 3.2 — Real SDDM Platform Integration (terminée) :**
+implémentation réelle des 4 adapters `platform/sddm/`
+(`SDDMUserAdapter`, `SDDMSessionAdapter`, `SDDMPowerAdapter`,
+`SDDMAuthAdapter`), toujours des squelettes depuis la Phase 1.4 —
+condition bloquante identifiée en testant `nord` sous le vrai
+`sddm.service` (Milestone 0.1 Beta, 2026-08-02) : aucun thème ne peut
+authentifier, lister les utilisateurs/sessions ni agir sur
+l'alimentation tant que ce câblage n'existe pas, indépendamment du
+thème testé — un gap Core/Platform partagé par tous les thèmes, pas un
+bug par thème. Ordre délibéré par risque croissant plutôt que par ordre
+logique de l'API : les 3 premiers adapters se valident entièrement sous
+`--test-mode`, le dernier (`SDDMAuthAdapter`) exige le vrai
+`sddm.service` (jamais de backend d'authentification en mode test, voir
+`Prototype-Results.md` §3.5) et suit le protocole sûr déjà documenté
+pour l'incident VT/DRM du même jour (pas de session bureau vivante en
+parallèle pendant le test).
+
+- [x] **3.2.0 — Vérification des inconnues (sans risque)** : rôles
+      réels de `userModel`/`sessionModel` et forme réelle des signaux de
+      `sddm` (`loginSucceeded`/`loginFailed`), établis par lecture
+      statique du thème `breeze` réel installé sur la machine (déjà en
+      production, zéro exécution du greeter nécessaire) plutôt que par
+      un test actif — voir `Development-Journal.md`, 2026-08-02 — Phase
+      3.2. Découverte notable : SDDM réel ne transmet **aucune chaîne de
+      raison** au greeter en cas d'échec de connexion (`onLoginFailed()`
+      sans argument) — `NebulaAuthService.errorMessage` restera donc
+      toujours un texte générique choisi par Nebula, jamais un message
+      SDDM.
+- [x] **3.2.1 — `SDDMPowerAdapter` réel** : mapping direct
+      `sddm.can*`/`sddm.hibernate()`/`suspend()`/`reboot()`/`powerOff()`
+      — aucune inconnue restante. Piège de nommage réel : notre
+      `canShutdown`/`shutdown()` correspond à `sddm.canPowerOff`/
+      `sddm.powerOff()`, pas à un `sddm.canShutdown` qui n'existe pas.
+      Validé sous `sddm-greeter-qt6 --test-mode` avec `glass-dark` (seul
+      thème câblant `NebulaPowerButtons` à ce jour) : aucune erreur QML
+      sur les 3 écrans réels de la machine, sans jamais cliquer sur un
+      bouton d'action réel (risque déjà identifié : `--test-mode` ne
+      bloque pas forcément `sddm.powerOff()` comme il bloque
+      `sddm.login()` — vérification passive uniquement, voir
+      `Development-Journal.md`, 2026-08-02 — Phase 3.2).
+- [x] **3.2.2 — `SDDMSessionAdapter` réel** : matérialisation de
+      `sessionModel` en tableau JS via un `Instantiator` interne
+      (`Item`, pas `QtObject` — même contrainte que `MockAuthAdapter`,
+      Phase 1.4), même patron que le correctif `screenModel.count` de la
+      Phase 1.0. Piège réel trouvé en testant (pas en lisant la doc) :
+      un rôle de modèle exposé sous forme d'identifiant nu dans un
+      délégué `QtObject` (`property string name: ""`) reste vide —
+      seul l'accès explicite `model.name` fonctionne (confirmé en
+      reproduisant exactement le style du vrai `SessionButton.qml` de
+      Breeze). `currentIndex` initialisé une fois depuis
+      `sessionModel.lastIndex`, puis géré localement par
+      `selectSession()` sans jamais rappeler `sddm` (même comportement
+      que Breeze). Validé sous `sddm-greeter-qt6 --test-mode` avec
+      `glass-dark` : les deux vraies sessions de la machine
+      ("Plasma (Wayland)", "Plasma (X11)") apparaissent correctement,
+      aucune erreur QML. Voir `Development-Journal.md`, 2026-08-02 —
+      Phase 3.2 (3.2.2).
+- [x] **3.2.3 — `SDDMUserAdapter` réel** : même patron `Instantiator` +
+      `model.<rôle>` explicite que 3.2.2. Seuls `name` (identifiant
+      système réel, transmis tel quel à `sddm.login()`), `realName`
+      (repli sur `name` si vide, même logique que le vrai `breeze`) et
+      `icon` sont retenus — les autres rôles `userModel` confirmés en
+      3.2.0 (`homeDir`, `needsPassword`, `vtNumber`, ...) n'ont aucun
+      consommateur dans le contrat actuel de `NebulaUserList`/
+      `NebulaAvatar` (`Core-API.md`), donc pas repris. Validé sous
+      `sddm-greeter-qt6 --test-mode` (`nord` et `glass-dark`) : les deux
+      vrais comptes de la machine apparaissent correctement
+      (`luust`/"luust", `claudesvc`/repli sur son propre nom faute de
+      `realName`), icônes réelles résolues en `file://` valide, aucune
+      erreur QML. Voir `Development-Journal.md`, 2026-08-02 — Phase 3.2
+      (3.2.3).
+- [x] **3.2.4 — `SDDMAuthAdapter` réel** : implémenté
+      (`sddm.login(username, password, sessionIndex)`, repli sur
+      `sessionModel.lastIndex` si `sessionIndex < 0` ; écoute impérative
+      de `sddm.loginSucceeded`/`loginFailed`, confirmés sans argument,
+      voir 3.2.0 ; `NebulaAuthService.sessionService` — référence
+      optionnelle, voir DT-0024 — câblée dans `glass-dark`/`glass-light`
+      pour transmettre le vrai index de session sélectionné). **Round-trip
+      réel validé le 2026-08-03** sous le vrai `sddm.service` (`glass-dark`,
+      protocole sûr de `nebula-vt-switch-freeze` respecté) — voir
+      `Real-Adapter-Validation.md`.
+- [x] Critère de sortie de phase : login réel bout-en-bout observé
+      (2026-08-03, `glass-dark`, compte `luust`), documenté dans
+      `Real-Adapter-Validation.md`. Phase 3.2 terminée — investigation
+      VK-001 (clavier virtuel) débloquée, reste suspendue jusqu'à décision
+      explicite de la reprendre.
+
 - [ ] `BlurEffect`, `GlowEffect`, `Particles` dans `core/effects/`
 - [ ] Thèmes `cyberpunk`, `hacker`, `amoled`, `hypr`
 - [x] Thème `glass` (voir sous-étape Phase 3.0 ci-dessus)
