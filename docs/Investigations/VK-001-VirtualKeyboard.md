@@ -219,13 +219,16 @@ Décisions produit prises avant l'implémentation (voir mémoire de session
 
 Exécutée sous le vrai `sddm.service` sur `blade14`, protocole VT sûr
 respecté (reboot, aucune session `kwin_wayland` vivante, accès via SSH —
-voir mémoire `nebula-vt-switch-freeze`). Thème testé : `template`.
-`glass-dark`/`glass-light` câblent exactement les mêmes composants Core
-(`NebulaVirtualKeyboard`/`NebulaInputPanel`/`NebulaLoginLayout`) mais
-n'ont pas été re-testés individuellement sous le vrai service cette
-session.
+voir mémoire `nebula-vt-switch-freeze`). Les trois thèmes ayant un vrai
+champ mot de passe ont été testés individuellement : `template`,
+`glass-dark`, `glass-light` (`nord` reste hors périmètre, pas de champ
+mot de passe réel). La mesure décisive `QT_SCALE_FACTOR=2` n'a été
+répétée que sur `template` — les deux autres thèmes partagent
+exactement le même câblage Core, jugé suffisant pour ne pas répéter
+cette mesure précise sur chacun.
 
-Confirmé sur les trois écrans (eDP laptop, DP-6 4K, DP-8 HD) :
+Confirmé sur les trois écrans (eDP laptop, DP-6 4K, DP-8 HD), pour
+`template`, `glass-dark` et `glass-light` :
 
 - Le clavier n'apparaît plus automatiquement au focus du champ mot de
   passe.
@@ -271,5 +274,5 @@ Confirmé sur les trois écrans (eDP laptop, DP-6 4K, DP-8 HD) :
    footer grandit assez sur un écran à faible hauteur disponible.
 
 **Statut** : VK-001 résolu et validé de bout en bout sur du vrai
-matériel (thème `template`). Voir `Roadmap.md` pour le statut vivant de
-la validation des autres thèmes.
+matériel, sur les trois thèmes concernés (`template`, `glass-dark`,
+`glass-light`).

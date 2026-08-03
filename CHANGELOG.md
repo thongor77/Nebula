@@ -18,11 +18,11 @@ history rather than repeating it here.
   and [`docs/Core-API.md`](docs/Core-API.md). Shown only via an explicit
   toggle button, never automatically on focus. Wired into `template`,
   `glass-dark`, `glass-light`; `nord` is out of scope (no real password
-  field). Validated under a real `sddm.service` on `template` across 3
-  physical monitors, including the decisive `QT_SCALE_FACTOR=2`
-  re-measurement (see the investigation doc's "Validation réelle"
-  section) — `glass-dark`/`glass-light` share the same Core wiring but
-  weren't independently re-tested this session.
+  field). Validated under a real `sddm.service` across 3 physical
+  monitors on all 3 themes it's wired into (`template`, `glass-dark`,
+  `glass-light`), including the decisive `QT_SCALE_FACTOR=2`
+  re-measurement on `template` (see the investigation doc's "Validation
+  réelle" section).
 - **`NebulaLoginLayout.bottomInset`**: additive property keeping the main
   content and footer visible above the virtual keyboard when shown.
 
