@@ -311,6 +311,47 @@ pour rester cohérent avec le reste de la documentation.
 - **Signals** : `layoutSelected(layout)`.
 - **Dependencies** : `NebulaThemeProvider`.
 
+### NebulaVirtualKeyboard
+
+- **Responsabilité** : afficher un clavier virtuel à l'écran pour la
+  saisie du mot de passe, correctement dimensionné à l'écran réel — pas
+  la sélection d'une disposition clavier (voir `NebulaKeyboardSelector`
+  ci-dessus, un composant différent, jamais implémenté). Introduit pour
+  corriger VK-001 (voir
+  [`Investigations/VK-001-VirtualKeyboard.md`](Investigations/VK-001-VirtualKeyboard.md)) :
+  sans composant Core hébergeant un vrai `InputPanel`, Qt Virtual
+  Keyboard retombe sur son `DesktopInputPanel` de secours, une fenêtre
+  détachée à taille fixe, invisible aux échelles par écran — d'où un
+  clavier surdimensionné en environnement multi-écran à DPI mixte.
+- **Inputs** : `screenRoot` (Item requis, le root du thème — sert à
+  calculer la position de repli du panneau), `passwordField` (Item,
+  optionnel — reçoit `forceActiveFocus()` après bascule pour que les
+  frappes ne soient pas perdues par le champ, voir Properties/Methods
+  ci-dessous).
+- **Outputs** : saisie clavier virtuelle transmise au champ de saisie
+  actif via le mécanisme d'input method de Qt (`Qt.inputMethod`) — ce
+  composant ne lit ni n'écrit lui-même aucun texte.
+- **Properties** : `available` (bool, lecture seule — `false` si
+  `qt6-virtualkeyboard` n'est pas installé sur la machine ; un thème
+  doit masquer son bouton bascule si `available` est faux plutôt que de
+  supposer sa présence), `keyboardActive` (bool, lecture seule),
+  `reservedHeight` (real, lecture seule — hauteur occupée quand visible,
+  `0` sinon ; destiné à `NebulaLoginLayout.bottomInset`, voir plus bas).
+- **Methods** : `toggle()`, `show()`, `hide()`. Se déclenche **uniquement**
+  par appel explicite d'une de ces méthodes — jamais automatiquement au
+  focus d'un champ (décision produit lors de la correction de VK-001,
+  reproduit le comportement de `breeze`, contraire au comportement cassé
+  actuel où le clavier apparaît sans action de l'utilisateur).
+- **Signals** : aucun.
+- **Dependencies** : `NebulaThemeProvider` (spacing, tokens d'animation).
+- Implémenté comme un `Loader` chargeant un composant interne non
+  couvert par ce contrat (voir §4, `NebulaInputPanel`) — permet une
+  dégradation propre (`available: false`) si `qt6-virtualkeyboard` est
+  absent, plutôt qu'une erreur de chargement QML bloquant tout le thème.
+- Statut : non couvert par le gel d'API (voir
+  [`API-Stability-Review.md`](API-Stability-Review.md) §2) — composant
+  neuf, une seule validation réelle à ce stade.
+
 ### NebulaPowerButtons (implémenté en Phase 2.3)
 
 - **Responsabilité** : exposer les actions arrêt / redémarrage / veille /
@@ -360,7 +401,12 @@ pour rester cohérent avec le reste de la documentation.
 - **Properties** : `wallpaperContent`, `mainContent` (zone par défaut),
   `statusContent`, `footerContent` — chacune un point d'insertion de
   contenu (`property alias ... : zone.data`), pas une propriété de valeur
-  simple.
+  simple. `bottomInset` (real, défaut `0`, ajouté pour VK-001) : décalage
+  additif neutre — le composant continue de ne rien savoir d'un clavier
+  ou de tout autre widget spécifique ; un thème le lie à
+  `NebulaVirtualKeyboard.reservedHeight` pour garder le contenu principal
+  et le pied de page visibles au-dessus du clavier virtuel quand il est
+  affiché. Clampé en interne à la moitié de la hauteur du layout au plus.
 - **Contrat** : le contenu placé dans `mainContent`/`statusContent` doit
   se centrer horizontalement uniquement (jamais `anchors.centerIn`) — ces
   zones dimensionnent leur hauteur sur leur propre contenu, voir
@@ -522,3 +568,11 @@ pour rester cohérent avec le reste de la documentation.
 Polices et icônes partagées (`core/assets/`) ne sont pas des composants
 QML et n'ont donc pas de contrat API — voir
 `Specifications-Techniques.md` pour leur rôle.
+
+`core/components/NebulaInputPanel.qml` — implémentation interne chargée
+par le `Loader` de `NebulaVirtualKeyboard` (voir §3). Héberge directement
+un `QtQuick.VirtualKeyboard.InputPanel` avec `width: parent.width` — le
+correctif proprement dit de VK-001 (Qt dérive la hauteur du clavier de
+cette largeur). Pas de préfixe `Nebula`-public à dessein : jamais
+instancié directement par un thème, seulement par `NebulaVirtualKeyboard`
+via son `source`. Aucune stabilité garantie sur ce fichier.

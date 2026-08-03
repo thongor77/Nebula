@@ -283,11 +283,17 @@
   `AppInputPanel` comme `breeze` le fait, et ne le fait nulle part.
 - **Solution** : un composant Core dédié (`InputPanel` réel, `width` lié
   à l'écran, même patron que `breeze`) résoudrait le problème avec un
-  haut degré de confiance — voir VK-001 pour le détail. Non implémenté à
-  ce jour (décision produit séparée, voir `Roadmap.md`). Le contournement
-  système (désactiver `InputMethod=qtvirtualkeyboard` via
-  `/etc/sddm.conf.d/`) reste disponible en attendant — voir
-  [[nebula-virtual-keyboard-scaling]] côté mémoire.
+  haut degré de confiance — voir VK-001 pour le détail.
+  **Implémenté** (2026-08-03) : `NebulaVirtualKeyboard` +
+  `NebulaInputPanel`, câblé dans `template`/`glass-dark`/`glass-light`
+  (voir `docs/Investigations/VK-001-VirtualKeyboard.md` §Résolution et
+  `docs/Core-API.md`). **Non encore validé sous `sddm.service` réel** au
+  moment de l'écriture — ne pas considérer ce symptôme comme corrigé en
+  pratique tant que `Roadmap.md` ne confirme pas la validation réelle
+  multi-écran. Le contournement système (désactiver
+  `InputMethod=qtvirtualkeyboard` via `/etc/sddm.conf.d/`) reste
+  disponible en attendant — voir [[nebula-virtual-keyboard-scaling]]
+  côté mémoire.
 - **Impact** : concerne toute installation Nebula sur une machine qui a
   `InputMethod=qtvirtualkeyboard` actif (par défaut sur EndeavourOS via
   `10-endeavouros.conf`) et utilisant un vrai champ de saisie — donc

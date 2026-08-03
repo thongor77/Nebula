@@ -68,7 +68,9 @@ Item {
         }
 
         NebulaLoginLayout {
+            id: loginLayout
             theme: root.theme
+            bottomInset: virtualKeyboard.reservedHeight
 
             NebulaSurface {
                 theme: root.theme
@@ -124,6 +126,17 @@ Item {
                 width: parent.width
                 spacing: root.theme.spacing.spacingMd
 
+                NebulaButton {
+                    theme: root.theme
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    visible: virtualKeyboard.available
+                    label: virtualKeyboard.keyboardActive ? "Hide Keyboard" : "Show Keyboard"
+                    onClicked: {
+                        passwordField.forceActiveFocus()
+                        virtualKeyboard.toggle()
+                    }
+                }
+
                 NebulaSessionSelector {
                     theme: root.theme
                     sessionService: sessionService
@@ -137,6 +150,14 @@ Item {
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
             }
+        }
+
+        NebulaVirtualKeyboard {
+            id: virtualKeyboard
+            theme: root.theme
+            screenRoot: root
+            passwordField: passwordField
+            z: 1
         }
     }
 }

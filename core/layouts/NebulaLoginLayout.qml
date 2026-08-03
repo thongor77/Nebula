@@ -29,6 +29,15 @@ Item {
     // property instead of duplicating the expression in both zones.
     readonly property real _contentWidth: Math.min(root.width * 0.9, 640)
 
+    // Additive, neutral vertical offset — this layout still knows
+    // nothing about a virtual keyboard or any other specific widget; a
+    // theme binds it (e.g. to NebulaVirtualKeyboard.reservedHeight, see
+    // docs/Core-API.md) to keep the main content and footer visible
+    // above whatever is covering the bottom of the screen. Clamped
+    // internally so a runaway binding can't push content off-screen.
+    property real bottomInset: 0
+    readonly property real _clampedBottomInset: Math.min(root.bottomInset, root.height / 2)
+
     // Wallpaper Area — full-bleed background slot (e.g. a future
     // NebulaBackground). Declared first so it paints behind every other
     // zone.
@@ -54,9 +63,26 @@ Item {
     default property alias mainContent: mainArea.data
     Item {
         id: mainArea
-        anchors.centerIn: parent
+        anchors.horizontalCenter: parent.horizontalCenter
         width: root._contentWidth
         height: childrenRect.height
+
+        // Centered within the space actually left between statusArea and
+        // footerArea, not the whole screen — centering in the whole
+        // screen with only a partial (half-bottomInset) offset let a tall
+        // footer (e.g. a theme with 3 stacked footer rows) overlap this
+        // content on screens without much spare vertical room: footerArea
+        // moves up by the *full* bottomInset while this only moved up by
+        // half of it, so the asymmetry ran out of slack on smaller
+        // screens even though it looked fine on a spacious one (real bug,
+        // found testing VK-001's keyboard toggle on a 3-monitor rig).
+        readonly property real _availableTop: statusArea.height
+        readonly property real _availableBottom: footerArea.y
+        y: Math.max(_availableTop, (_availableTop + _availableBottom - height) / 2)
+
+        Behavior on y {
+            NumberAnimation { duration: root.theme.animation.durationNormal }
+        }
     }
 
     // Status Area — transient system messages (e.g. a future
@@ -82,9 +108,13 @@ Item {
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.bottomMargin: root.theme.spacing.spacingLg
+        anchors.bottomMargin: root.theme.spacing.spacingLg + root._clampedBottomInset
         anchors.leftMargin: root.theme.spacing.spacingLg
         anchors.rightMargin: root.theme.spacing.spacingLg
         height: childrenRect.height
+
+        Behavior on anchors.bottomMargin {
+            NumberAnimation { duration: root.theme.animation.durationNormal }
+        }
     }
 }

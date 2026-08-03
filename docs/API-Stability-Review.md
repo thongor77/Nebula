@@ -107,6 +107,26 @@ n'ait été nécessaire :
   tremblement), une future `NebulaAnimationManager` en absorbera
   probablement la logique — pas encore engagé.
 
+- **`NebulaVirtualKeyboard`** (nouveau, correctif VK-001) : composant
+  neuf ajouté après ce gel, justifié par le critère 1 du §0 (bug réel —
+  voir
+  [`Investigations/VK-001-VirtualKeyboard.md`](Investigations/VK-001-VirtualKeyboard.md))
+  et, dans une moindre mesure, le critère 2 (mesure expérimentale au
+  niveau des symboles binaires ayant confirmé la cause). N'ajoute rien
+  au §1 puisqu'il s'agit d'un composant nouveau, pas d'une modification
+  d'une API déjà stable — mais son API propre (`available`,
+  `keyboardActive`, `reservedHeight`, `show()`/`hide()`/`toggle()`)
+  n'a encore été exercée que par une seule validation réelle ; à
+  reconfirmer stable après un cycle de tests sur `sddm.service` réel.
+- **`NebulaLoginLayout.bottomInset`** (nouveau, même justification que
+  ci-dessus) : propriété additive, défaut `0` reproduisant exactement le
+  comportement précédent — ne retire ni ne renomme rien de l'entrée déjà
+  stable au §1. Ajoutée et exercée simultanément par les trois thèmes à
+  password field (`template`, `glass-dark`, `glass-light`), donc
+  satisfait aussi le critère 3. Reste ici, pas au §1, tant qu'aucun test
+  réel multi-écran n'a confirmé le clampage (`_clampedBottomInset`)
+  suffisant en pratique.
+
 ## 3. Dépréciations futures
 
 Aucune dépréciation identifiée cette phase — toutes les évolutions

@@ -191,3 +191,85 @@ cause, mais ce n'est pas vérifié.
 `InputPanel` explicite reproduira le symptôme sur n'importe quelle
 machine avec `InputMethod=qtvirtualkeyboard` actif, indépendamment du
 matériel exact.
+
+---
+
+## Résolution (2026-08-03)
+
+Le correctif recommandé ci-dessus a été implémenté : un composant Core,
+`NebulaVirtualKeyboard` (`core/components/NebulaVirtualKeyboard.qml` +
+implémentation interne `NebulaInputPanel.qml`), instancie un vrai
+`QtQuick.VirtualKeyboard.InputPanel` avec `width: parent.width` — le
+même patron que `breeze`/`VirtualKeyboardLoader.qml`. Contrat complet :
+[`Core-API.md`](../Core-API.md), justification du gel d'API :
+[`API-Stability-Review.md`](../API-Stability-Review.md) §2.
+
+Décisions produit prises avant l'implémentation (voir mémoire de session
+`VK001-FIX-RESUME`) :
+- Composant Core (pas un composant de thème) — la duplication entre
+  thèmes est considérée comme un bug par `CLAUDE.md`.
+- Affichage par bouton bascule explicite uniquement, jamais automatique
+  au focus — contrairement au comportement cassé actuel.
+- Câblé dans les trois thèmes ayant un vrai champ de mot de passe :
+  `template`, `glass-dark`, `glass-light`. `nord` reste hors périmètre
+  (aucun champ de mot de passe réel, lacune Phase 2.1 préexistante, sans
+  rapport avec VK-001).
+
+## Validation réelle (2026-08-03)
+
+Exécutée sous le vrai `sddm.service` sur `blade14`, protocole VT sûr
+respecté (reboot, aucune session `kwin_wayland` vivante, accès via SSH —
+voir mémoire `nebula-vt-switch-freeze`). Thème testé : `template`.
+`glass-dark`/`glass-light` câblent exactement les mêmes composants Core
+(`NebulaVirtualKeyboard`/`NebulaInputPanel`/`NebulaLoginLayout`) mais
+n'ont pas été re-testés individuellement sous le vrai service cette
+session.
+
+Confirmé sur les trois écrans (eDP laptop, DP-6 4K, DP-8 HD) :
+
+- Le clavier n'apparaît plus automatiquement au focus du champ mot de
+  passe.
+- Le bouton bascule (Show/Hide Keyboard) fonctionne de façon fiable.
+- Taille proportionnelle à chaque écran — plus de panneau fixe
+  démesuré.
+- Les touches tapées via le clavier virtuel atteignent réellement le
+  champ mot de passe et l'authentification fonctionne.
+- **Mesure décisive** : `QT_SCALE_FACTOR=2` fait maintenant grossir le
+  clavier avec le reste de l'UI (horloge, avatar, boutons) — inverse
+  direct de la preuve de la Partie 3, confirmation la plus forte que le
+  clavier participe désormais au même pipeline de mise à l'échelle que
+  l'application plutôt qu'à un mécanisme découplé.
+
+### Deux bugs réels trouvés et corrigés pendant cette validation
+
+1. **Course entre `keyboardActive` et `InputMethod.visible`** —
+   `NebulaVirtualKeyboard.keyboardActive` (donc `reservedHeight`, donc
+   `NebulaLoginLayout.bottomInset`) dépendait de `loader.item.active`,
+   lui-même conditionné par `InputMethod.visible`, un signal
+   asynchrone de la plateforme Qt Virtual Keyboard — découplé du
+   `state` propre du composant (`show()`/`hide()`/`toggle()`,
+   synchrone). Le panneau pouvait donc apparaître visuellement (piloté
+   par `state`) avant que `bottomInset` ne se mette à jour, laissant
+   parfois le clavier recouvrir le contenu de connexion au lieu de le
+   repousser. Corrigé en dérivant `keyboardActive` directement de
+   `root.state === "visible"` (`core/components/NebulaVirtualKeyboard.qml`).
+
+2. **Chevauchement `mainArea`/`footerArea` sur écrans à faible hauteur
+   disponible** — `NebulaLoginLayout.mainArea` était centré sur tout
+   l'écran avec un décalage arbitraire égal à la **moitié** seulement
+   de `bottomInset`, alors que `footerArea` se décale du `bottomInset`
+   **entier** dans sa marge basse. Sur l'écran 4K, assez d'espace
+   vertical absorbait cette asymétrie ; sur l'écran laptop et l'écran
+   HD, non — une fois le clavier affiché, le bord haut de `footerArea`
+   dépassait `mainArea` et le recouvrait (`photos/vkb.jpg`, confirmé :
+   jamais reproduit clavier caché, où `bottomInset = 0`). Corrigé en
+   centrant `mainArea`
+   dans l'espace réellement disponible entre `statusArea` et
+   `footerArea` plutôt que sur tout l'écran
+   (`core/layouts/NebulaLoginLayout.qml`) — bug de `NebulaLoginLayout`
+   lui-même, pas spécifique au clavier : affecterait tout thème dont le
+   footer grandit assez sur un écran à faible hauteur disponible.
+
+**Statut** : VK-001 résolu et validé de bout en bout sur du vrai
+matériel (thème `template`). Voir `Roadmap.md` pour le statut vivant de
+la validation des autres thèmes.

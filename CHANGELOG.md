@@ -5,6 +5,47 @@ Versions before 0.1 Beta were internal development phases, not
 releases — see [`docs/Roadmap.md`](docs/Roadmap.md) for that full
 history rather than repeating it here.
 
+## [Unreleased]
+
+### Added
+
+- **`NebulaVirtualKeyboard`** (`core/components/`, plus internal
+  `NebulaInputPanel`): fixes VK-001, an on-screen keyboard rendered at a
+  fixed, oversized size on mixed-DPI multi-monitor setups. Hosts a real
+  `QtQuick.VirtualKeyboard.InputPanel` instead of letting Qt fall back to
+  its own detached `DesktopInputPanel` — see
+  [`docs/Investigations/VK-001-VirtualKeyboard.md`](docs/Investigations/VK-001-VirtualKeyboard.md)
+  and [`docs/Core-API.md`](docs/Core-API.md). Shown only via an explicit
+  toggle button, never automatically on focus. Wired into `template`,
+  `glass-dark`, `glass-light`; `nord` is out of scope (no real password
+  field). Validated under a real `sddm.service` on `template` across 3
+  physical monitors, including the decisive `QT_SCALE_FACTOR=2`
+  re-measurement (see the investigation doc's "Validation réelle"
+  section) — `glass-dark`/`glass-light` share the same Core wiring but
+  weren't independently re-tested this session.
+- **`NebulaLoginLayout.bottomInset`**: additive property keeping the main
+  content and footer visible above the virtual keyboard when shown.
+
+### Fixed
+
+- **Real race condition, found during VK-001's real-hardware
+  validation**: `NebulaVirtualKeyboard.keyboardActive` depended on Qt's
+  own async `InputMethod.visible` rather than the component's own
+  synchronous `state`, so the keyboard panel could visually slide into
+  view before `bottomInset` updated — intermittently leaving it
+  overlapping the login form instead of making room for it. Fixed by
+  deriving `keyboardActive` from `state` directly.
+- **Real layout bug in `NebulaLoginLayout`, found the same session**:
+  `mainArea` only ever compensated by half of `bottomInset` while
+  `footerArea` compensated the full amount, relying on spare screen
+  height to absorb the difference. On screens without much to spare
+  (confirmed on a laptop panel and a 1920×1200 monitor, not reproduced
+  on a 4K screen), once the keyboard showed, `footerArea` could overtake
+  and overlap `mainArea`. Not keyboard-specific — would affect any theme
+  whose footer grows large enough on a short screen. Fixed by centering
+  `mainArea` within the space actually available between `statusArea`
+  and `footerArea` instead of the whole screen.
+
 ## [0.1 Beta] — 2026-07-31
 
 First public release. Milestone brief:

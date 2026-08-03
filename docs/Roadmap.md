@@ -539,6 +539,30 @@ de l'application — contrairement à `breeze`, qui enregistre son propre
 implémentation reste un choix séparé, à planifier explicitement plutôt
 que déduit automatiquement de cette investigation.
 
+- [x] **Correctif VK-001 implémenté (2026-08-03)** : `NebulaVirtualKeyboard`
+      + `NebulaInputPanel` (`core/components/`), câblés dans `template`,
+      `glass-dark`, `glass-light` (bouton bascule explicite dans le pied
+      de page, `NebulaLoginLayout.bottomInset` pour garder le contenu
+      visible au-dessus du clavier). `nord` hors périmètre (pas de champ
+      mot de passe réel). Voir `docs/Core-API.md`,
+      `docs/API-Stability-Review.md` §2,
+      `docs/Investigations/VK-001-VirtualKeyboard.md` §Résolution.
+- [x] **Validation réelle du correctif VK-001 (2026-08-03)** : testé
+      sous `sddm.service` réel sur `blade14` (protocole VT sûr de
+      `nebula-vt-switch-freeze`), thème `template`. Confirmé sur les
+      trois écrans : plus d'apparition automatique, bouton bascule
+      fiable, dimensionnement proportionnel, saisie fonctionnelle, et
+      `QT_SCALE_FACTOR=2` affecte désormais le clavier comme le reste de
+      l'UI (inverse de la preuve VK-001 Partie 3). Deux bugs réels
+      trouvés et corrigés pendant cette validation (course
+      `keyboardActive`/`InputMethod.visible`, chevauchement
+      `mainArea`/`footerArea` sur écrans à faible hauteur disponible) —
+      détail complet dans
+      `docs/Investigations/VK-001-VirtualKeyboard.md` §Validation
+      réelle. `glass-dark`/`glass-light` partagent le même correctif
+      Core mais n'ont pas été re-testés individuellement sous le vrai
+      service cette session.
+
 - [ ] `BlurEffect`, `GlowEffect`, `Particles` dans `core/effects/`
 - [ ] Thèmes `cyberpunk`, `hacker`, `amoled`, `hypr`
 - [x] Thème `glass` (voir sous-étape Phase 3.0 ci-dessus)
