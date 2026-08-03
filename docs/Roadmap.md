@@ -522,9 +522,22 @@ parallèle pendant le test).
       `Real-Adapter-Validation.md`.
 - [x] Critère de sortie de phase : login réel bout-en-bout observé
       (2026-08-03, `glass-dark`, compte `luust`), documenté dans
-      `Real-Adapter-Validation.md`. Phase 3.2 terminée — investigation
-      VK-001 (clavier virtuel) débloquée, reste suspendue jusqu'à décision
-      explicite de la reprendre.
+      `Real-Adapter-Validation.md`. Phase 3.2 terminée.
+
+**Investigation VK-001 (clavier virtuel) — close le 2026-08-03**, menée
+juste après la Phase 3.2 (voir `docs/Investigations/VK-001-VirtualKeyboard.md`).
+Cause identifiée avec un haut degré de confiance (symboles binaires réels
+de `libQt6VirtualKeyboard.so`) : Nebula ne fournit aucun composant
+`InputPanel` ("Application Integration"), donc Qt Virtual Keyboard
+retombe sur son mécanisme de secours (`DesktopInputPanel`), une fenêtre
+séparée aux dimensions figées, indépendantes de l'écran et du scaling Qt
+de l'application — contrairement à `breeze`, qui enregistre son propre
+`InputPanel`. Corrige le diagnostic provisoire de `Compatibility-Matrix.md`
+§10 (2026-07-31), qui concluait à tort que ce n'était pas un bug Nebula.
+**Décision produit non prise** : un composant Core dédié (mirroring
+`breeze`) résoudrait vraisemblablement le problème, mais son
+implémentation reste un choix séparé, à planifier explicitement plutôt
+que déduit automatiquement de cette investigation.
 
 - [ ] `BlurEffect`, `GlowEffect`, `Particles` dans `core/effects/`
 - [ ] Thèmes `cyberpunk`, `hacker`, `amoled`, `hypr`
