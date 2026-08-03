@@ -3,4 +3,4 @@
 Shared animation definitions and the `AnimationManager` that themes use
 instead of writing ad-hoc `Behavior`/`Animation` blocks.
 
-Empty until the architecture is validated.
+Not yet implemented — planned for Phase 3, see [`docs/Roadmap.md`](../../docs/Roadmap.md).

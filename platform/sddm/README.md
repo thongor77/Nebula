@@ -12,11 +12,13 @@ respective `sessionModel`/`userModel` via an `Instantiator` — always
 access model roles as `model.<role>`, a bare identifier does not get
 auto-populated in a `QtObject` delegate here, see
 `docs/Development-Journal.md`, 2026-08-02 — Phase 3.2.
-`SDDMAuthAdapter` (3.2.4) is coded and passively verified (clean
-`qmllint`, clean load under `--test-mode`) but its real login
-round-trip is **not yet validated** — `--test-mode` never connects a
-real auth backend (`Prototype-Results.md` §3.5), so this needs a
-supervised test under the real `sddm.service`, following the safe
-protocol documented for the same-day VT/DRM incident. See
+`SDDMAuthAdapter` (3.2.4) is real and fully validated — passively under
+`--test-mode` (clean `qmllint`, clean load) and, since `--test-mode`
+never connects a real auth backend (`Prototype-Results.md` §3.5), by a
+supervised real login round-trip under the real `sddm.service` on
+2026-08-03, following the safe protocol documented for the same-day
+VT/DRM incident. All four adapters are real and validated — Phase 3.2 is
+complete. See
+[`docs/Real-Adapter-Validation.md`](../../docs/Real-Adapter-Validation.md),
 [`docs/Services-Architecture.md`](../../docs/Services-Architecture.md)
 and [`docs/Core-Implementation-Status.md`](../../docs/Core-Implementation-Status.md).

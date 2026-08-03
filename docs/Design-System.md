@@ -154,8 +154,10 @@ un second cas d'usage apparaît.
 
 ## 8. Statut
 
-Ce catalogue est un vocabulaire de référence pour la Phase 1 (Core MVP).
-Les noms peuvent encore évoluer légèrement lors du prototype de
-`NebulaThemeProvider`, mais toute nouvelle valeur visuelle ajoutée à un
-composant doit d'abord passer par ce document, jamais être inventée
-localement dans un composant ou un thème.
+Ce catalogue est stabilisé : `NebulaThemeProvider` est implémenté et son
+API publique est gelée depuis le Milestone 0.1 Beta (voir
+[`API-Stability-Review.md`](API-Stability-Review.md)). Toute nouvelle
+valeur visuelle ajoutée à un composant doit d'abord passer par ce
+document, jamais être inventée localement dans un composant ou un thème.
+Référence exhaustive (valeur par défaut, composants consommateurs) :
+[`Design-Tokens-Reference.md`](Design-Tokens-Reference.md).

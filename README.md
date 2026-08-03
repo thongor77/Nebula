@@ -55,8 +55,6 @@ Themes never redefine what already exists in Core — see
 
 ## Documentation
 
-| Document                                                      | Content                                          |
-| -------------------------------------------------------------- | ------------------------------------------------- |
 **Getting started**
 
 | Document                                                      | Content                                          |
@@ -97,6 +95,7 @@ Themes never redefine what already exists in Core — see
 | [`docs/Glass-Theme-Report.md`](docs/Glass-Theme-Report.md)     | Glass's validation of the full interactive component set |
 | [`docs/Core-Refinement-Review.md`](docs/Core-Refinement-Review.md) | Core consolidation review before the 0.1 Beta freeze |
 | [`docs/Prototype-Results.md`](docs/Prototype-Results.md)       | Phase 1.0 real-world test results: SDDM API, multi-screen, HiDPI |
+| [`docs/Real-Adapter-Validation.md`](docs/Real-Adapter-Validation.md) | Real end-to-end login round-trip under the real `sddm.service` (Phase 3.2 exit criterion) |
 
 **Project history**
 
@@ -108,6 +107,7 @@ Themes never redefine what already exists in Core — see
 | [`docs/Architecture-Review.md`](docs/Architecture-Review.md)   | Phase 0.6 consistency review: what was fixed, risks, Core/Theme boundary |
 | [`docs/Core-MVP.md`](docs/Core-MVP.md)                          | Exact scope and exclusions of the Core MVP (Phase 1)     |
 | [`docs/Nord-Theme-Specification.md`](docs/Nord-Theme-Specification.md) | Palette, typography, layout for the Nord theme |
+| [`docs/Investigations/VK-001-VirtualKeyboard.md`](docs/Investigations/VK-001-VirtualKeyboard.md) | VK-001: oversized virtual keyboard — root cause, fix, real-hardware validation |
 | [`CHANGELOG.md`](CHANGELOG.md)                                  | Version history, starting at 0.1 Beta               |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md)                            | Coding conventions, commit style, PR process        |
 | [`CLAUDE.md`](CLAUDE.md)                                        | Project context for AI-assisted development (FR)   |

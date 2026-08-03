@@ -78,7 +78,7 @@ contourner via héritage dans le thème.
 ## DT-0003 — Configuration centralisée via ThemeConfig
 
 Date : 2026-07-30
-État : proposé
+État : accepté
 
 ### Contexte
 
@@ -116,6 +116,16 @@ modifié dans un format que `ThemeLoader` sait recharger. Cela pousse vers
 un format simple à lire/écrire (proche `.conf` ou JSON structuré) plutôt
 qu'un format optimisé uniquement pour la lecture QML. Ceci ne referme pas
 la décision — juste un critère supplémentaire pour le prototype.
+
+### Résolution (Phase 1.1 / Phase 2.0.5)
+
+Point d'entrée unique implémenté : `NebulaThemeConfig`
+(`core/config/NebulaThemeConfig.qml`, Phase 1.1) porte les valeurs
+résolues, `NebulaThemeLoader` (`core/theme/NebulaThemeLoader.qml`, Phase
+2.0.5) lit `theme.conf` — format texte simple à lire/écrire, cohérent
+avec la contrainte Nebula Designer ci-dessus. Voir DT-0017 et
+[`ThemeLoader.md`](ThemeLoader.md) pour le détail. API publique gelée
+depuis le Milestone 0.1 Beta (voir `API-Stability-Review.md`).
 
 ---
 

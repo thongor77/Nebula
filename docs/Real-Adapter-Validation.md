@@ -121,5 +121,5 @@ ajusté dynamiquement pour un gain visuel négligeable — non justifié.
 Phase 3.2 terminée. Les 4 adapters SDDM (`SDDMPowerAdapter`,
 `SDDMSessionAdapter`, `SDDMUserAdapter`, `SDDMAuthAdapter`) sont réels et
 validés — les 3 premiers passivement sous `--test-mode`, `SDDMAuthAdapter`
-par un round-trip réel complet sous le vrai `sddm.service`. Rien n'est
-encore commité (arbre de travail uniquement, à date du 2026-08-03).
+par un round-trip réel complet sous le vrai `sddm.service`. Commité le
+2026-08-03 (52805e6).

@@ -223,7 +223,11 @@ composants simples avant composants interactifs — voir
 14. [ ] `AnimationManager` (version minimale)
 15. [ ] Mettre en place `tests/` avec une première suite de tests pour
        les composants livrés ci-dessus
-16. [ ] Zéro warning QML sur l'ensemble du Core
+16. [x] Zéro warning QML sur l'ensemble du Core — vérifié en continu
+       depuis la Phase 1.1 (`qmllint` propre à chaque phase, voir
+       `Core-Implementation-Status.md`), appliqué par CI
+       (`.github/workflows/qml-lint.yml`) et par
+       `scripts/check-design-system.sh` avant tout commit
 
 Périmètre exact et exclusions du MVP : voir
 [`Core-MVP.md`](Core-MVP.md).

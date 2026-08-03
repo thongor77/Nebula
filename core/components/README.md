@@ -1,9 +1,12 @@
 # Core / Components
 
-Reusable visual QML components: `Clock`, `Date`, `UserList`, `PasswordField`,
-`SessionSelector`, `PowerButtons`, `KeyboardSelector`, `VirtualKeyboard`,
-`Notification`, `Background`.
+Reusable visual QML components: `NebulaButton`, `NebulaAvatar`, `NebulaClock`,
+`NebulaDate`, `NebulaUserList`, `NebulaPasswordField`, `NebulaSessionSelector`,
+`NebulaPowerButtons`, `NebulaBackground`, `NebulaWallpaper`, `NebulaOverlay`,
+`NebulaSurface`, `NebulaVirtualKeyboard`, `NebulaInputPanel`.
 
-See [`docs/Specifications-Techniques.md`](../../docs/Specifications-Techniques.md) for the contract each component must satisfy.
+`NebulaKeyboardSelector` and `NebulaNotification` remain unimplemented — see
+[`docs/Roadmap.md`](../../docs/Roadmap.md).
 
-Empty until the architecture is validated.
+See [`docs/Core-API.md`](../../docs/Core-API.md) for the public contract of
+each component.
