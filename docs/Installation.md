@@ -17,11 +17,24 @@ Aucune installation nécessaire — tester directement depuis un clone du
 dépôt :
 
 ```bash
-sddm-greeter-qt6 --test-mode --theme themes/nord
+QML_XHR_ALLOW_FILE_READ=1 sddm-greeter-qt6 --test-mode --theme themes/nord
 ```
 
+⚠️ **Sans `QML_XHR_ALLOW_FILE_READ=1`, le thème se charge quand même,
+mais avec les couleurs neutres du Core, pas celles du thème — et aucun
+message d'erreur visible nulle part** (ni console, ni UI) :
+`NebulaThemeLoader` lit `theme.conf` via `XMLHttpRequest`, que Qt6
+bloque par défaut pour les fichiers locaux (voir §"Pourquoi
+`install-nebula.sh` touche aussi `/etc/sddm.conf.d/`" en §2, même
+cause — seul le mécanisme diffère : `GreeterEnvironment=` à
+l'installation système, la variable d'environnement directe ici en
+mode développement). Si les couleurs semblent grises/neutres au lieu de
+celles attendues, c'est la première chose à vérifier — ce n'est pas
+Nebula qui ne fonctionne pas.
+
 Voir [`Development-Environment.md`](Development-Environment.md) pour le
-détail complet (variables d'environnement requises, lecture des logs).
+détail complet (autres variables d'environnement utiles, lecture des
+logs).
 
 ## 2. Installation système
 
@@ -43,6 +56,15 @@ Ceci installe :
   `/usr/share/sddm/themes/nord/`, avec ses imports réécrits pour
   consommer les modules installés plutôt que des chemins relatifs vers
   le dépôt.
+
+⚠️ **Rien ne change visuellement sur la machine à ce stade.**
+`install-nebula.sh` installe le thème mais ne modifie jamais la
+configuration active de SDDM — activer le thème installé est une étape
+manuelle distincte, volontairement laissée hors de ce script (changer
+l'écran de connexion actif est une action à part, jamais silencieuse).
+Éditez la configuration SDDM de votre distribution (ex.
+`/etc/sddm.conf.d/*.conf`, section `[Theme]`, `Current=nord`) pour
+l'utiliser réellement.
 
 Le script est idempotent — le relancer (même thème ou un autre) ne
 casse rien d'existant, il régénère simplement le module Core et le
@@ -78,15 +100,6 @@ propre que SDDM fournit lui-même pour ça — confirmé réellement présent
 dans le binaire `sddm` installé sur cette machine (voir
 `Compatibility-Matrix.md`). Ce fichier est supprimé par
 `uninstall-nebula.sh --core`/`--all` (voir §4).
-
-### Activer le thème installé
-
-`install-nebula.sh` installe le thème mais ne modifie jamais la
-configuration active de SDDM. Pour l'utiliser réellement, éditez la
-configuration SDDM de votre distribution (ex.
-`/etc/sddm.conf.d/*.conf`, section `[Theme]`, `Current=nord`) —
-volontairement laissé hors de ce script : changer l'écran de connexion
-actif est une action à part, jamais silencieuse.
 
 ## 3. Vérifier une installation
 
