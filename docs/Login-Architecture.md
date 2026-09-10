@@ -47,6 +47,19 @@ avant.
   `NebulaUserList.currentUser.name`), `placeholderText`, `hasError`,
   `isBusy`, `showToggleEnabled` (bool, affiche/masque le bouton
   Show/Hide).
+  **Pourquoi `username` est fourni manuellement plutôt que résolu
+  automatiquement** (question soulevée indépendamment par
+  `docs/Architecture-Review-2026.md` §2/§10 et
+  `docs/Developer-Experience-Review-2026.md` §5/§8/§11, ajoutée en
+  Phase 3.3) : `NebulaPasswordField` n'a et ne doit avoir aucune
+  dépendance à `NebulaUserList` ni à `NebulaUserService` — ce sont deux
+  composants indépendants du Core (§1 de `Core-API.md`), un thème
+  mono-utilisateur comme Nord n'importe même pas `NebulaUserList`. Un
+  câblage automatique forcerait une dépendance entre deux composants
+  qui doivent rester composables séparément ; le binding réactif
+  `username: userList.currentUser ? userList.currentUser.name : ""`
+  fait par le thème (voir §7 ci-dessous) est le seul endroit où cette
+  connaissance doit exister.
 - `submit()` : no-op si `isBusy` ou champ vide ; sinon émet
   `submitted(password)` puis appelle
   `authService.authenticate(username, password)` directement — c'est le
@@ -67,6 +80,22 @@ avant.
   `currentIndex` et émet `userSelected(user)`.
 - Chaque entrée compose `NebulaAvatar` (déjà existant) + le nom complet
   — aucune duplication du rendu d'avatar.
+
+**Asymétrie voulue avec `NebulaSessionSelector` (§5)** : la sélection de
+`NebulaUserList` reste purement locale au composant (`currentIndex`) —
+**jamais** remontée à `NebulaUserService`, contrairement à
+`NebulaSessionSelector` dont la sélection vit côté Service
+(`sessionService.currentIndex`/`selectSession()`, voir §5). Ce n'est pas
+un oubli (relevé et vérifié comme choix cohérent par
+`docs/Architecture-Review-2026.md` §2/§10, ajouté ici en Phase 3.3) :
+`userService.currentUser` sert un besoin différent — l'utilisateur par
+défaut fourni par SDDM (`userModel.lastUser`), consommé tel quel par un
+thème mono-utilisateur comme Nord, qui n'importe même pas
+`NebulaUserList`. Un thème multi-utilisateur câble
+`NebulaPasswordField.username` directement depuis
+`userList.currentUser.name` (voir §3 et §7) — les deux mécanismes
+coexistent proprement parce qu'ils répondent à deux besoins distincts,
+pas parce que l'un remplace l'autre.
 
 ## 5. NebulaSessionSelector
 
