@@ -35,5 +35,15 @@ Rectangle {
         fillMode: root._fillMode
         asynchronous: true
         visible: status === Image.Ready
+
+        // Diagnostic only — the fallback color above already handles
+        // this case correctly for the user. Distinguishes "no source
+        // provided" (must stay silent, the normal Template/dashboard-
+        // prototype case) from "a source was given and failed to load"
+        // (a typo'd asset path a theme author would otherwise have no
+        // way to notice — Developer-Experience-Review-2026.md §6/§11).
+        onStatusChanged: if (status === Image.Error && root.source.toString().length > 0) {
+            console.warn("[NebulaWallpaper] Failed to load image:", root.source.toString())
+        }
     }
 }

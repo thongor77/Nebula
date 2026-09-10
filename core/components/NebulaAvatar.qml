@@ -34,6 +34,15 @@ Item {
             fillMode: Image.PreserveAspectCrop
             visible: root.hasImage
             asynchronous: true
+
+            // Diagnostic only — the silhouette/fallbackIcon fallback
+            // already handles this case correctly for the user.
+            // Distinguishes "no source provided" (must stay silent) from
+            // "a source was given and failed to load" (a typo'd user
+            // avatar path — Developer-Experience-Review-2026.md §6/§11).
+            onStatusChanged: if (status === Image.Error && root.source.toString().length > 0) {
+                console.warn("[NebulaAvatar] Failed to load image:", root.source.toString())
+            }
         }
 
         // Fallback icon supplied by the theme, shown only if no user
