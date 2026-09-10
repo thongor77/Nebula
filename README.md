@@ -6,26 +6,42 @@ Nebula is not a collection of unrelated SDDM login themes. It is a modular
 **framework** — a reusable Core plus a set of themes built on top of it —
 for building high-quality, consistent SDDM login screens.
 
+## Where to start
+
+Pick the path that matches what you're here for:
+
+- **I want a nice login screen** → [`docs/Installation.md`](docs/Installation.md)
+- **I want to build my own theme** → [`docs/Theme-SDK.md`](docs/Theme-SDK.md) → [`docs/Creating-A-Theme.md`](docs/Creating-A-Theme.md)
+- **I want to contribute to the Core** → [`docs/Architecture.md`](docs/Architecture.md) → [`docs/Decisions-Techniques.md`](docs/Decisions-Techniques.md) → [`CONTRIBUTING.md`](CONTRIBUTING.md)
+
+Everything else under [Documentation](#documentation) is reference
+material to consult as needed, not required reading to get started.
+
+## Themes
+
+Three official themes ship today, each installable with one command
+(see [Installation](#installation)):
+
+| | | |
+|---|---|---|
+| ![Nord](themes/nord/preview.png) | **Nord** — the official [Nord](https://www.nordtheme.com) palette, calm and understated | `sudo scripts/install-nebula.sh nord` |
+| ![Glass Dark](themes/glass-dark/preview.png) | **Glass Dark** — Fluent/Breeze/macOS-inspired frosted glass, dark variant | `sudo scripts/install-nebula.sh glass-dark` |
+| ![Glass Light](themes/glass-light/preview.png) | **Glass Light** — the same Glass design, light variant | `sudo scripts/install-nebula.sh glass-light` |
+
+`template` isn't shown here — it's a starting point for building a new
+theme, not meant to be used as-is (see
+[`docs/Creating-A-Theme.md`](docs/Creating-A-Theme.md)).
+
 ## Status
 
-**0.1 Beta.** The Core is stable, its public API is considered frozen
-(see [`docs/API-Stability-Review.md`](docs/API-Stability-Review.md)),
-and four official themes ship today: `template` (the reference/starter
-theme), `nord`, `glass-dark`, `glass-light`. Every visual building block
-— `NebulaThemeConfig`/`NebulaThemeProvider`/`NebulaThemeLoader`,
-`NebulaButton`, `NebulaAvatar`, `NebulaClock`, `NebulaDate`,
-`NebulaUserList`, `NebulaPasswordField`, `NebulaSessionSelector`,
-`NebulaPowerButtons`, `NebulaLoginLayout`, `NebulaBackground`/
-`NebulaWallpaper`/`NebulaOverlay`/`NebulaSurface` — is implemented,
-documented, and exercised by real themes. A Service/Platform
-abstraction (`NebulaAuthService`, `NebulaUserService`,
-`NebulaSessionService`, `NebulaPowerService` in `core/services/`,
-SDDM-specific adapters in `platform/sddm/`) keeps Core components from
-ever calling SDDM directly. A full, real, installable login screen
-works today — see
+**0.1 Beta.** The Core is stable and its public API is frozen (see
+[`docs/API-Stability-Review.md`](docs/API-Stability-Review.md)). Every
+visual building block and the Service/Platform abstraction that keeps
+Core components from ever calling SDDM directly are implemented,
+documented, and exercised by the three real themes above. See
 [`docs/Core-Implementation-Status.md`](docs/Core-Implementation-Status.md)
 for exactly what's implemented, and [`CHANGELOG.md`](CHANGELOG.md) for
-the 0.1 Beta feature summary and known limitations.
+the full 0.1 Beta feature summary and known limitations.
 
 ## Goals
 
@@ -43,6 +59,8 @@ core/          reusable components, layouts, services, effects, animations, util
 platform/      concrete backend adapters (sddm/) — the only code allowed to call SDDM directly
 themes/        official: template, nord, glass-dark, glass-light
                planned: cyberpunk, hacker, amoled, hypr (see docs/Roadmap.md)
+               dashboard-prototype: architecture stress-test artifact,
+               not for end users (see its own README.md)
 docs/          architecture, technical decisions, roadmap, specifications
 scripts/       install/uninstall/check-installation/check-theme/check-design-system
 tests/         test suite for Core components, plus mocks/ for service adapters
