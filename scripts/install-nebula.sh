@@ -14,6 +14,7 @@
 
 set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$REPO_ROOT/scripts/lib/common.sh"
 
 if [ $# -ne 1 ]; then
     echo "Usage: $0 <ThemeName>" >&2
@@ -32,7 +33,7 @@ if [ ! -d "$REPO_ROOT/themes/$THEME" ]; then
     exit 1
 fi
 
-QMAKE="$(command -v qmake6 || command -v qmake || true)"
+QMAKE="$(nebula_find_qmake)"
 if [ -z "$QMAKE" ]; then
     echo "Neither qmake6 nor qmake found — cannot locate Qt's QML install path." >&2
     echo "Install qt6-base (or your distribution's equivalent) first." >&2

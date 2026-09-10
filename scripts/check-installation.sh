@@ -8,17 +8,11 @@
 #               of every theme currently installed by Nebula.
 
 set -uo pipefail
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$REPO_ROOT/scripts/lib/common.sh"
 errors=0
 
-fail() {
-    echo "FAIL: $1" >&2
-    errors=$((errors + 1))
-}
-pass() {
-    echo "PASS: $1"
-}
-
-QMAKE="$(command -v qmake6 || command -v qmake || true)"
+QMAKE="$(nebula_find_qmake)"
 if [ -z "$QMAKE" ]; then
     fail "neither qmake6 nor qmake found — cannot locate Qt's QML install path"
     exit 1

@@ -12,6 +12,8 @@
 # writes — a same-named theme installed some other way is left alone.
 
 set -euo pipefail
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$REPO_ROOT/scripts/lib/common.sh"
 
 if [ $# -ne 1 ]; then
     echo "Usage: $0 <ThemeName> | --core | --all" >&2
@@ -24,7 +26,7 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-QMAKE="$(command -v qmake6 || command -v qmake || true)"
+QMAKE="$(nebula_find_qmake)"
 if [ -z "$QMAKE" ]; then
     echo "Neither qmake6 nor qmake found — cannot locate Qt's QML install path." >&2
     exit 1

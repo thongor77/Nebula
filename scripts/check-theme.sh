@@ -10,6 +10,7 @@
 
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
+source scripts/lib/common.sh
 
 if [ $# -ne 1 ]; then
     echo "Usage: $0 <ThemeName>" >&2
@@ -19,11 +20,6 @@ fi
 theme_name="$1"
 theme_dir="themes/$theme_name"
 errors=0
-
-fail() {
-    echo "FAIL: $1" >&2
-    errors=$((errors + 1))
-}
 
 if [ ! -d "$theme_dir" ]; then
     echo "FAIL: $theme_dir does not exist" >&2
