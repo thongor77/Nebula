@@ -1,13 +1,25 @@
 # API Stability Review — Nebula
 
-> Rapport initial de la Phase 3.1 (voir `Roadmap.md` et
-> `Core-Refinement-Review.md`), formalisé en gel d'API à la Milestone
-> 0.1 Beta (voir §0 ci-dessous). Ce document ne redéfinit aucune API —
-> il classe l'état de stabilité de celles déjà documentées dans
+> **Déclaration de stabilité du SDK pour la 0.1 Beta.** Rapport initial
+> de la Phase 3.1 (voir `Roadmap.md` et `Core-Refinement-Review.md`),
+> formalisé en gel d'API à la Milestone 0.1 Beta (voir §0 ci-dessous),
+> mis à jour en Phase 3.3. Ce document ne redéfinit aucune API — il
+> classe l'état de stabilité de celles déjà documentées dans
 > [`Core-API.md`](Core-API.md), à l'usage des futurs auteurs de thèmes
-> et de Core. Établi après trois thèmes réels (Nord, Glass Dark, Glass
-> Light) et un thème de référence (Template) ont exercé le Core en
-> conditions réelles.
+> et de Core, avec trois niveaux : **Stable/Gelé** (§1 — garanti stable
+> pour toute la ligne 0.1 Beta), **Limité** (§2 — supporté mais
+> volontairement contraint, ex. l'ensemble fermé de tokens de
+> `theme.conf`), **Expérimental** (§2 — peut encore changer ; un
+> exemple/prototype comme `themes/dashboard-prototype` n'est jamais une
+> promesse de compatibilité). C'est volontairement une déclaration de
+> stabilité **0.1**, pas une déclaration **SDK 1.0** — voir
+> [`Dashboard-Architecture-Stress-Test.md`](Dashboard-Architecture-Stress-Test.md)
+> et le brief Phase 3.3 : annoncer un SDK 1.0 avant que Nebula
+> lui-même atteigne sa propre 1.0 induirait une promesse de
+> compatibilité plus forte que ce que le projet peut tenir aujourd'hui.
+> Établi après trois thèmes réels (Nord, Glass Dark, Glass Light) et un
+> thème de référence (Template) ont exercé le Core en conditions
+> réelles.
 
 ---
 
@@ -32,7 +44,7 @@ d'animations) restent explicitement **hors gel** — pas encore exercés
 par un nombre de thèmes suffisant pour être considérés stables, comme
 indiqué dans chaque entrée.
 
-## 1. APIs considérées comme stables
+## 1. APIs Stable/Gelé
 
 Composants dont l'API publique (noms de propriétés, signaux, valeurs
 par défaut) n'a pas changé depuis leur introduction et a été exercée
@@ -64,8 +76,22 @@ n'ait été nécessaire :
 - **`NebulaUserList`** / **`NebulaSessionSelector`** — inchangés depuis
   leur introduction en Phase 2.3, utilisés sans modification par Glass
   et Template.
+- **`NebulaVirtualKeyboard`** — promu depuis §2 en Phase 3.3 : la
+  validation réelle sous `sddm.service` (2026-08-03,
+  [`Investigations/VK-001-VirtualKeyboard.md`](Investigations/VK-001-VirtualKeyboard.md)
+  §Validation réelle) a depuis exercé les trois thèmes concernés
+  (`template`, `glass-dark`, `glass-light`), satisfaisant le même
+  critère ("≥ 2 thèmes réels indépendants, aucun ajustement
+  nécessaire") déjà utilisé pour chaque autre entrée de ce paragraphe.
+  API : `available`, `keyboardActive`, `reservedHeight`,
+  `show()`/`hide()`/`toggle()` — inchangée depuis son introduction.
+- **`NebulaLoginLayout.bottomInset`** — promu depuis §2 en Phase 3.3,
+  même validation que ci-dessus : le clampage (`_clampedBottomInset`)
+  a été confirmé suffisant sur les trois écrans réels de la machine de
+  développement, sans chevauchement, exercé simultanément par les
+  trois thèmes à champ de mot de passe.
 
-## 2. Points susceptibles d'évoluer
+## 2. APIs Limité / Expérimental
 
 - **`NebulaButton` / `NebulaPasswordField` / `NebulaPowerButtons` —
   support d'icônes** (`icon`/`showIcon`/`hideIcon`/`shutdownIcon`/.../
@@ -107,25 +133,9 @@ n'ait été nécessaire :
   tremblement), une future `NebulaAnimationManager` en absorbera
   probablement la logique — pas encore engagé.
 
-- **`NebulaVirtualKeyboard`** (nouveau, correctif VK-001) : composant
-  neuf ajouté après ce gel, justifié par le critère 1 du §0 (bug réel —
-  voir
-  [`Investigations/VK-001-VirtualKeyboard.md`](Investigations/VK-001-VirtualKeyboard.md))
-  et, dans une moindre mesure, le critère 2 (mesure expérimentale au
-  niveau des symboles binaires ayant confirmé la cause). N'ajoute rien
-  au §1 puisqu'il s'agit d'un composant nouveau, pas d'une modification
-  d'une API déjà stable — mais son API propre (`available`,
-  `keyboardActive`, `reservedHeight`, `show()`/`hide()`/`toggle()`)
-  n'a encore été exercée que par une seule validation réelle ; à
-  reconfirmer stable après un cycle de tests sur `sddm.service` réel.
-- **`NebulaLoginLayout.bottomInset`** (nouveau, même justification que
-  ci-dessus) : propriété additive, défaut `0` reproduisant exactement le
-  comportement précédent — ne retire ni ne renomme rien de l'entrée déjà
-  stable au §1. Ajoutée et exercée simultanément par les trois thèmes à
-  password field (`template`, `glass-dark`, `glass-light`), donc
-  satisfait aussi le critère 3. Reste ici, pas au §1, tant qu'aucun test
-  réel multi-écran n'a confirmé le clampage (`_clampedBottomInset`)
-  suffisant en pratique.
+- **`NebulaVirtualKeyboard`** et **`NebulaLoginLayout.bottomInset`** —
+  promus au §1 en Phase 3.3 : la validation réelle multi-écran qui
+  manquait ici a depuis eu lieu (voir §1).
 
 ## 3. Dépréciations futures
 
