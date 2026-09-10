@@ -18,6 +18,20 @@ import "../../platform/sddm"
 // multi-session interaction is only exercisable today via
 // tests/LoginWorkflowHarness.qml's Mock adapters (see
 // docs/Login-Architecture.md).
+//
+// Mandatory vs optional (Phase 3.3, Developer-Experience-Review-2026.md
+// §4/§5/§11): this file wires the full interactive set on purpose (it
+// doubles as the SDK's technical reference), which can make it hard to
+// tell what a simpler theme could safely drop. Mandatory for *any*
+// theme with authentication: the theme/ThemeLoader/ThemeProvider
+// wiring, NebulaUserService/NebulaAuthService, Background/Wallpaper/
+// Overlay/LoginLayout/Surface, and the Clock/Date/UserList/
+// PasswordField/Button column. Optional, marked individually below:
+// the virtual keyboard toggle + NebulaVirtualKeyboard, session
+// selection (NebulaSessionSelector), and power actions
+// (NebulaPowerButtons) — a theme with a single session and no
+// suspend/reboot/shutdown UI can drop all three without touching
+// anything else.
 Item {
     id: root
     anchors.fill: parent
@@ -43,11 +57,15 @@ Item {
         adapter: SDDMAuthAdapter {}
     }
 
+    // Optional — only needed if the theme shows NebulaSessionSelector
+    // (below). Drop this Service too if you drop that component.
     NebulaSessionService {
         id: sessionService
         adapter: SDDMSessionAdapter {}
     }
 
+    // Optional — only needed if the theme shows NebulaPowerButtons
+    // (below). Drop this Service too if you drop that component.
     NebulaPowerService {
         id: powerService
         adapter: SDDMPowerAdapter {}
@@ -70,6 +88,8 @@ Item {
         NebulaLoginLayout {
             id: loginLayout
             theme: root.theme
+            // If you drop NebulaVirtualKeyboard (see below), also drop
+            // this binding — bottomInset defaults to 0 on its own.
             bottomInset: virtualKeyboard.reservedHeight
 
             NebulaSurface {
@@ -126,6 +146,9 @@ Item {
                 width: parent.width
                 spacing: root.theme.spacing.spacingMd
 
+                // Optional block (with the matching NebulaVirtualKeyboard
+                // instance below) — drop both together if your theme
+                // doesn't need an on-screen keyboard toggle.
                 NebulaButton {
                     theme: root.theme
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -137,12 +160,14 @@ Item {
                     }
                 }
 
+                // Optional — see NebulaSessionService above.
                 NebulaSessionSelector {
                     theme: root.theme
                     sessionService: sessionService
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
 
+                // Optional — see NebulaPowerService above.
                 NebulaPowerButtons {
                     theme: root.theme
                     powerService: powerService
@@ -152,6 +177,7 @@ Item {
             }
         }
 
+        // Optional — see the footer's keyboard toggle button above.
         NebulaVirtualKeyboard {
             id: virtualKeyboard
             theme: root.theme
