@@ -114,6 +114,7 @@ Themes never redefine what already exists in Core — see
 | [`docs/Core-Refinement-Review.md`](docs/Core-Refinement-Review.md) | Core consolidation review before the 0.1 Beta freeze |
 | [`docs/Prototype-Results.md`](docs/Prototype-Results.md)       | Phase 1.0 real-world test results: SDDM API, multi-screen, HiDPI |
 | [`docs/Real-Adapter-Validation.md`](docs/Real-Adapter-Validation.md) | Real end-to-end login round-trip under the real `sddm.service` (Phase 3.2 exit criterion) |
+| [`docs/Beta-Release-Checklist.md`](docs/Beta-Release-Checklist.md)   | Release-quality gates to check before shipping/updating the 0.1 Beta |
 
 **Project history**
 
