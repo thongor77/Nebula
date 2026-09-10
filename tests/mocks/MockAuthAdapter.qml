@@ -14,9 +14,18 @@ Item {
 
     property bool nextResultSucceeds: true
 
+    // Exercised by a harness's own assertions/console.log — the real
+    // contract (NebulaAuthService.authenticate(),
+    // SDDMAuthAdapter.login()) always passes sessionIndex as a 3rd
+    // argument; this mock used to only declare 2 parameters, so JS
+    // silently dropped it and no harness ever exercised that path
+    // (Architecture-Review-2026.md §3/§9).
+    property int lastSessionIndex: -1
+
     signal loginResult(bool success, string reason)
 
-    function login(username, password) {
+    function login(username, password, sessionIndex) {
+        root.lastSessionIndex = sessionIndex
         resultTimer.restart()
     }
 

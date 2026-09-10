@@ -27,9 +27,14 @@ Item {
 
     NebulaAuthService {
         id: authService
-        adapter: MockAuthAdapter {}
+        adapter: MockAuthAdapter { id: mockAuthAdapter }
+        // Wired so authenticate() forwards a real sessionIndex to the
+        // adapter (DT-0024) — exercises the parameter the mock used to
+        // silently drop (Architecture-Review-2026.md §3/§9).
+        sessionService: sessionService
 
-        onSucceeded: console.log("ServicesHarness: authentication succeeded")
+        onSucceeded: console.log("ServicesHarness: authentication succeeded",
+            "(adapter received sessionIndex:", mockAuthAdapter.lastSessionIndex + ")")
         onFailed: (reason) => console.log("ServicesHarness: authentication failed —", reason)
     }
 
