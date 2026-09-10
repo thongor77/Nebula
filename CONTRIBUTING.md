@@ -1,25 +1,30 @@
 # Contributing to Nebula
 
-Nebula is currently in its **architecture phase** — no QML implementation
-exists yet. Before writing code, read:
+Nebula is at **0.1 Beta** — the Core is implemented and its public API is
+frozen (see [`docs/API-Stability-Review.md`](docs/API-Stability-Review.md)),
+four official themes ship, and real SDDM integration is validated on real
+hardware (see [`CHANGELOG.md`](CHANGELOG.md)). Before writing code, read:
 
-1. [`README.md`](README.md)
-2. [`docs/Architecture.md`](docs/Architecture.md)
-3. [`docs/Decisions-Techniques.md`](docs/Decisions-Techniques.md)
-4. [`docs/Design-System.md`](docs/Design-System.md)
-5. [`docs/Theme-System.md`](docs/Theme-System.md)
-6. [`docs/Specifications-Techniques.md`](docs/Specifications-Techniques.md)
-7. [`docs/Core-API.md`](docs/Core-API.md)
-8. [`docs/SDDM-Compatibility.md`](docs/SDDM-Compatibility.md)
-9. [`docs/Development-Environment.md`](docs/Development-Environment.md)
-10. [`docs/Theme-SDK.md`](docs/Theme-SDK.md) and
-    [`docs/Creating-A-Theme.md`](docs/Creating-A-Theme.md) (if you are
-    creating a theme rather than a Core component)
-11. [`docs/Roadmap.md`](docs/Roadmap.md)
+- Building a theme: [`docs/Theme-SDK.md`](docs/Theme-SDK.md) →
+  [`docs/Creating-A-Theme.md`](docs/Creating-A-Theme.md) →
+  [`docs/Core-API.md`](docs/Core-API.md).
+- Working on the Core: [`docs/Architecture.md`](docs/Architecture.md) →
+  [`docs/Decisions-Techniques.md`](docs/Decisions-Techniques.md) →
+  [`docs/Specifications-Techniques.md`](docs/Specifications-Techniques.md) →
+  [`docs/Core-API.md`](docs/Core-API.md) →
+  [`docs/API-Stability-Review.md`](docs/API-Stability-Review.md) (public
+  API is frozen — see DT-0003 and the freeze criteria there before
+  proposing a change to an existing component).
+- Either way: [`docs/Development-Environment.md`](docs/Development-Environment.md)
+  (testing without touching your system's active SDDM greeter) and
+  [`docs/Roadmap.md`](docs/Roadmap.md) (what's planned, so you don't
+  duplicate work already in flight).
 
-If you want to help before implementation starts, the most useful
-contribution is feedback on the architecture and specifications above, not
-code.
+The most useful contribution right now is exercising the Core with a
+theme that pushes it somewhere Nord/Glass didn't (see
+[`docs/Dashboard-Architecture-Stress-Test.md`](docs/Dashboard-Architecture-Stress-Test.md)
+for what that kind of exercise looks like) — real usage is how a genuine
+API gap gets found, rather than proposed speculatively.
 
 ---
 
@@ -66,7 +71,8 @@ list and public API contract.
 - Every public property must include a one-line description of its
   purpose.
 - Theme `README.md` files should explain identity, customization options,
-  and compatibility notes once the theme exists.
+  and compatibility notes — see `themes/nord/README.md` or
+  `themes/glass-dark/README.md` for the expected shape.
 
 ## Commit messages
 
