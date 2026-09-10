@@ -27,12 +27,11 @@ import QtQuick
 // NebulaAuthService for its own adapter connection (see
 // docs/Development-Journal.md, Phase 1.4).
 //
-// NOT YET VERIFIED under the real sddm.service: `--test-mode` never
-// connects a real authentication backend (see docs/Prototype-Results.md
-// §3.5), so this file compiles and binds cleanly but the actual
-// login round-trip is unverified until tested under the safe protocol
-// documented for the VT/DRM incident (see docs/Development-Journal.md,
-// 2026-08-02, and the session memory it points to).
+// Verified under the real sddm.service (not just --test-mode, which
+// never connects a real authentication backend — see
+// docs/Prototype-Results.md §3.5): the full login round-trip was
+// exercised end-to-end on 2026-08-03, Phase 3.2 — see
+// docs/Real-Adapter-Validation.md.
 QtObject {
     id: root
 

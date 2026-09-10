@@ -9,9 +9,11 @@ import "../config"
 QtObject {
     id: root
 
-    // Until NebulaThemeLoader exists (see docs/Roadmap.md, Phase 1), this
-    // *is* the fallback: NebulaThemeConfig's own defaults are the "minimal
-    // theme" described in docs/Theme-System.md §5, not a separate case.
+    // Populated by NebulaThemeLoader (see docs/ThemeLoader.md, Phase
+    // 2.0.5) — every real theme reassigns this to
+    // `themeLoader.config`. NebulaThemeConfig's own defaults (used if a
+    // theme never does this) are the "minimal theme" described in
+    // docs/Theme-System.md §5, not a separate fallback case.
     property NebulaThemeConfig config: NebulaThemeConfig {}
 
     readonly property QtObject colors: config.colors
@@ -23,8 +25,11 @@ QtObject {
     readonly property QtObject surface: config.surface
     readonly property QtObject interaction: config.interaction
 
-    // Asset exposure (fonts/icons resolved by a real theme) is deferred
-    // until NebulaThemeLoader exists — placeholder kept empty on purpose.
+    // Empty on purpose: NebulaThemeConfig has no `assets` group to
+    // populate — asset exposure (fonts/icons resolved by a real theme)
+    // is deferred until a real cross-theme need demonstrates what shape
+    // it should take, not blocked on NebulaThemeLoader (which already
+    // exists, see docs/ThemeLoader.md).
     readonly property QtObject assets: QtObject {}
 
     readonly property bool ready: config.valid

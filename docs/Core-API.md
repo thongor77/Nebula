@@ -9,8 +9,13 @@
 > [`Design-System.md`](Design-System.md). Pour le flux de theming, voir
 > [`Theme-System.md`](Theme-System.md).
 >
-> Aucune implémentation ici — uniquement le contrat que l'implémentation
-> devra respecter (Phase 1, voir `Roadmap.md`).
+> Chaque composant listé ici est implémenté, documenté et exercé par au
+> moins un thème officiel réel (`template`/`nord`/`glass-dark`/
+> `glass-light`) — ce document est le contrat que l'implémentation
+> respecte déjà, pas une spécification pré-implémentation. Pour savoir
+> précisément quelles API sont gelées pour la 0.1 Beta et lesquelles
+> peuvent encore évoluer, voir
+> [`API-Stability-Review.md`](API-Stability-Review.md).
 
 ---
 
