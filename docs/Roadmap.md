@@ -572,6 +572,59 @@ que déduit automatiquement de cette investigation.
 - [x] Thème `glass` (voir sous-étape Phase 3.0 ci-dessus)
 - [ ] `WallpaperEngine`, `SoundManager`
 
+**Sous-étape Phase 3.3 — Beta Hardening (terminée, 2026-09-10) :**
+consolidation avant la 0.1 Beta publique, demandée après le stress-test
+d'architecture Dashboard (voir `Dashboard-Architecture-Stress-Test.md`)
+et les deux revues 2026 (`Architecture-Review-2026.md`,
+`Developer-Experience-Review-2026.md`). Objectif explicite du brief :
+cohérence, pas nouvelles fonctionnalités — aucun changement d'API/
+comportement public du Core.
+
+- [x] Correction des commentaires/doc obsolètes trouvés par la revue
+      d'architecture (`Core-API.md`, `SDDMAuthAdapter.qml`,
+      `NebulaThemeProvider.qml`).
+- [x] `scripts/lib/common.sh` — factorisation de la détection
+      `qmake6`/`fail()`/`pass()` dupliquée dans 3-4 scripts. Vérifié par
+      un round-trip install/uninstall réel sur `kdelinux-test`
+      (192.168.1.96, container Arch distrobox).
+- [x] `MockAuthAdapter.login()` exerce désormais `sessionIndex`
+      (angle mort de test trouvé par la revue d'architecture).
+- [x] `NebulaWallpaper`/`NebulaAvatar` avertissent (`console.warn`)
+      quand une image explicitement fournie par un thème échoue à
+      charger — silencieux si aucune source n'est fournie.
+- [x] `API-Stability-Review.md` — déclaration de stabilité SDK
+      explicite pour la 0.1 Beta (Stable/Gelé, Limité, Expérimental,
+      jamais "1.0") ; `NebulaVirtualKeyboard`/
+      `NebulaLoginLayout.bottomInset` promus au §1 (validation réelle
+      3 thèmes déjà documentée ci-dessus, §Sous-étape Phase 3.2).
+- [x] `Login-Architecture.md` — documente pourquoi
+      `NebulaPasswordField.username` est câblé manuellement et
+      l'asymétrie de sélection `NebulaUserList`/`NebulaSessionSelector`
+      (trouvé indépendamment par les deux revues).
+- [x] `Installation.md` — avertissements `QML_XHR_ALLOW_FILE_READ` et
+      activation manuelle déplacés à côté des commandes concernées.
+- [x] `README.md` — section "Where to start" (utilisateur final/
+      développeur de thème/contributeur Core), galerie réelle des trois
+      thèmes installables (`nord`/`glass-dark`/`glass-light`), §Status
+      allégé.
+- [x] `themes/template/Main.qml` — annoté pour distinguer câblage
+      obligatoire et optionnel (clavier virtuel, sélecteur de session,
+      boutons d'alimentation).
+- [x] `docs/Beta-Release-Checklist.md` — portes de release 0.1 Beta,
+      toutes basées sur des outils/validations déjà existants.
+- [x] `docs/Architecture-Review-2026.md`/`Developer-Experience-Review-2026.md`
+      §"Dette technique importante" : les deux items (duplication
+      `common.sh`, angle mort `sessionIndex`) résolus ci-dessus.
+      Explicitement **non traités cette phase**, par choix (voir
+      justification dans chaque revue) : abstraction `NebulaLabel`,
+      duplication `Instantiator` des deux adapters de liste, garde
+      `.disconnect()` manquante, réordonnancement mineur de
+      `Theme-SDK.md` — chacun attend un besoin démontré par plusieurs
+      thèmes, pas cette phase.
+- [x] `dashboard-prototype` reste sous `themes/` (pas de nouveau
+      dossier `examples/`) — plus faible churn, cohérent avec le
+      précédent déjà établi par `template`.
+
 ## Phase 4 — Outillage avancé (vision long terme)
 
 Non planifié tant que les phases précédentes ne sont pas stables :
