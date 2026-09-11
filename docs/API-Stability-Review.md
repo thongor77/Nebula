@@ -10,8 +10,8 @@
 > pour toute la ligne 0.1 Beta), **Limité** (§2 — supporté mais
 > volontairement contraint, ex. l'ensemble fermé de tokens de
 > `theme.conf`), **Expérimental** (§2 — peut encore changer ; un
-> exemple/prototype comme `themes/dashboard-prototype` n'est jamais une
-> promesse de compatibilité). C'est volontairement une déclaration de
+> exemple/prototype comme `themes/dashboard` (expérimental, voir sa
+> propre documentation) n'est jamais une promesse de compatibilité). C'est volontairement une déclaration de
 > stabilité **0.1**, pas une déclaration **SDK 1.0** — voir
 > [`Dashboard-Architecture-Stress-Test.md`](Dashboard-Architecture-Stress-Test.md)
 > et le brief Phase 3.3 : annoncer un SDK 1.0 avant que Nebula

@@ -5,6 +5,23 @@ Versions before 0.1 Beta were internal development phases, not
 releases — see [`docs/Roadmap.md`](docs/Roadmap.md) for that full
 history rather than repeating it here.
 
+## [Unreleased]
+
+### Changed
+
+**`themes/dashboard-prototype` renamed `themes/dashboard`** and evolved
+from a deliberately unpolished architecture stress-test artifact into a
+polished, daily-use **experimental** theme (still not official — see
+[`docs/Dashboard-Theme-Report.md`](docs/Dashboard-Theme-Report.md)): a
+distinct indigo/violet identity, region content matching the brief
+exactly (no more mocked Host/Battery/Network placeholders), a real
+three-tier responsive layout, and a real 3-monitor `sddm-greeter-qt6
+--test-mode` validation pass. Three real layout bugs were found and
+fixed by actually running the theme (a stale-anchor race, and two
+`NebulaPowerButtons`-overflow cases at medium/narrow widths) — see the
+report for the full write-up and one identified-but-undone Core gap
+(`NebulaPowerButtons` has no compact/wrapping mode).
+
 ## [0.1.0-beta] — 2026-09-10
 
 First public release. The question this release answers is not "does

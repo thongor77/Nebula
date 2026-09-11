@@ -625,6 +625,36 @@ comportement public du Core.
       dossier `examples/`) — plus faible churn, cohérent avec le
       précédent déjà établi par `template`.
 
+## Dashboard — Showcase Experiment (2026-09-11)
+
+Pas une phase numérotée — un thème expérimental, non officiel (brief
+`Nebula-Showcase-Dashboard-Theme-Brief.docx`). Fait évoluer
+`themes/dashboard-prototype` (stress-test d'architecture, Phase 3.3)
+vers `themes/dashboard` : identité visuelle indigo/violet propre,
+contenu par région entièrement réel (plus aucun panneau simulé),
+responsive réel à trois paliers, testé matériel réel (3 écrans,
+mixed-DPI). Voir [`Dashboard-Theme-Report.md`](Dashboard-Theme-Report.md)
+pour le détail complet, y compris trois vrais bugs de layout trouvés et
+corrigés par exécution réelle et un gap Core réel identifié
+(`NebulaPowerButtons` sans mode compact) — documenté, non implémenté
+(un seul thème ne suffit pas au critère du gel d'API). Aucun fichier
+`core/` modifié.
+
+- [x] Renommage `dashboard-prototype` → `dashboard`, `theme.conf`
+      identité indigo/violet (17 tokens), fond d'écran original généré.
+- [x] `Main.qml` réécrit : contenu par région conforme au brief,
+      responsive à trois paliers, focus/tab/Escape, animations
+      restreintes (une seule entrée pour tout le triptyque, un seul
+      shake d'erreur, un seul fondu de succès).
+- [x] `docs/Dashboard-Theme-Report.md`,
+      `docs/Dashboard-Usability-Log.md` (nouveaux) ;
+      `themes/dashboard/README.md` réécrit au format officiel avec
+      bandeau expérimental.
+- [ ] Usage quotidien réel 1-2 semaines (brief §10) et verdict
+      PROMOTE/KEEP EXPERIMENTAL/RETIRE (brief §13) — appartient à
+      l'utilisateur, hors de cette session (voir
+      `Dashboard-Usability-Log.md`).
+
 ## Phase 4 — Outillage avancé (vision long terme)
 
 Non planifié tant que les phases précédentes ne sont pas stables :

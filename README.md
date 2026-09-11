@@ -59,8 +59,8 @@ core/          reusable components, layouts, services, effects, animations, util
 platform/      concrete backend adapters (sddm/) — the only code allowed to call SDDM directly
 themes/        official: template, nord, glass-dark, glass-light
                planned: cyberpunk, hacker, amoled, hypr (see docs/Roadmap.md)
-               dashboard-prototype: architecture stress-test artifact,
-               not for end users (see its own README.md)
+               dashboard: experimental triptych layout, not an official
+               theme yet, not for end users (see its own README.md)
 docs/          architecture, technical decisions, roadmap, specifications
 scripts/       install/uninstall/check-installation/check-theme/check-design-system
 tests/         test suite for Core components, plus mocks/ for service adapters

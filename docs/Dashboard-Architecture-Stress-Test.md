@@ -1,5 +1,12 @@
 # Dashboard Architecture Stress Test — Nebula
 
+> **2026-09-11 update**: the prototype this document validates,
+> `themes/dashboard-prototype`, was renamed `themes/dashboard` and
+> evolved into a polished experimental theme — see
+> [`Dashboard-Theme-Report.md`](Dashboard-Theme-Report.md) for that
+> work. This document is kept as-is below: it's a historical record of
+> what existed and was tested on 2026-09-10, not a living spec.
+
 > Architecture validation exercise (2026-09-10, brief
 > `Nebula-Dashboard-Architecture-Stress-Test.md`). Question: can a theme
 > radically different from Nord — a multi-panel dashboard composition

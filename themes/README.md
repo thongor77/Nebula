@@ -23,6 +23,7 @@ considered a bug — see [`docs/Architecture.md`](../docs/Architecture.md).
 | `hacker`      | Terminal green-on-black, monospace, minimal chrome    | Planned |
 | `amoled`      | Pure black, battery/OLED friendly, high contrast       | Planned |
 | `hypr`        | Aesthetic aligned with the Hyprland/wlroots community  | Planned |
+| `dashboard`   | Three-region triptych (context / auth / controls), a daily-use experiment | Experimental — see [`dashboard/README.md`](dashboard/README.md) and [`../docs/Dashboard-Theme-Report.md`](../docs/Dashboard-Theme-Report.md) |
 
 `nord` is the first visual theme implemented (see
 [`docs/Roadmap.md`](../docs/Roadmap.md), Phase 2.1) — built with only the
