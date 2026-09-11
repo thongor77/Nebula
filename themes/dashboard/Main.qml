@@ -3,6 +3,8 @@ import "../../core/theme"
 import "../../core/components"
 import "../../core/services"
 import "../../platform/sddm"
+import "components"
+import "services"
 
 // Dashboard — experimental triptych theme (evolved from the 2026-09-10
 // architecture stress test, see docs/Dashboard-Theme-Report.md and the
@@ -71,6 +73,12 @@ Item {
         adapter: SDDMPowerAdapter {}
     }
 
+    // Experimental, Dashboard-local only — see services/NetworkStatusModel.qml
+    // and themes/dashboard/README.md. Not a Nebula Core service.
+    NetworkStatusModel {
+        id: networkModel
+    }
+
     // Escape clears whatever was typed — the only "appropriate" Escape
     // behavior with a single field and no modal/dialog in the Core yet
     // (brief §4). Bubbles up here because NebulaPasswordField's internal
@@ -81,7 +89,7 @@ Item {
         NebulaWallpaper {
             theme: root.theme
             anchors.fill: parent
-            source: Qt.resolvedUrl("assets/wallpapers/dashboard.png")
+            source: Qt.resolvedUrl("assets/wallpapers/dashboard.jpg")
             mode: "crop"
         }
 
@@ -290,6 +298,7 @@ Item {
                 id: controlsPanel
                 theme: root.theme
                 visible: sessionSelectorColumn.visible || keyboardToggle.visible || powerRow.visible
+                    || (root.isWide && (networkModel.ethernetPresent || networkModel.wifiPresent))
 
                 // See contextPanel above for why this is plain x/y, not
                 // anchors.*.
@@ -310,6 +319,18 @@ Item {
                     // docs/Dashboard-Theme-Report.md).
                     width: root.isWide ? undefined : stage.width - root.theme.spacing.spacingMd * 2
 
+                    // Wide only — responsive priority (brief §8): network
+                    // is expendable before session/keyboard/power, date/
+                    // time, and above all authentication. Hidden outright
+                    // below wideBreakpoint rather than squeezed in, same
+                    // reasoning already applied to contextPanel/controlsPanel
+                    // themselves for the narrow tier.
+                    NetworkStatus {
+                        theme: root.theme
+                        model: networkModel
+                        visible: root.isWide && (networkModel.ethernetPresent || networkModel.wifiPresent)
+                        width: 180
+                    }
                     Column {
                         id: sessionSelectorColumn
                         visible: sessionSelector.model.length > 0
