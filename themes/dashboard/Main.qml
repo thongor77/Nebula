@@ -33,16 +33,103 @@ Item {
     anchors.fill: parent
 
     // --- Responsive tiers (theme-local, not theme.conf — see
-    // docs/Dashboard-Architecture-Stress-Test.md Gap 2): below mediumBreakpoint the
-    // triptych stops making sense as three simultaneous regions and
-    // falls back to "authentication first", the brief's own suggested
-    // small-screen strategy. Between the two, the same three regions
-    // stay but compressed rather than dropped.
+    // docs/Dashboard-Architecture-Stress-Test.md Gap 2). Originally drove
+    // structural layout changes (folding panels below the card, hiding
+    // secondary details) below wideBreakpoint/mediumBreakpoint. As of
+    // round 6 (2026-09-11, "consistent triptych at all screen sizes" —
+    // same composition at every tier, only continuous uiScale scaling,
+    // no structural repositioning) nothing in this file branches on
+    // isWide/isMedium/isNarrow anymore — kept defined, unused, rather
+    // than deleted, since the brief that drove this change explicitly
+    // allows "tighter spacing when needed, reduced secondary details if
+    // needed" as still-permitted future responsive behavior, just not a
+    // default. Revisit/remove if no such use appears.
     property real wideBreakpoint: 1200
     property real mediumBreakpoint: 900
     readonly property bool isWide: root.width >= root.wideBreakpoint
     readonly property bool isMedium: !root.isWide && root.width >= root.mediumBreakpoint
     readonly property bool isNarrow: root.width < root.mediumBreakpoint
+
+    // --- Adaptive scale (theme-local, same rationale as the breakpoints
+    // above — see docs/Dashboard-Architecture-Stress-Test.md Gap 2).
+    // `root.width`/`root.height` are already THIS screen's logical (DIP)
+    // size — Qt/Wayland resolves each output's own scale factor before
+    // QML ever sees them, which is exactly why a mixed-DPI multi-monitor
+    // setup (see [[nebula-virtual-keyboard-scaling]]) doesn't need any
+    // extra DPI detection here. What's missing without this block is
+    // continuity: wideBreakpoint/mediumBreakpoint only decide WHICH
+    // regions are shown, so a low-logical-resolution screen sitting in
+    // the same tier as a high one rendered every card/font/avatar at an
+    // identical fixed pixel size regardless of how much logical room it
+    // actually had. `uiScale` fixes that by re-deriving every Design
+    // System token from the theme's OWN loaded base values (never a
+    // second-guessed hardcoded copy) each time it changes, so a card
+    // resized on a bigger logical screen keeps the exact same relative
+    // proportions, just bigger — never a blurry magnified bitmap, since
+    // real pixelSize/width/height/radius numbers are being recomputed,
+    // not a `scale:` transform on already-laid-out content. Deliberately
+    // NOT applied to wideBreakpoint/mediumBreakpoint themselves — the
+    // brief asks to keep the triptych's geometry/proportions unchanged,
+    // i.e. which tier is chosen; only how big that tier renders.
+    readonly property real _referenceWidth: 1920
+    readonly property real _referenceHeight: 1080
+    readonly property real _rawUiScale: Math.min(root.width / root._referenceWidth, root.height / root._referenceHeight)
+    readonly property real uiScale: Math.max(0.65, Math.min(1.35, root._rawUiScale))
+
+    // Snapshot of the theme's own token values exactly as theme.conf (or
+    // Core's own defaults, for anything theme.conf doesn't set) resolved
+    // them, taken once after load. Every `_applyUiScale()` call scales
+    // from THIS, never from the config's current (possibly already
+    // scaled) value — otherwise repeated scale changes would compound.
+    property var _baseTokens: null
+
+    function _snapshotBaseTokens() {
+        var cfg = root.themeLoader.config
+        root._baseTokens = {
+            spacingXs: cfg.spacing.spacingXs, spacingSm: cfg.spacing.spacingSm,
+            spacingMd: cfg.spacing.spacingMd, spacingLg: cfg.spacing.spacingLg,
+            spacingXl: cfg.spacing.spacingXl,
+            fontSizeTitle: cfg.typography.fontSizeTitle,
+            fontSizeBody: cfg.typography.fontSizeBody,
+            fontSizeClock: cfg.typography.fontSizeClock,
+            radiusSmall: cfg.radius.radiusSmall, radiusMedium: cfg.radius.radiusMedium,
+            radiusLarge: cfg.radius.radiusLarge,
+            surfaceBorderWidth: cfg.surface.surfaceBorderWidth,
+            borderWidthThin: cfg.interaction.borderWidthThin,
+            borderWidthFocus: cfg.interaction.borderWidthFocus
+        }
+    }
+
+    // Mutates the loaded NebulaThemeConfig's token values in place. Safe
+    // because this theme owns its own NebulaThemeLoader/config instance
+    // (one per screen) and every Core component that sizes itself purely
+    // from theme tokens (NebulaButton, NebulaPasswordField,
+    // NebulaSessionSelector, NebulaPowerButtons, NebulaSurface's default
+    // padding, NebulaClock, NebulaDate) already reads through
+    // NebulaThemeProvider (DT-0006) — rewriting the values it aliases
+    // makes them all re-lay-out coherently with zero Core change.
+    function _applyUiScale() {
+        if (!root._baseTokens) return
+        var cfg = root.themeLoader.config
+        var b = root._baseTokens
+        var s = root.uiScale
+        cfg.spacing.spacingXs = b.spacingXs * s
+        cfg.spacing.spacingSm = b.spacingSm * s
+        cfg.spacing.spacingMd = b.spacingMd * s
+        cfg.spacing.spacingLg = b.spacingLg * s
+        cfg.spacing.spacingXl = b.spacingXl * s
+        cfg.typography.fontSizeTitle = Math.round(b.fontSizeTitle * s)
+        cfg.typography.fontSizeBody = Math.round(b.fontSizeBody * s)
+        cfg.typography.fontSizeClock = Math.round(b.fontSizeClock * s)
+        cfg.radius.radiusSmall = b.radiusSmall * s
+        cfg.radius.radiusMedium = b.radiusMedium * s
+        cfg.radius.radiusLarge = b.radiusLarge * s
+        cfg.surface.surfaceBorderWidth = Math.max(1, Math.round(b.surfaceBorderWidth * s))
+        cfg.interaction.borderWidthThin = Math.max(1, Math.round(b.borderWidthThin * s))
+        cfg.interaction.borderWidthFocus = Math.max(1, Math.round(b.borderWidthFocus * s))
+    }
+
+    onUiScaleChanged: root._applyUiScale()
 
     // --- Power group bottom margin (layout experiment, round 3 — see the
     // comment at powerRow below). A small, fixed margin off the actual
@@ -50,13 +137,18 @@ Item {
     // dashboard spacing token — the group should read as a screen-edge
     // system control, not something visually tied to the rest of the
     // triptych's spacing rhythm.
-    readonly property real _powerBottomMargin: 14
+    readonly property real _powerBottomMargin: Math.round(14 * root.uiScale)
 
     property NebulaThemeLoader themeLoader: NebulaThemeLoader {
         configPath: Qt.resolvedUrl("theme.conf")
     }
     property NebulaThemeProvider theme: NebulaThemeProvider {
         config: root.themeLoader.config
+    }
+
+    Component.onCompleted: {
+        root._snapshotBaseTokens()
+        root._applyUiScale()
     }
 
     NebulaUserService {
@@ -142,6 +234,7 @@ Item {
                 id: centerCard
                 theme: root.theme
                 shadowEnabled: true
+                shadowOffset: Math.max(1, Math.round(2 * root.uiScale))
                 anchors.verticalCenter: parent.verticalCenter
 
                 property bool hasError: authService.errorMessage.length > 0
@@ -163,12 +256,13 @@ Item {
 
                 Column {
                     spacing: root.theme.spacing.spacingLg
-                    width: 260
+                    width: Math.round(260 * root.uiScale)
 
                     NebulaUserList {
                         id: userList
                         theme: root.theme
                         userService: userService
+                        avatarSize: Math.round(64 * root.uiScale)
                         anchors.horizontalCenter: parent.horizontalCenter
                         KeyNavigation.tab: passwordField
                         KeyNavigation.backtab: powerRow.lastFocusItem
@@ -240,31 +334,34 @@ Item {
                 id: contextPanel
                 theme: root.theme
 
-                // Plain numeric x/y rather than conditionally-set
-                // anchors.* lines — QQuickAnchors kept a stale left
-                // anchor active after root.isNarrow flipped false→true
-                // during initial layout (both this panel and
-                // controlsPanel landing on identical, nonsensical
-                // geometry, found by actually running this under qml6
-                // with mock adapters, see docs/Dashboard-Theme-Report.md).
-                // Plain x/y bindings have no such "was this anchor line
-                // ever cleared" state to go stale.
-                x: root.isNarrow ? centerCard.x + (centerCard.width - width) / 2 : 0
-                y: root.isNarrow
-                    ? centerCard.y - height - root.theme.spacing.spacingMd
-                    : centerCard.y + (centerCard.height - height) / 2
+                // Round 6 (2026-09-11, user feedback: "consistent triptych
+                // at all screen sizes" — same composition/position at
+                // every tier, only continuous uiScale proportional
+                // scaling, no structural repositioning). Previously
+                // folded above the card at the narrow tier; now always
+                // beside it, same as wide/medium, per that brief. Plain
+                // x/y (not anchors.*) is no longer load-bearing for the
+                // stale-anchor reason that originally motivated it (that
+                // was specifically about the isNarrow fold flipping at
+                // runtime, which no longer exists) but left as plain x/y
+                // anyway — no reason to touch a working, simpler binding
+                // style just because its original justification changed.
+                x: 0
+                y: centerCard.y + (centerCard.height - height) / 2
 
                 Column {
-                    width: root.isWide ? 220 : 180
+                    width: Math.round(220 * root.uiScale)
                     spacing: root.theme.spacing.spacingSm
 
                     // The one piece of "branding" available without any
                     // new Core API (brief §2 — hostname/host info isn't:
                     // no Service exposes it, see
                     // docs/Dashboard-Architecture-Stress-Test.md Gap 3).
+                    // Always shown now (round 6) — no longer tiered by
+                    // isWide, per "no structural change"/no secondary-
+                    // detail reduction in the user's brief.
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        visible: root.isWide
                         text: "N E B U L A"
                         font.family: root.theme.typography.fontFamilySecondary
                         font.pixelSize: root.theme.typography.fontSizeBody * 0.7
@@ -275,7 +372,7 @@ Item {
                     NebulaClock {
                         theme: root.theme
                         anchors.horizontalCenter: parent.horizontalCenter
-                        showSeconds: root.isWide
+                        showSeconds: true
                     }
 
                     NebulaDate {
@@ -285,63 +382,46 @@ Item {
                 }
             }
 
-            // --- RIGHT — session, virtual keyboard, power. Wide: a right
-            // column beside the card (Flow in TopToBottom mode == a
-            // plain Column). Medium/narrow: folds below the card as one
-            // wrapping block instead of vanishing — the concrete fix for
-            // the prototype's "side panels just hide" behavior, since
-            // the brief requires them to stay reachable (§3).
+            // --- RIGHT — session, virtual keyboard, power. A right column
+            // beside the card (Flow in TopToBottom mode == a plain
+            // Column).
             //
-            // Medium keeps this folded below rather than beside the card
-            // (unlike contextPanel, which does stay beside it): real
-            // measurement showed NebulaPowerButtons' 4-button Row — a
-            // fixed Core internal that cannot itself wrap — never fits
-            // in the space actually left beside the card at any medium
-            // width up to wideBreakpoint, overlapping the card by up to
-            // ~150px (found with an actual grabToImage() render, not
-            // reasoned about on paper — see docs/Dashboard-Theme-Report.md).
-            // Below the card there is always the full stage width to
-            // wrap against instead.
-            //
-            // Power was moved out of this panel below (round 3) into its
-            // own bottom-anchored group — see the comment at powerRow —
-            // so controlsPanel's own visible/size no longer factor it in.
+            // Round 6 (2026-09-11, user feedback: "consistent triptych at
+            // all screen sizes" — same composition at every tier, only
+            // continuous uiScale scaling, no structural repositioning).
+            // Previously folded below the card at medium/narrow because
+            // NebulaPowerButtons' fixed-width 4-button Row couldn't fit
+            // beside the card at those widths (see
+            // docs/Dashboard-Theme-Report.md) — but Power was extracted
+            // to its own bottom-anchored group earlier this session
+            // (round 3), so that reason is gone: the only remaining
+            // content (Network/Session/Keyboard) already fits beside the
+            // card at every tested width once it's content-sized rather
+            // than force-widened (round 4). Now always beside the card,
+            // same as wide.
             NebulaSurface {
                 id: controlsPanel
                 theme: root.theme
                 visible: sessionSelectorColumn.visible || keyboardToggle.visible
-                    || (root.isWide && (networkModel.ethernetPresent || networkModel.wifiPresent))
+                    || (networkModel.ethernetPresent || networkModel.wifiPresent)
 
                 // See contextPanel above for why this is plain x/y, not
                 // anchors.*.
-                x: root.isWide ? stage.width - width : (stage.width - width) / 2
-                y: root.isWide
-                    ? centerCard.y + (centerCard.height - height) / 2
-                    : centerCard.y + centerCard.height + root.theme.spacing.spacingMd
+                x: stage.width - width
+                y: centerCard.y + (centerCard.height - height) / 2
 
                 Flow {
                     id: controlsFlow
-                    flow: root.isWide ? Flow.TopToBottom : Flow.LeftToRight
+                    flow: Flow.TopToBottom
                     spacing: root.theme.spacing.spacingMd
-                    // Unconstrained width == a plain vertical stack when
-                    // TopToBottom (wide only now). Medium/narrow need an
-                    // actual width to wrap session/keyboard/power against
-                    // — without it they ran off both screen edges (real
-                    // bug, only visible once actually rendered — see
-                    // docs/Dashboard-Theme-Report.md).
-                    width: root.isWide ? undefined : stage.width - root.theme.spacing.spacingMd * 2
-
-                    // Wide only — responsive priority (brief §8): network
-                    // is expendable before session/keyboard/power, date/
-                    // time, and above all authentication. Hidden outright
-                    // below wideBreakpoint rather than squeezed in, same
-                    // reasoning already applied to contextPanel/controlsPanel
-                    // themselves for the narrow tier.
+                    // Unconstrained width == content-hugging: a plain
+                    // vertical stack, sized to whatever it actually
+                    // contains rather than a fixed/forced width.
                     NetworkStatus {
                         theme: root.theme
                         model: networkModel
-                        visible: root.isWide && (networkModel.ethernetPresent || networkModel.wifiPresent)
-                        width: 180
+                        visible: networkModel.ethernetPresent || networkModel.wifiPresent
+                        width: Math.round(180 * root.uiScale)
                     }
                     Column {
                         id: sessionSelectorColumn
@@ -350,7 +430,6 @@ Item {
 
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            visible: root.isWide
                             text: "Session"
                             color: root.theme.colors.textSecondary
                             font.family: root.theme.typography.fontFamilySecondary

@@ -13,6 +13,11 @@ Item {
 
     readonly property var model: userService.users
     property int currentIndex: 0
+    // Additive, backward-compatible (default matches the literal every
+    // theme relied on before this existed) — lets a theme scale avatars
+    // coherently with the rest of its own sizing instead of a fixed 64px
+    // regardless of screen size (see themes/dashboard's uiScale).
+    property real avatarSize: 64
     readonly property var currentUser: (currentIndex >= 0 && currentIndex < model.length)
         ? model[currentIndex] : null
 
@@ -58,7 +63,7 @@ Item {
                         anchors.centerIn: parent
                         theme: root.theme
                         source: modelData.icon ? modelData.icon : ""
-                        size: 64
+                        size: root.avatarSize
                     }
 
                     MouseArea {
