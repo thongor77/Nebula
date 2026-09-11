@@ -131,6 +131,30 @@ Item {
 
     onUiScaleChanged: root._applyUiScale()
 
+    // --- Visual refinement pass (surfaces only, theme-local — no Core
+    // change). NebulaSurface's `surfaceColor`/`borderColor` are plain
+    // overridable instance properties (unlike `theme.surface.surfaceOpacity`,
+    // a single value shared by every surface theme-wide), so per-surface
+    // translucency/border weight is expressed by baking an alpha into a
+    // color built from the theme's own base tokens — never a hardcoded
+    // hex, and dividing out the shared surfaceOpacity multiplier so the
+    // requested target opacity (verified against the real wallpaper via
+    // offscreen grabToImage renders at 85/75/65%, all readable with
+    // textPrimary contrast >= 12:1 and textSecondary >= 4.8:1) is exact
+    // regardless of theme.conf's own surfaceOpacity value. Center stays
+    // the most opaque/defined surface (primary, authentication); the two
+    // side surfaces are quieter, the right (session/keyboard/power)
+    // quietest of all per brief.
+    function _panelColor(targetOpacity) {
+        var c = root.theme.colors.surfaceColor
+        var shared = root.theme.surface.surfaceOpacity || 1.0
+        return Qt.rgba(c.r, c.g, c.b, Math.min(1.0, targetOpacity / shared))
+    }
+    function _panelBorder(targetAlpha) {
+        var c = root.theme.colors.textSecondary
+        return Qt.rgba(c.r, c.g, c.b, targetAlpha)
+    }
+
     // --- Power group bottom margin (layout experiment, round 3 — see the
     // comment at powerRow below). A small, fixed margin off the actual
     // bottom of `stage`, deliberately NOT derived from any other
@@ -235,6 +259,10 @@ Item {
                 theme: root.theme
                 shadowEnabled: true
                 shadowOffset: Math.max(1, Math.round(2 * root.uiScale))
+                shadowOpacity: 0.32
+                surfaceColor: root._panelColor(0.85)
+                borderColor: root._panelBorder(0.5)
+                padding: root.theme.spacing.spacingLg
                 anchors.verticalCenter: parent.verticalCenter
 
                 property bool hasError: authService.errorMessage.length > 0
@@ -333,6 +361,9 @@ Item {
             NebulaSurface {
                 id: contextPanel
                 theme: root.theme
+                surfaceColor: root._panelColor(0.72)
+                borderColor: root._panelBorder(0.2)
+                padding: root.theme.spacing.spacingLg
 
                 // Round 6 (2026-09-11, user feedback: "consistent triptych
                 // at all screen sizes" — same composition/position at
@@ -351,22 +382,25 @@ Item {
 
                 Column {
                     width: Math.round(220 * root.uiScale)
-                    spacing: root.theme.spacing.spacingSm
+                    spacing: root.theme.spacing.spacingXs
 
                     // The one piece of "branding" available without any
                     // new Core API (brief §2 — hostname/host info isn't:
                     // no Service exposes it, see
                     // docs/Dashboard-Architecture-Stress-Test.md Gap 3).
-                    // Always shown now (round 6) — no longer tiered by
-                    // isWide, per "no structural change"/no secondary-
-                    // detail reduction in the user's brief.
+                    // Dimmed further (visual refinement pass) — a label,
+                    // not information competing with the clock/date it
+                    // sits above. Always shown now (round 6) — no longer
+                    // tiered by isWide, per "no structural change"/no
+                    // secondary-detail reduction in the user's brief.
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: "N E B U L A"
                         font.family: root.theme.typography.fontFamilySecondary
                         font.pixelSize: root.theme.typography.fontSizeBody * 0.7
                         color: root.theme.colors.textSecondary
-                        font.letterSpacing: 3
+                        opacity: 0.65
+                        font.letterSpacing: 4
                     }
 
                     NebulaClock {
@@ -402,8 +436,21 @@ Item {
             NebulaSurface {
                 id: controlsPanel
                 theme: root.theme
-                visible: sessionSelectorColumn.visible || keyboardToggle.visible
-                    || (networkModel.ethernetPresent || networkModel.wifiPresent)
+                surfaceColor: root._panelColor(0.65)
+                borderColor: root._panelBorder(0.16)
+                padding: root.theme.spacing.spacingLg
+                // Reads the same underlying conditions sessionSelectorColumn/
+                // keyboardToggle each use for their own `visible`, rather than
+                // those children's `.visible` properties directly — binding a
+                // parent's visible to its own descendants' visible triggers a
+                // real QML binding loop (Qt Quick propagates visibility
+                // changes down to children, which redirties those child
+                // bindings and re-triggers this one in the same pass).
+                // Confirmed via journalctl -b -u sddm during the 2026-09-11
+                // 3-screen hardware check: "QML NebulaSurface: Binding loop
+                // detected for property visible" fired on every screen.
+                visible: sessionSelector.model.length > 0 || virtualKeyboard.available
+                    || networkModel.ethernetPresent || networkModel.wifiPresent
 
                 // See contextPanel above for why this is plain x/y, not
                 // anchors.*.
@@ -418,10 +465,28 @@ Item {
                     // vertical stack, sized to whatever it actually
                     // contains rather than a fixed/forced width.
                     NetworkStatus {
+                        id: networkStatus
                         theme: root.theme
                         model: networkModel
                         visible: networkModel.ethernetPresent || networkModel.wifiPresent
                         width: Math.round(180 * root.uiScale)
+                    }
+
+                    // Group-hierarchy spacers (wide/vertical stack only —
+                    // visual refinement pass): the Flow's own `spacing`
+                    // already separates every child equally, which read
+                    // as one undifferentiated list; these add extra air
+                    // only *between* the three logical groups (Network /
+                    // Session+Keyboard / Power), not within Session+
+                    // Keyboard, without touching Core or the breakpoint
+                    // geometry itself. Each is only visible when both the
+                    // group it follows and the group it precedes are
+                    // actually shown, so hiding Network (e.g. no adapter
+                    // present) never leaves a lone orphaned gap.
+                    Item {
+                        visible: networkStatus.visible && sessionSelectorColumn.visible
+                        width: 1
+                        height: root.theme.spacing.spacingSm
                     }
                     Column {
                         id: sessionSelectorColumn
@@ -478,8 +543,8 @@ Item {
             // Round 3: no NebulaSurface wrapper at all, no opacity-
             // hierarchy tier — just the actions directly over the
             // wallpaper, anchored to the real bottom of `stage` with a
-            // small fixed margin (`_powerBottomMargin`, ~14px)
-            // deliberately NOT derived from spacingXl or any other
+            // small fixed margin (`_powerBottomMargin`, ~14px at uiScale
+            // 1) deliberately NOT derived from spacingXl or any other
             // dashboard-panel spacing token, since a screen-edge system
             // control is meant to read differently from a dashboard
             // surface, not share its spacing rhythm. `anchors.bottom:
@@ -491,15 +556,17 @@ Item {
             // related to controlsPanel (brief point 3) — only stage's
             // bottom edge.
             //
-            // Uses the theme-local PowerActions (themes/dashboard/components/)
-            // instead of Core's NebulaPowerButtons — plain-text actions per
-            // the user's mockup, which NebulaButton can't currently express
-            // even via its "ghost" variant (always keeps a border at rest).
-            // See PowerActions.qml for the full rationale; it still goes
-            // through the same NebulaPowerService `powerRow` always used.
-            // `firstFocusItem`/`lastFocusItem` (not `powerRow` itself, which
-            // holds no focus) are what keyboardToggle/sessionSelector/
-            // userList now target — see those bindings above.
+            // Round 7: switched from NebulaPowerButtons to the
+            // theme-local PowerActions (themes/dashboard/components/) —
+            // plain-text actions per the user's mockup, which
+            // NebulaButton can't currently express even via its "ghost"
+            // variant (always keeps a border at rest). See
+            // PowerActions.qml for the full rationale; it still goes
+            // through the same NebulaPowerService `powerRow` always
+            // used. `firstFocusItem`/`lastFocusItem` (not `powerRow`
+            // itself, which holds no focus) are what keyboardToggle/
+            // sessionSelector/userList now target — see those bindings
+            // above.
             PowerActions {
                 id: powerRow
                 theme: root.theme
