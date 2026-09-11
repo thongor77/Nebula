@@ -136,21 +136,30 @@ mkdir -p "$THEME_INSTALL_DIR"
 cp -r "$REPO_ROOT/themes/$THEME/." "$THEME_INSTALL_DIR/"
 
 # Rewrite the installed copy's imports to the module form — the repo's
-# own Main.qml keeps ordinary relative imports unchanged (dev/test
-# workflow via qml6/sddm-greeter --test-mode --theme themes/<name> stays
-# exactly as documented in Creating-A-Theme.md); only the installed
-# artifact is transformed. See docs/Deployment-Decision.md for why this
-# split was chosen over renaming core/ itself.
-sed -i \
-    -e 's#import "\.\./\.\./core/[a-zA-Z]*"#import Nebula#g' \
-    -e 's#import "\.\./\.\./platform/sddm"#import Nebula.Platform.Sddm#g' \
-    "$THEME_INSTALL_DIR/Main.qml"
-# A theme may have imported several core/ subdirectories (theme, config,
-# components, layouts, services) as separate lines, all collapsing to the
-# same `import Nebula` — de-duplicate so qmllint/the engine don't see the
-# same import repeated.
-awk '!(/^import Nebula$/ && seen++)' "$THEME_INSTALL_DIR/Main.qml" > "$THEME_INSTALL_DIR/Main.qml.tmp"
-mv "$THEME_INSTALL_DIR/Main.qml.tmp" "$THEME_INSTALL_DIR/Main.qml"
+# own sources keep ordinary relative imports unchanged (dev/test workflow
+# via qml6/sddm-greeter --test-mode --theme themes/<name> stays exactly as
+# documented in Creating-A-Theme.md); only the installed artifact is
+# transformed. See docs/Deployment-Decision.md for why this split was
+# chosen over renaming core/ itself.
+#
+# Applied to every .qml file in the theme, not just Main.qml — a theme
+# component in a subdirectory (e.g. dashboard/components/NetworkStatus.qml)
+# also imports core/ directly. The `(\.\./)+` pattern matches any nesting
+# depth, since a file's distance from the repo root's core/ varies with how
+# deep the theme nests its own components.
+theme_qml_files=$(find "$THEME_INSTALL_DIR" -name "*.qml")
+for f in $theme_qml_files; do
+    sed -i \
+        -e 's#import "\(\.\./\)\+core/[a-zA-Z]*"#import Nebula#g' \
+        -e 's#import "\(\.\./\)\+platform/sddm"#import Nebula.Platform.Sddm#g' \
+        "$f"
+    # A file may have imported several core/ subdirectories (theme, config,
+    # components, layouts, services) as separate lines, all collapsing to
+    # the same `import Nebula` — de-duplicate so qmllint/the engine don't
+    # see the same import repeated.
+    awk '!(/^import Nebula$/ && seen++)' "$f" > "$f.tmp"
+    mv "$f.tmp" "$f"
+done
 
 # Marker read back by scripts/uninstall-nebula.sh before deleting anything
 # under /usr/share/sddm/themes/ — makes sure it only ever removes a
