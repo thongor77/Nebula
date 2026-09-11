@@ -357,10 +357,16 @@ Item {
                             font.pixelSize: root.theme.typography.fontSizeBody * 0.8
                         }
 
-                        NebulaSessionSelector {
+                        // SessionDropdown (theme-local, see that file for
+                        // the full rationale) replaces Core's pill-row
+                        // NebulaSessionSelector here only — user asked for
+                        // a dropdown for the session choice specifically;
+                        // nord/glass-dark/glass-light keep the Core pills.
+                        SessionDropdown {
                             id: sessionSelector
                             theme: root.theme
                             sessionService: sessionService
+                            overlayParent: stage
                             anchors.horizontalCenter: parent.horizontalCenter
                             KeyNavigation.tab: keyboardToggle.visible ? keyboardToggle : powerRow.firstFocusItem
                             KeyNavigation.backtab: unlockButton
