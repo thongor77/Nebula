@@ -44,6 +44,14 @@ Item {
     readonly property bool isMedium: !root.isWide && root.width >= root.mediumBreakpoint
     readonly property bool isNarrow: root.width < root.mediumBreakpoint
 
+    // --- Power group bottom margin (layout experiment, round 3 — see the
+    // comment at powerRow below). A small, fixed margin off the actual
+    // bottom of `stage`, deliberately NOT derived from any other
+    // dashboard spacing token — the group should read as a screen-edge
+    // system control, not something visually tied to the rest of the
+    // triptych's spacing rhythm.
+    readonly property real _powerBottomMargin: 14
+
     property NebulaThemeLoader themeLoader: NebulaThemeLoader {
         configPath: Qt.resolvedUrl("theme.conf")
     }
@@ -163,7 +171,7 @@ Item {
                         userService: userService
                         anchors.horizontalCenter: parent.horizontalCenter
                         KeyNavigation.tab: passwordField
-                        KeyNavigation.backtab: powerRow.visible ? powerRow : (keyboardToggle.visible ? keyboardToggle : sessionSelector)
+                        KeyNavigation.backtab: powerRow.lastFocusItem
 
                         // Brief pulse on user change, not a looping
                         // animation (Architecture.md §5.4).
@@ -294,10 +302,14 @@ Item {
             // reasoned about on paper — see docs/Dashboard-Theme-Report.md).
             // Below the card there is always the full stage width to
             // wrap against instead.
+            //
+            // Power was moved out of this panel below (round 3) into its
+            // own bottom-anchored group — see the comment at powerRow —
+            // so controlsPanel's own visible/size no longer factor it in.
             NebulaSurface {
                 id: controlsPanel
                 theme: root.theme
-                visible: sessionSelectorColumn.visible || keyboardToggle.visible || powerRow.visible
+                visible: sessionSelectorColumn.visible || keyboardToggle.visible
                     || (root.isWide && (networkModel.ethernetPresent || networkModel.wifiPresent))
 
                 // See contextPanel above for why this is plain x/y, not
@@ -350,7 +362,7 @@ Item {
                             theme: root.theme
                             sessionService: sessionService
                             anchors.horizontalCenter: parent.horizontalCenter
-                            KeyNavigation.tab: keyboardToggle.visible ? keyboardToggle : (powerRow.visible ? powerRow : userList)
+                            KeyNavigation.tab: keyboardToggle.visible ? keyboardToggle : powerRow.firstFocusItem
                             KeyNavigation.backtab: unlockButton
                         }
                     }
@@ -364,21 +376,55 @@ Item {
                             passwordField.forceActiveFocus()
                             virtualKeyboard.toggle()
                         }
-                        KeyNavigation.tab: powerRow.visible ? powerRow : userList
+                        KeyNavigation.tab: powerRow.firstFocusItem
                         KeyNavigation.backtab: sessionSelector
                     }
-
-                    NebulaPowerButtons {
-                        id: powerRow
-                        theme: root.theme
-                        powerService: powerService
-                        confirmBeforeAction: true
-                        visible: powerService.canShutdown || powerService.canReboot
-                            || powerService.canSuspend || powerService.canHibernate
-                        KeyNavigation.tab: userList
-                        KeyNavigation.backtab: keyboardToggle.visible ? keyboardToggle : sessionSelector
-                    }
                 }
+            }
+
+            // --- POWER — global machine actions (Shut Down/Restart/Sleep/
+            // Hibernate). Layout experiment (2026-09-11): power controls
+            // are not session/network context, so they no longer live
+            // inside controlsPanel (RIGHT) — they get their own group,
+            // stable at the bottom-center of the stage across every
+            // breakpoint rather than folding into whichever tier the
+            // triptych happens to be in.
+            //
+            // Round 3: no NebulaSurface wrapper at all, no opacity-
+            // hierarchy tier — just the actions directly over the
+            // wallpaper, anchored to the real bottom of `stage` with a
+            // small fixed margin (`_powerBottomMargin`, ~14px)
+            // deliberately NOT derived from spacingXl or any other
+            // dashboard-panel spacing token, since a screen-edge system
+            // control is meant to read differently from a dashboard
+            // surface, not share its spacing rhythm. `anchors.bottom:
+            // parent.bottom` (parent is `stage`) means virtual-keyboard
+            // safety keeps working for free: stage's own bottomMargin
+            // already grows by `virtualKeyboard.reservedHeight`, so the
+            // anchor target itself moves up with it — nothing here needs
+            // its own keyboard-awareness. Explicitly NOT vertically
+            // related to controlsPanel (brief point 3) — only stage's
+            // bottom edge.
+            //
+            // Uses the theme-local PowerActions (themes/dashboard/components/)
+            // instead of Core's NebulaPowerButtons — plain-text actions per
+            // the user's mockup, which NebulaButton can't currently express
+            // even via its "ghost" variant (always keeps a border at rest).
+            // See PowerActions.qml for the full rationale; it still goes
+            // through the same NebulaPowerService `powerRow` always used.
+            // `firstFocusItem`/`lastFocusItem` (not `powerRow` itself, which
+            // holds no focus) are what keyboardToggle/sessionSelector/
+            // userList now target — see those bindings above.
+            PowerActions {
+                id: powerRow
+                theme: root.theme
+                powerService: powerService
+                confirmBeforeAction: true
+                tabTarget: userList
+                backtabTarget: keyboardToggle.visible ? keyboardToggle : sessionSelector
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: root._powerBottomMargin
             }
         }
 
